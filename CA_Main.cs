@@ -261,7 +261,7 @@ public class CA_Main : TanksMod {
 
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
-            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, ((TankHurtContextShell)player_kill).Shell.Owner , 0U, origin.Properties.ShellHoming, false, false);
+            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin , 0U, origin.Properties.ShellHoming, false, false);
             Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
             Vector2 newPos2 = origin.Position + new Vector2(0f, 20f).RotatedByRadians(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
