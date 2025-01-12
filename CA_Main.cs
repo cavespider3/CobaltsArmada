@@ -232,6 +232,7 @@ public class CA_Main : TanksMod {
     public static void Fire_AbstractShell(Shell origin,int count, int newType = 1, uint burst_bounces = 0,float burst_expand=3.5f)
     {
         if ((!MainMenu.Active && !GameProperties.InMission)) return;
+        if (origin is null) return;
         float angle = 0;
         float rng_burst = origin.Rotation+ (MathF.PI * 2f / (count*2f));
         for (int i = 0; i < count; i++)
@@ -251,7 +252,7 @@ public class CA_Main : TanksMod {
     public static void Fire_AbstractShell_Tank(Tank origin, int count,ITankHurtContext player_kill, int newType = 1, uint burst_bounces=0, float burst_expand = 3.4f)
     {
         if ((!MainMenu.Active && !GameProperties.InMission)) return;
-       
+        if (origin is null) return;
 
         float angle = 0;
         float rng_burst = GameHandler.GameRand.NextFloat(-MathF.PI, MathF.PI);
@@ -271,7 +272,7 @@ public class CA_Main : TanksMod {
     public static void Fire_AbstractShell_Mine(Mine origin, int count, int newType = 1, uint burst_bounces = 0, float burst_expand = 3.5f)
     {
         if ((!MainMenu.Active && !GameProperties.InMission)) return;
-       
+        if (origin is null) return;
         float angle = 0;
         float rng_burst = GameHandler.GameRand.NextFloat(-MathF.PI, MathF.PI);
         for (int i = 0; i < count; i++)
