@@ -22,6 +22,10 @@ namespace CobaltsArmada
         {
             //TANK NO BACK DOWN
             base.PostApplyDefaults(tank);
+
+            tank.Model = CA_Main.Neo_Mobile;
+            tank.Scaling = Vector3.One * 100.0f * 1.1f;
+
             tank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
             tank.AiParams.MeanderFrequency = 10;
             tank.AiParams.TurretMeanderFrequency = 20;
@@ -31,7 +35,7 @@ namespace CobaltsArmada
             tank.AiParams.Inaccuracy = 0.6f;
 
             tank.AiParams.PursuitLevel = 1f;
-            tank.AiParams.PursuitFrequency = 360;
+            tank.AiParams.PursuitFrequency = 20;
 
             tank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
             tank.AiParams.ProjectileWarinessRadius_AIShot = 40;
@@ -68,7 +72,8 @@ namespace CobaltsArmada
         public override void TakeDamage(AITank tank, bool destroy, ITankHurtContext context)
         {
             base.TakeDamage(tank, destroy, context);
-            Mine mine = new Mine(tank, tank.Position, 200f, 2.1f);
+            if (!destroy) return;
+            new Mine(tank, tank.Position, 200f, 2.1f);
         }
         public override void Shoot(AITank tank, ref Shell shell)
         {

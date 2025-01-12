@@ -25,7 +25,8 @@ namespace CobaltsArmada
         public override void PostApplyDefaults(AITank tank)
         {
             base.PostApplyDefaults(tank);
-
+            tank.Model = CA_Main.Neo_Stationary;
+            tank.Scaling = Vector3.One * 100.0f;
             tank.AiParams.TurretMeanderFrequency = 15;
             tank.AiParams.TurretSpeed = 0.05f;
             tank.AiParams.AimOffset = 0.005f;
@@ -61,8 +62,9 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(AITank tank, bool destroy, ITankHurtContext context)
         {
+  
             base.TakeDamage(tank, destroy, context);
-            CA_Main.Fire_AbstractShell_Tank(tank,6, context, 1, 1, 5f);
+            CA_Main.Fire_AbstractShell_Tank(tank, 6, context, 1, 1, 5f);
         }
 
         public override void Shoot(AITank tank, ref Shell shell)

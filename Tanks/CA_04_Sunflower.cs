@@ -21,6 +21,8 @@ namespace CobaltsArmada
         public override void PostApplyDefaults(AITank tank)
         {
             base.PostApplyDefaults(tank);
+            tank.Model = CA_Main.Neo_Mobile;
+            tank.Scaling = Vector3.One * 100.0f;
             tank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
             tank.AiParams.MeanderFrequency = 10;
             tank.AiParams.TurretMeanderFrequency = 20;

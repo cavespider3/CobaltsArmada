@@ -81,11 +81,11 @@ public class CA_Main : TanksMod {
     static public Color Cosmium => Color.Fuchsia;  // Black Tank
 
 
-    public static bool CustomDifficulty_Invasion = false;
+    public static bool CustomDifficulty_Invasion = true;
 
 
-    public Model Neo_Stationary;
-    public Model Neo_Mobile;
+    public static Model Neo_Stationary;
+    public static Model Neo_Mobile;
 
     public override void OnLoad() {
         Campaign.OnMissionLoad += Highjack_Mission;
@@ -94,7 +94,7 @@ public class CA_Main : TanksMod {
  
         Shell.OnRicochet += Shell_OnRicochet;
         Shell.OnRicochetWithBlock += Shell_OnRicochetWithBlock;
-        Tank.PostApplyDefaults += Tank_PostApplyDefaults;
+    
         Mine.OnExplode += Mine_OnExplode;
 
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
@@ -111,35 +111,40 @@ public class CA_Main : TanksMod {
             {
             
             if (tanks[i] is PlayerTank || tanks[i] is null) continue;
+                var ai = tanks[i] as AITank;
             float secret_tank_chance = (float)GameProperties.LoadedCampaign.CurrentMissionId / GameProperties.LoadedCampaign.CachedMissions.Length;
             if (GameHandler.GameRand.NextFloat(0, 1) <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
             {
                 GameHandler.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
-                if (GameHandler.GameRand.NextFloat(0, 1) < 0.25) ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_X1_Kudzu>().Type, true);
-                else ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_X2_CorpseFlower>().Type, true);
+                if (GameHandler.GameRand.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetModTank<CA_X1_Kudzu>().Type, true);
+                else ai.Swap(ModContent.GetModTank<CA_X2_CorpseFlower>().Type, true);
 
             }
             else
             {
-                switch (((AITank)tanks[i]).AiTankType)
+                switch (ai.AiTankType)
                 {
-                    case TankID.Brown: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_01_Dandelion>().Type, true); break;
-                    case TankID.Ash: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_02_Perwinkle>().Type, true); break;
-                    case TankID.Marine: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_03_Pansy>().Type, true); break;
-                    case TankID.Yellow: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_04_Sunflower>().Type, true); break;
-                    case TankID.Pink: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_05_Poppy>().Type, true); break;
-                    case TankID.Violet: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_07_Lavender>().Type, true); break;
-                    case TankID.Green: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_06_Daisy>().Type, true); break;
-                    case TankID.White: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_08_Eryngium>().Type, true); break;
-                    case TankID.Black: ((AITank)tanks[i]).Swap(ModContent.GetModTank<CA_09_Carnation>().Type, true); break;
+                    case TankID.Brown: ai.Swap(ModContent.GetModTank<CA_01_Dandelion>().Type, true); break;
+                    case TankID.Ash: ai.Swap(ModContent.GetModTank<CA_02_Perwinkle>().Type, true); break;
+                    case TankID.Marine: ai.Swap(ModContent.GetModTank<CA_03_Pansy>().Type, true); break;
+                    case TankID.Yellow: ai.Swap(ModContent.GetModTank<CA_04_Sunflower>().Type, true); break;
+                    case TankID.Pink: ai.Swap(ModContent.GetModTank<CA_05_Poppy>().Type, true); break;
+                    case TankID.Violet: ai.Swap(ModContent.GetModTank<CA_07_Lavender>().Type, true); break;
+                    case TankID.Green: ai.Swap(ModContent.GetModTank<CA_06_Daisy>().Type, true); break;
+                    case TankID.White: ai.Swap(ModContent.GetModTank<CA_08_Eryngium>().Type, true); break;
+                    case TankID.Black: ai.Swap(ModContent.GetModTank<CA_09_Carnation>().Type, true); break;
                     default: break;
 
                 }
-                tanks[i].Initialize();
+               
             }
+            ai.InitModelSemantics();
         }
         
     }
+
+
+
 
     private void Mine_OnExplode(Mine mine)
     {
@@ -163,50 +168,6 @@ public class CA_Main : TanksMod {
     }
 
 
-    private void Tank_PostApplyDefaults(Tank tank, ref TankProperties properties)
-    {
-       
-        if (tank is PlayerTank) return;
-        AITank ai = (AITank)tank;
-        var Dandelion = ModContent.GetModTank<CA_01_Dandelion>();
-        var Peri = ModContent.GetModTank<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetModTank<CA_03_Pansy>();
-        var Sunny = ModContent.GetModTank<CA_04_Sunflower>();
-        var Poppy = ModContent.GetModTank<CA_05_Poppy>();
-        var Daisy = ModContent.GetModTank<CA_06_Daisy>();
-        var Lavi = ModContent.GetModTank<CA_07_Lavender>();
-        var Eryn = ModContent.GetModTank<CA_08_Eryngium>();
-        var Carnation = ModContent.GetModTank<CA_09_Carnation>();
-        var Kudzu = ModContent.GetModTank<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetModTank<CA_X2_CorpseFlower>();
-
-        if (ai.AiTankType == Dandelion.Type || ai.AiTankType == Daisy.Type)
-        {
-            tank.Model = Neo_Stationary;
-            tank.Scaling = Vector3.One * 100.0f;
-        }
-        else if(ai.AiTankType == Peri.Type
-            || ai.AiTankType == Pansy.Type
-            || ai.AiTankType == Sunny.Type
-            || ai.AiTankType == Poppy.Type
-            || ai.AiTankType == Lavi.Type
-            || ai.AiTankType == Eryn.Type
-            || ai.AiTankType == Carnation.Type
-            || ai.AiTankType == Kudzu.Type
-            || ai.AiTankType == Corpse.Type
-            )
-        {
-            tank.Model = Neo_Mobile;
-            tank.Scaling = Vector3.One * 100.0f * (ai.AiTankType == Corpse.Type || 
-                ai.AiTankType == Lavi.Type || 
-                ai.AiTankType == Eryn.Type ? 1.1f : 1f)
-                * ( ai.AiTankType == Carnation.Type ?1.25f:1f) 
-                * (ai.AiTankType == Kudzu.Type ? 0.8f : 1f);
-
-        }
-
-    }
-
     private void Shell_OnRicochetWithBlock(ref Block block, Shell shell)
     {
         Shell_OnRicochet(shell);
@@ -229,7 +190,7 @@ public class CA_Main : TanksMod {
         var Corpse = ModContent.GetModTank<CA_X2_CorpseFlower>();
         var ai = (AITank)shell.Owner;
        if (ai.AiTankType == Daisy.Type && shell.Type == ShellID.Rocket)
-        Fire_AbstractShell(shell, 3,1,0,3.5f);
+        Fire_AbstractShell(shell, 4,1,0,3.5f);
     }
 
 
@@ -301,7 +262,7 @@ public class CA_Main : TanksMod {
             float newAngle = angle;
             Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, ((TankHurtContextShell)player_kill).Shell.Owner , 0U, origin.Properties.ShellHoming, false, false);
             Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
-            Vector2 newPos2 = origin.Position + new Vector2(0f, 14f).RotatedByRadians(-newAngle);
+            Vector2 newPos2 = origin.Position + new Vector2(0f, 20f).RotatedByRadians(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
             shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y)* burst_expand;
             shell2.RicochetsRemaining = burst_bounces;
@@ -320,7 +281,7 @@ public class CA_Main : TanksMod {
             float newAngle = angle;
             Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, new Shell.HomingProperties(), false, true);
             Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
-            Vector2 newPos2 = origin.Position + new Vector2(0f, 15f).RotatedByRadians(-newAngle);
+            Vector2 newPos2 = origin.Position + new Vector2(0f, 25f).RotatedByRadians(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
             shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y) * burst_expand;
             shell2.RicochetsRemaining = burst_bounces;
@@ -333,7 +294,7 @@ public class CA_Main : TanksMod {
      
         Shell.OnRicochet -= Shell_OnRicochet;
         Shell.OnRicochetWithBlock -= Shell_OnRicochetWithBlock;
-        Tank.PostApplyDefaults -= Tank_PostApplyDefaults;
+       
         Mine.OnExplode -= Mine_OnExplode;
         Campaign.OnMissionLoad -= Highjack_Mission;
     }

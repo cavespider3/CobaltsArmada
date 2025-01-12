@@ -22,19 +22,21 @@ namespace CobaltsArmada
         {
            
             base.PostApplyDefaults(tank);
+            tank.Model = CA_Main.Neo_Mobile;
+            tank.Scaling = Vector3.One * 100.0f * 1.25f;
             var aiParams = tank.AiParams;
             var properties = tank.Properties;
             aiParams.MeanderAngle = MathHelper.ToRadians(30);
             aiParams.MeanderFrequency = 20;
-            aiParams.TurretMeanderFrequency = 10;
-            aiParams.TurretSpeed = 0.05f;
+            aiParams.TurretMeanderFrequency = 40;
+            aiParams.TurretSpeed = 0.2f;
             aiParams.AimOffset = 0.18f;
 
             aiParams.Inaccuracy = 0.9f;
 
             //also maximum agro lmfao
             aiParams.PursuitLevel = 1f;
-            aiParams.PursuitFrequency = 240;
+            aiParams.PursuitFrequency = 50;
 
             aiParams.ProjectileWarinessRadius_PlayerShot = 70;
             aiParams.ProjectileWarinessRadius_AIShot = 70;
@@ -43,12 +45,14 @@ namespace CobaltsArmada
             aiParams.MineWarinessRadius_AILaid = 0;
 
             properties.TurningSpeed = 0.06f;
-            properties.MaximalTurn = MathHelper.ToRadians(5);
+            properties.MaximalTurn = MathHelper.ToRadians(34);
 
             properties.ShootStun = 1;
-            properties.ShellCooldown = 300;
-            properties.ShellLimit = 6;
-            properties.ShellSpeed = 8.5f;
+            properties.ShellCooldown = 2;
+            properties.ShellShootCount = 5;
+            properties.ShellSpread =0.4f;
+            properties.ShellLimit = 20;
+            properties.ShellSpeed = 6.5f;
             properties.ShellType = ShellID.Rocket;
 
             properties.RicochetCount = 0;
@@ -57,7 +61,7 @@ namespace CobaltsArmada
             properties.Stationary = false;
             properties.VulnerableToMines = false;
 
-            aiParams.DeflectsBullets = true;
+         
             aiParams.ShootsMinesSmartly = true;
 
             properties.TreadPitch = -0.26f;
@@ -71,7 +75,7 @@ namespace CobaltsArmada
 
             aiParams.MinePlacementChance = 0.2f;
 
-            aiParams.BlockWarinessDistance = 50;
+            aiParams.BlockWarinessDistance = 80;
             aiParams.BlockReadTime = 10;
 
             tank.BaseExpValue = 0.175f;

@@ -21,6 +21,8 @@ namespace CobaltsArmada
         public override void PostApplyDefaults(AITank tank)
         {
             base.PostApplyDefaults(tank);
+            tank.Model = CA_Main.Neo_Stationary;
+            tank.Scaling = Vector3.One * 100.0f;
             tank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
             tank.AiParams.MeanderFrequency = 10;
             tank.AiParams.TurretMeanderFrequency = 20;
@@ -30,7 +32,7 @@ namespace CobaltsArmada
             tank.AiParams.Inaccuracy = 0.6f;
 
             tank.AiParams.PursuitLevel = 0.9f;
-            tank.AiParams.PursuitFrequency = 500;
+            tank.AiParams.PursuitFrequency = 2;
 
             tank.AiParams.ProjectileWarinessRadius_PlayerShot = 120;
             tank.AiParams.ProjectileWarinessRadius_AIShot = 100;
@@ -45,7 +47,7 @@ namespace CobaltsArmada
             tank.Properties.ShellLimit = 1;
             tank.Properties.ShellSpeed = 5f;
             tank.Properties.ShellType = ShellID.Rocket;
-            tank.Properties.RicochetCount = 2;
+            tank.Properties.RicochetCount = 3;
             tank.AiParams.SmartRicochets =true;
 
             tank.Properties.Invisible = false;
@@ -64,8 +66,9 @@ namespace CobaltsArmada
 
         public override void TakeDamage(AITank tank, bool destroy, ITankHurtContext context)
         {
-            base.TakeDamage(tank, destroy, context);
-            Mine mine = new Mine(tank, tank.Position, 50f,1f);
+            base.TakeDamage(tank, destroy, context); 
+            if (!destroy) return;
+            new Mine(tank, tank.Position, 50f,1f);
         }
 
         public override void Shoot(AITank tank, ref Shell shell)

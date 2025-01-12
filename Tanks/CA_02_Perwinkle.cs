@@ -23,18 +23,20 @@ namespace CobaltsArmada
         {
            //Periwinkles are probably the most generic tank of the mod
             base.PostApplyDefaults(tank);
+            tank.Model = CA_Main.Neo_Mobile;
+            tank.Scaling = Vector3.One * 100.0f;
             var aiParams = tank.AiParams;
             var properties = tank.Properties;
-            aiParams.MeanderAngle = MathHelper.ToRadians(30);
-            aiParams.MeanderFrequency = 10;
+            aiParams.MeanderAngle = MathHelper.ToRadians(7);
+            aiParams.MeanderFrequency = 20;
             aiParams.TurretMeanderFrequency = 60;
             aiParams.TurretSpeed = 0.045f;
             aiParams.AimOffset = 0.9f;
 
             aiParams.Inaccuracy = 0.4f;
 
-            aiParams.PursuitLevel = 0.3f;
-            aiParams.PursuitFrequency = 120;
+            aiParams.PursuitLevel = 1f;
+            aiParams.PursuitFrequency = 40;
 
             aiParams.ProjectileWarinessRadius_PlayerShot = 70;
             aiParams.MineWarinessRadius_PlayerLaid = 140;
@@ -43,8 +45,8 @@ namespace CobaltsArmada
             properties.MaximalTurn = MathHelper.PiOver2;
 
             properties.ShootStun = 0;
-            properties.ShellCooldown = 15;
-            properties.ShellLimit = 8;
+            properties.ShellCooldown = 70;
+            properties.ShellLimit = 3;
             properties.ShellSpeed = 4f;
             properties.ShellType = ShellID.Standard;
             properties.RicochetCount = 1;
@@ -54,9 +56,9 @@ namespace CobaltsArmada
             properties.ShellHoming = new();
 
             properties.TreadPitch = 0.2f;
-            properties.MaxSpeed = 1.6f;
-            properties.Acceleration = 0.3f;
-            properties.Deceleration = 0.6f;
+            properties.MaxSpeed = 1.7f;
+            properties.Acceleration = 0.1f;
+            properties.Deceleration = 0.1f;
 
             properties.MineCooldown = 60 * 20;
             properties.MineLimit = 1;

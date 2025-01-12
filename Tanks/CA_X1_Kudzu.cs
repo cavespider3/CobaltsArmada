@@ -25,8 +25,10 @@ namespace CobaltsArmada
         public override void PostApplyDefaults(AITank tank)
         {
             base.PostApplyDefaults(tank);
+            tank.Model = CA_Main.Neo_Mobile;
+            tank.Scaling = Vector3.One * 100.0f * 0.81f;
             tank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            tank.AiParams.MeanderFrequency = 120;
+            tank.AiParams.MeanderFrequency = 20;
             tank.AiParams.TurretMeanderFrequency = 20;
             tank.AiParams.TurretSpeed = 0.03f;
             tank.AiParams.AimOffset = MathHelper.ToRadians(9);
@@ -34,7 +36,7 @@ namespace CobaltsArmada
             tank.AiParams.Inaccuracy = 0.6f;
 
             tank.AiParams.PursuitLevel = 1f;
-            tank.AiParams.PursuitFrequency = 120;
+            tank.AiParams.PursuitFrequency = 40;
 
             //Clueless
             tank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
@@ -43,7 +45,7 @@ namespace CobaltsArmada
             tank.AiParams.MineWarinessRadius_AILaid = 0;
 
             tank.Properties.TurningSpeed = 0.09f;
-            tank.Properties.MaximalTurn = MathHelper.ToRadians(30);
+            tank.Properties.MaximalTurn = MathHelper.ToRadians(80);
 
             tank.Properties.ShootStun = 0;
             tank.Properties.ShellCooldown = 180;
@@ -75,7 +77,7 @@ namespace CobaltsArmada
         public override void PreUpdate(AITank tank)
         {
             base.PreUpdate(tank);
-            if (AIManager.CountAll() >= 12)
+            if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
             {
                 tank.SpecialBehaviors[1].Value = 0f;
                 tank.SpecialBehaviors[0].Value = 0f;
