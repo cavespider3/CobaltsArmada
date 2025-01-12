@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Aether.Physics2D">
+      <HintPath>projrefs\Aether.Physics2D.dll</HintPath>
+    </Reference>
+    <Reference Include="Aspose.Zip">
+      <HintPath>projrefs\Aspose.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="Cyotek.Drawing.BitmapFont">
+      <HintPath>projrefs\Cyotek.Drawing.BitmapFont.dll</HintPath>
+    </Reference>
+    <Reference Include="DiscordRPC">
+      <HintPath>projrefs\DiscordRPC.dll</HintPath>
+    </Reference>
+    <Reference Include="FontStashSharp.MonoGame">
+      <HintPath>projrefs\FontStashSharp.MonoGame.dll</HintPath>
+    </Reference>
+    <Reference Include="LiteNetLib">
+      <HintPath>projrefs\LiteNetLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MeltySynth">
+      <HintPath>projrefs\MeltySynth.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>projrefs\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Framework">
+      <HintPath>projrefs\MonoGame.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="NativeFileDialogSharp">
+      <HintPath>projrefs\NativeFileDialogSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>projrefs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="StbImageSharp">
+      <HintPath>projrefs\StbImageSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="StbTrueTypeSharp">
+      <HintPath>projrefs\StbTrueTypeSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="StbVorbisSharp">
+      <HintPath>projrefs\StbVorbisSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.CodeDom">
+      <HintPath>projrefs\System.CodeDom.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Management">
+      <HintPath>projrefs\System.Management.dll</HintPath>
+    </Reference>
+    <Reference Include="TanksRebirth">
+      <HintPath>projrefs\TanksRebirth.dll</HintPath>
+    </Reference>
+    <Reference Include="TextCopy">
+      <HintPath>projrefs\TextCopy.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

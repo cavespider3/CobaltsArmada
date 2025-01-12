@@ -1,0 +1,105 @@
+﻿using Microsoft.Xna.Framework;
+using TanksRebirth;
+using TanksRebirth.GameContent;
+using TanksRebirth.GameContent.ID;
+using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems.Coordinates;
+using TanksRebirth.Internals.Common.Utilities;
+using TanksRebirth.Localization;
+
+namespace CobaltsArmada
+{
+    public class CA_X1_Kudzu: ModTank 
+    {
+      
+        public override bool HasSong => false;
+        public override LocalizedString Name => new(new()
+        {
+            [LangCode.English] = "Kudzu"
+        });
+
+        public override string Texture => "assets/textures/tank_kudzu";
+        public override int Songs => 5;
+  
+        public override Color AssociatedColor => Color.Olive;
+        public override void PostApplyDefaults(AITank tank)
+        {
+            base.PostApplyDefaults(tank);
+            tank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
+            tank.AiParams.MeanderFrequency = 120;
+            tank.AiParams.TurretMeanderFrequency = 20;
+            tank.AiParams.TurretSpeed = 0.03f;
+            tank.AiParams.AimOffset = MathHelper.ToRadians(9);
+
+            tank.AiParams.Inaccuracy = 0.6f;
+
+            tank.AiParams.PursuitLevel = 1f;
+            tank.AiParams.PursuitFrequency = 120;
+
+            //Clueless
+            tank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
+            tank.AiParams.ProjectileWarinessRadius_AIShot = 0;
+            tank.AiParams.MineWarinessRadius_PlayerLaid = 0;
+            tank.AiParams.MineWarinessRadius_AILaid = 0;
+
+            tank.Properties.TurningSpeed = 0.09f;
+            tank.Properties.MaximalTurn = MathHelper.ToRadians(30);
+
+            tank.Properties.ShootStun = 0;
+            tank.Properties.ShellCooldown = 180;
+            tank.Properties.ShellLimit = 2;
+            tank.Properties.ShellSpeed = 4f;
+            tank.Properties.ShellType = ShellID.Standard;
+            tank.Properties.RicochetCount = 0;
+
+            tank.AiParams.ShootChance = 0.3f;
+
+            tank.Properties.Invisible = false;
+            tank.Properties.Stationary = false;
+            tank.Properties.CanLayTread = false;
+
+            tank.Properties.TreadVolume = 0.02f;
+            tank.Properties.TreadPitch = 0.7f;
+            tank.Properties.MaxSpeed = 2.3f;
+
+            tank.Properties.Acceleration = 0.1f;
+
+            tank.AiParams.BlockWarinessDistance = 69;
+        }
+        public override void Shoot(AITank tank, ref Shell shell)
+        {
+
+            base.Shoot(tank, ref shell);
+            shell.FlameColor = AssociatedColor;
+        }
+        public override void PreUpdate(AITank tank)
+        {
+            base.PreUpdate(tank);
+            if (AIManager.CountAll() >= 12)
+            {
+                tank.SpecialBehaviors[1].Value = 0f;
+                tank.SpecialBehaviors[0].Value = 0f;
+                return;
+            }
+            tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
+            if (tank.SpecialBehaviors[1].Value == 0)
+                tank.SpecialBehaviors[1].Value = GameHandler.GameRand.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, AIManager.CountAll() / 7f), 0, 1);
+
+            if (tank.SpecialBehaviors[0].Value > tank.SpecialBehaviors[1].Value)
+            {
+                tank.SpecialBehaviors[1].Value = 0f;
+                tank.SpecialBehaviors[0].Value = 0f;
+
+                var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
+
+                var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
+                crate.TankToSpawn = new TankTemplate()
+                {
+                    AiTier = Type,
+                    IsPlayer = false,
+                    Team = tank.Team
+                };
+            }
+        }
+    }
+}
