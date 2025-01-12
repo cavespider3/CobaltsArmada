@@ -81,7 +81,7 @@ public class CA_Main : TanksMod {
     static public Color Cosmium => Color.Fuchsia;  // Black Tank
 
 
-    public static bool CustomDifficulty_Invasion = true;
+    public static bool CustomDifficulty_Invasion = false;
 
 
     public Model Neo_Stationary;
