@@ -47,10 +47,10 @@ namespace CobaltsArmada
             properties.ShootStun = 220;
             properties.ShellCooldown = 300;
             properties.ShellLimit = 1;
-            properties.ShellSpeed = 6f;
+            properties.ShellSpeed = 9f;
             properties.Recoil = 500f;
             properties.ShellType = ShellID.TrailedRocket;
-            properties.RicochetCount = 3;
+            properties.RicochetCount = 0;
             //we get a little devious
             properties.Invisible = GameProperties.LoadedCampaign.CurrentMissionId>= 50;
             properties.Stationary = false;
