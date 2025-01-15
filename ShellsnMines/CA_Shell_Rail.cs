@@ -47,6 +47,8 @@ namespace CobaltsArmada
            
         }
 
+
+
         /// <summary>
         /// Called during a laser raycast
         /// </summary>
@@ -148,7 +150,7 @@ namespace CobaltsArmada
             for (var i = 0; i < ai.ShotPathTankCollPoints.Length; i++)
             {
                 CheckCollisions_DeathBeam(shell, ai.ShotPathTankCollPoints[i],unforgiveness);
-            }
+            } 
         }
         
 
@@ -171,15 +173,15 @@ namespace CobaltsArmada
             AITank ai = (AITank)shell.Owner;
             float Laser_length =Vector2.Distance(shell.Position,ai.ShotPathRicochetPoints[0]);
             float BEW = shell.LifeTime/60 * MathF.PI*2f;
-            float dur = 2.4f;
+            float dur = 1.6f;
 
             float scaletimer = LaserLerp(MathF.Max(0.0f,-MathF.Cos(BEW/ dur) /2f + 0.5f),0.3f);
             float laser_Magnify = 4.3f;
             
-            shell.World = Matrix.CreateScale(scaletimer*laser_Magnify, scaletimer* laser_Magnify, Laser_length/8f) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
-                * Matrix.CreateTranslation(shell.Position3D);
+            shell.World = Matrix.CreateScale(scaletimer*laser_Magnify, scaletimer* laser_Magnify, Laser_length/2f) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
+                * Matrix.CreateTranslation(shell.Position3D)*Matrix.CreateTranslation(Vector3.Normalize(shell.Velocity3D) * Laser_length/2f);
 
-            DoKillcast(shell, shell.Position, shell.Position + Vector2.Normalize(shell.Position)*Laser_length, Laser_length/2f,5.8f);
+            DoKillcast(shell, shell.Position, shell.Position + Vector2.Normalize(shell.Position) * Laser_length, Laser_length, 5.8f);
             if (dur*60f < shell.LifeTime)
             {
                 shell.Remove();

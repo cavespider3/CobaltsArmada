@@ -47,7 +47,7 @@ namespace CobaltsArmada
 
             tank.Properties.ShellSpeed = 4f;
 
-            tank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Rail>().Type;
+            tank.Properties.ShellType = ShellID.Rocket;//ModContent.GetSingleton<CA_Shell_Rail>().Type;
 
             tank.Properties.RicochetCount = 2;
 
