@@ -6,6 +6,7 @@ using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
+using TanksRebirth.Net;
 
 namespace CobaltsArmada
 {
@@ -85,7 +86,7 @@ namespace CobaltsArmada
             }
             tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
             if (tank.SpecialBehaviors[1].Value == 0)
-                tank.SpecialBehaviors[1].Value = GameHandler.GameRand.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, AIManager.CountAll() / 7f), 0, 1);
+                tank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, AIManager.CountAll() / 7f), 0, 1);
 
             if (tank.SpecialBehaviors[0].Value > tank.SpecialBehaviors[1].Value)
             {
