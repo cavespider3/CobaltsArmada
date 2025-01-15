@@ -120,7 +120,6 @@ public class CA_Main : TanksMod {
             if (ai is null) continue;
             float secret_tank_chance = (float)GameProperties.LoadedCampaign.CurrentMissionId / GameProperties.LoadedCampaign.CachedMissions.Length;
             var nextFloat = Server.ServerRandom.NextFloat(0, 1);
-            ChatSystem.SendMessage($"{nextFloat}", Color.White);
             if (nextFloat <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
             {
                 TankGame.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
