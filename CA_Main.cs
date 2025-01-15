@@ -91,6 +91,7 @@ public class CA_Main : TanksMod {
     [AllowNull]
     public static Model Shell_Beam;
     public override void OnLoad() {
+     
         Campaign.OnMissionLoad += Highjack_Mission;
    
         Shell.OnDestroy += Shell_OnDestroy;
@@ -105,9 +106,9 @@ public class CA_Main : TanksMod {
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
     }
 
-
     private void Highjack_Mission(ref Tank[] tanks, ref Block[] blocks)
     {
+        if (MainMenu.Active) return;
         if (!CustomDifficulty_Invasion) return;
         TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
        // ChatSystem.SendMessage("Invading campaign...", Color.Yellow);
@@ -118,7 +119,9 @@ public class CA_Main : TanksMod {
                 var ai = tanks[i] as AITank;
             if (ai is null) continue;
             float secret_tank_chance = (float)GameProperties.LoadedCampaign.CurrentMissionId / GameProperties.LoadedCampaign.CachedMissions.Length;
-            if (Server.ServerRandom.NextFloat(0,1) <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
+            var nextFloat = Server.ServerRandom.NextFloat(0, 1);
+            ChatSystem.SendMessage($"{nextFloat}", Color.White);
+            if (nextFloat <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
             {
                 TankGame.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
                 if (Server.ServerRandom.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true);
@@ -236,7 +239,7 @@ public class CA_Main : TanksMod {
     /// </summary>
     public static void Fire_AbstractShell(Shell origin,int count, int newType = 1, uint burst_bounces = 0,float burst_expand=3.5f)
     {
-        if ((!MainMenu.Active && !GameProperties.InMission)) return;
+        if (MainMenu.Active || !GameProperties.InMission) return;
         if (origin is null||origin.Owner is null) return;
         float angle = 0;
         float rng_burst = origin.Rotation+ (MathF.PI * 2f / (count*2f));
@@ -256,7 +259,7 @@ public class CA_Main : TanksMod {
 
     public static void Fire_AbstractShell_Tank(Tank origin, int count,ITankHurtContext player_kill, int newType = 1, uint burst_bounces=0, float burst_expand = 3.4f)
     {
-        if ((!MainMenu.Active && !GameProperties.InMission)) return;
+        if (MainMenu.Active || !GameProperties.InMission) return;
         if (origin is null) return;
 
         float angle = 0;
