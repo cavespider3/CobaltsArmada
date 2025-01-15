@@ -90,7 +90,7 @@
         <member name="F:TanksRebirth.GameContent.Block.MAX_BLOCK_HEIGHT">
             <summary>The maximum height of any <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
         </member>
-        <member name="F:TanksRebirth.GameContent.Block.FULL_BLOCK_SIZE">
+        <member name="F:TanksRebirth.GameContent.Block.SIDE_LENGTH">
             <summary>The floating point square-rooted dimensions of any <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
         </member>
         <member name="F:TanksRebirth.GameContent.Block.SLAB_SIZE">
@@ -101,25 +101,6 @@
         </member>
         <member name="F:TanksRebirth.GameContent.Block.Id">
             <summary>The identifier for this <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Block.IsDestructible">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is destructible from explosions.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Block.IsSolid">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is solid. This only affects <see cref="T:TanksRebirth.GameContent.Shell"/>s and their ability to pass through.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Block.IsCollidable">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is collidable. This only affects things with physics bodies (i.e: <see cref="T:TanksRebirth.GameContent.Tank"/>s).</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Block.AllowShotPathBounce">
-            <summary>Whether or not an <see cref="T:TanksRebirth.GameContent.AITank"/> should calculate a bounce off of this <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Block.PathBounceCount">
-            <summary> How many bounces a <see cref="T:TanksRebirth.GameContent.Shell"/> should regain from hitting this <see cref="T:TanksRebirth.GameContent.Block"/>.
-            <para></para>Set to negative to increase the amount. Set to 0 to make nothing happen.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Block.CanStack">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> can stack. This will make the level editor UI not show a stack count.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.Block.IsAlternateModel">
             <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is using its alternate model.</summary>
@@ -135,6 +116,28 @@
         </member>
         <member name="M:TanksRebirth.GameContent.Block.Destroy">
             <summary>Make destruction particle effects and later, <see cref="M:TanksRebirth.GameContent.Block.Remove"/> this <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.IsDestructible">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is destructible from explosions.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.IsSolid">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is solid. This only affects <see cref="T:TanksRebirth.GameContent.Shell"/>s and their ability to pass through.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.IsCollidable">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> is collidable. This only affects things with physics bodies (i.e: <see cref="T:TanksRebirth.GameContent.Tank"/>s).</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.AllowShotPathBounce">
+            <summary>Whether or not an <see cref="T:TanksRebirth.GameContent.AITank"/> should calculate a bounce off of this <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.PathBounceCount">
+            <summary> How many bounces a <see cref="T:TanksRebirth.GameContent.Shell"/> should regain from hitting this <see cref="T:TanksRebirth.GameContent.Block"/>.
+            <para></para>Set to negative to increase the amount. Set to 0 to make nothing happen.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.CanStack">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> can stack. This will make the level editor UI not show a stack count.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.BlockProperties.HasShadow">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> has a visible shadow under it.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.RelativePosition">
             <summary>The position of the cosmetic, relative to the tank's position.</summary>
@@ -210,7 +213,7 @@
         <member name="M:TanksRebirth.GameContent.Crate.Open">
             <summary>Open this <see cref="T:TanksRebirth.GameContent.Crate"/>.</summary>
         </member>
-        <member name="F:TanksRebirth.GameContent.Explosion.Source">
+        <member name="F:TanksRebirth.GameContent.Explosion.Owner">
             <summary>The "owner" of this explosion.</summary>
         </member>
         <member name="F:TanksRebirth.GameContent.Explosion.HasHit">
@@ -222,8 +225,8 @@
         <member name="F:TanksRebirth.GameContent.Explosion.MAGIC_EXPLOSION_NUMBER">
             <summary>Only merlin himself could decode why I use this... Use this number with any explosion-based calculations.</summary>
         </member>
-        <member name="P:TanksRebirth.GameContent.GameHandler.ClientLog">
-            <summary>The handle of the game's logging file. Used to write information to a file that can be read after the game closes.</summary>
+        <member name="P:TanksRebirth.GameContent.GameHandler.GameRand">
+            <summary>The randomizing behind the game's events. The seed can be modified if you change <see cref="P:TanksRebirth.GameContent.GameHandler.GameRandSeed"/>.</summary>
         </member>
         <member name="T:TanksRebirth.GameContent.ID.TeamID">
             <summary>These should all be ACTUAL colors, otherwise exceptions will happen.</summary>
@@ -270,25 +273,88 @@
         <member name="M:TanksRebirth.GameContent.Mine.Detonate">
             <summary>Detonates this <see cref="T:TanksRebirth.GameContent.Mine"/>.</summary>
         </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModBlock.Mod">
+            <summary>The <see cref="T:TanksRebirth.GameContent.ModSupport.TanksMod"/> that this <see cref="T:TanksRebirth.GameContent.ModSupport.ModBlock"/> is a part of.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModBlock.MaxHeight">
+            <summary>This propery defaults to <see cref="F:TanksRebirth.GameContent.Block.MAX_BLOCK_HEIGHT"/>, the default.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModBlock.FullSize">
+            <summary>This propery defaults to <see cref="F:TanksRebirth.GameContent.Block.FULL_SIZE"/>, the default.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModBlock.SlabSize">
+            <summary>This propery defaults to <see cref="F:TanksRebirth.GameContent.Block.SLAB_SIZE"/>, the default.</summary>
+        </member>
         <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.OnLoad">
-            <summary>Initialize what you want alongside the loading of your modded tank.</summary>
+            <summary>Initialize what you want alongside the loading of your modded block.</summary>
         </member>
         <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.OnUnload">
             <summary>Manually unload things that may not be automatically unloaded by the game.</summary>
         </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.PostInitialize(TanksRebirth.GameContent.Block)">
+            <summary>Do things when a your modded block is created in game space. Be sure to call <c>base.PostInitialize(block)</c></summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.PostUpdate(TanksRebirth.GameContent.Block)">
+            <summary>Called each update of the block.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.PostRender(TanksRebirth.GameContent.Block)">
+            <summary>Called each draw of the block.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.OnDestroy(TanksRebirth.GameContent.Block)">
+            <summary>Called when this block is destroyed, if destructible.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModBlock.OnRicochet(TanksRebirth.GameContent.Block,TanksRebirth.GameContent.Shell)">
+            <summary>Called when any shell ricochets off of this block.</summary>
+        </member>
         <member name="T:TanksRebirth.GameContent.ModSupport.ModContent">
             <summary>Request modded content here.</summary>
         </member>
-        <member name="M:TanksRebirth.GameContent.ModSupport.ModContent.GetModTank``1">
-            <summary>Use in tandem with a <see cref="T:TanksRebirth.GameContent.ModSupport.ModTank"/> class <see cref="T:System.Type"/> to retrieve data about a modded tank.</summary>
-            <typeparam name="T">The <see cref="T:System.Type"/> of the modded tank you wish to request data from.</typeparam>
-            <returns>A singleton instance of a <see cref="T:TanksRebirth.GameContent.ModSupport.ModTank"/>.</returns>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModContent.GetSingleton``1">
+            <summary>A useful method that gets properties of a modded type. Can be used to manually swap properties after spawning an entity.</summary>
+            <typeparam name="T">The <see cref="T:System.Type"/> of the modded content you wish to request data from.</typeparam>
+            <returns>A singleton instance of any form of supported mod content.</returns>
         </member>
         <member name="F:TanksRebirth.GameContent.ModSupport.ModLoader.Error">
             <summary>The error given from the mod-loading process.</summary>
         </member>
         <member name="M:TanksRebirth.GameContent.ModSupport.ModLoader.LoadMods">
             <summary>Prepare your garbage collector!</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModShell.Mod">
+            <summary>The <see cref="T:TanksRebirth.GameContent.ModSupport.TanksMod"/> that this <see cref="T:TanksRebirth.GameContent.ModSupport.ModShell"/> is a part of.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModShell.Texture">
+            <summary>If not assigned manually, the texture will default to the regular, (mostly) white shell texture.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModShell.ShootSound">
+            <summary>The sound for when this shell is shot. Utilize Path.Combine(ModPath, ...)</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.ModShell.TrailSound">
+            <summary>The sound for while this shell is flying. Utilize Path.Combine(ModPath, ...)</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.OnLoad">
+            <summary>Initialize what you want alongside the loading of your modded shell.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.OnUnload">
+            <summary>Manually unload things that may not be automatically unloaded by the game.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.OnCreate(TanksRebirth.GameContent.Shell)">
+            <summary>Called upon the creation of the shell. Be sure to call <c>base.OnCreate(shell)</c></summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.PostUpdate(TanksRebirth.GameContent.Shell)">
+            <summary>Called every update.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.PostRender(TanksRebirth.GameContent.Shell)">
+            <summary>Called every draw.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.OnRicochet(TanksRebirth.GameContent.Shell,TanksRebirth.GameContent.Block)">
+            <summary>Called every time this shell ricochets off of something. <paramref name="block"/> will be null if it bounces off of the side wall.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.ModSupport.ModShell.OnDestroy(TanksRebirth.GameContent.Shell,TanksRebirth.GameContent.Shell.DestructionContext,System.Boolean@)">
+            <summary>Called when this shell is destroyed.</summary>
+            <param name="shell">The shell.</param>
+            <param name="context">The context of which this shell was destroyed.</param>
+            <param name="playSound">Set to false to not play sounds.</param>
         </member>
         <member name="T:TanksRebirth.GameContent.ModSupport.ModTank">
             <summary>
@@ -370,11 +436,17 @@
         <member name="T:TanksRebirth.GameContent.ModSupport.TanksMod">
             <summary>A class that contains an entrypoint into the game.</summary>
         </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.TanksMod.RefsFolder">
+            <summary>The folder within your mod path that contains project references with <c>.dll</c>.</summary>
+        </member>
         <member name="P:TanksRebirth.GameContent.ModSupport.TanksMod.Name">
             <summary>The display name of this mod. Generally named the internal name, but split by PascalCase.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.ModSupport.TanksMod.InternalName">
             <summary>The internal name of this mod. This is the name of the project the mod was built in.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ModSupport.TanksMod.ModPath">
+            <summary>The local path to this mod. Generally used in tandem with <see cref="M:TanksRebirth.GameContent.ModSupport.TanksMod.ImportAsset``1(System.String)"/> or with other manners of loading content.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.ModSupport.TanksMod.MusicFolder">
             <summary>The place where music for tanks is loaded from in your mod.</summary>
@@ -534,14 +606,11 @@
         <member name="F:TanksRebirth.GameContent.Shell.Owner">
             <summary>The <see cref="T:TanksRebirth.GameContent.Tank"/> which shot this <see cref="T:TanksRebirth.GameContent.Shell"/>.</summary>
         </member>
+        <member name="F:TanksRebirth.GameContent.Shell.Ricochets">
+            <summary>Maximum amount of times this <see cref="T:TanksRebirth.GameContent.Shell"/> can bounce off walls.</summary>
+        </member>
         <member name="F:TanksRebirth.GameContent.Shell.RicochetsRemaining">
             <summary>How many times this <see cref="T:TanksRebirth.GameContent.Shell"/> can hit walls.</summary>
-        </member>
-        <member name="F:TanksRebirth.GameContent.Shell.Penetration">
-            <summary>The amount of times this bullet can penetrate other ones. A value of -1 will penetrate infinitely.</summary>
-        </member>
-        <member name="F:TanksRebirth.GameContent.Shell.HomeProperties">
-            <summary>The homing properties of this <see cref="T:TanksRebirth.GameContent.Shell"/>.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.Shell.Hitbox">
             <summary>The hurtbox on the 2D backing map for the game.</summary>
@@ -549,28 +618,10 @@
         <member name="P:TanksRebirth.GameContent.Shell.HitCircle">
             <summary>The hurtcircle on the 2D backing map for the game.</summary>
         </member>
-        <member name="P:TanksRebirth.GameContent.Shell.Flaming">
-            <summary>Whether or not this shell should emit flames from behind it.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Shell.FlameColor">
-            <summary>The color of the flame particles emitted by this <see cref="T:TanksRebirth.GameContent.Shell"/> when <see cref="P:TanksRebirth.GameContent.Shell.Flaming"/> is true.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Shell.LeavesTrail">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Shell"/> should emit a blazing trail.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Shell.TrailColor">
-            <summary>The color of the blazing trail emitted when <see cref="P:TanksRebirth.GameContent.Shell.LeavesTrail"/> is true.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Shell.EmitsSmoke">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Shell"/> emits smoke puffs.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Shell.SmokeColor">
-            <summary>The color of the smoke puffs left by this <see cref="T:TanksRebirth.GameContent.Shell"/> when <see cref="P:TanksRebirth.GameContent.Shell.EmitsSmoke"/> is true.</summary>
-        </member>
         <member name="F:TanksRebirth.GameContent.Shell.LifeTime">
             <summary>How long this shell has existed in the world.</summary>
         </member>
-        <member name="M:TanksRebirth.GameContent.Shell.#ctor(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,TanksRebirth.GameContent.Tank,System.UInt32,TanksRebirth.GameContent.Shell.HomingProperties,System.Boolean,System.Boolean)">
+        <member name="M:TanksRebirth.GameContent.Shell.#ctor(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Int32,TanksRebirth.GameContent.Tank,System.UInt32,TanksRebirth.GameContent.Shell.HomingProperties,System.Boolean)">
             <summary>
             Creates a new <see cref="T:TanksRebirth.GameContent.Shell"/>.
             </summary>
@@ -580,7 +631,6 @@
             <param name="owner">Which <see cref="T:TanksRebirth.GameContent.Tank"/> owns this <see cref="T:TanksRebirth.GameContent.Shell"/>.</param>
             <param name="ricochets">How many times the newly created <see cref="T:TanksRebirth.GameContent.Shell"/> can ricochet.</param>
             <param name="homing">Whether or not the newly created <see cref="T:TanksRebirth.GameContent.Shell"/> homes in on enemies.</param>
-            <param name="useDarkTexture">Whether or not to use the black texture for this <see cref="T:TanksRebirth.GameContent.Shell"/>.</param>
             <param name="playSpawnSound">Play the shooting sound associated with this <see cref="T:TanksRebirth.GameContent.Shell"/>.</param>
         </member>
         <member name="M:TanksRebirth.GameContent.Shell.Ricochet(System.Boolean)">
@@ -604,8 +654,67 @@
             <param name="arc">The arc length (from the angular rotation of <see cref="F:TanksRebirth.GameContent.Shell.Velocity"/> to <c>arc / 2</c> to check.</param>
             <returns></returns>
         </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.Flaming">
+            <summary>Whether or not this shell should emit flames from behind it.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.FlameColor">
+            <summary>The color of the flame particles emitted by this <see cref="T:TanksRebirth.GameContent.Shell"/> when <see cref="P:TanksRebirth.GameContent.ShellProperties.Flaming"/> is true.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.LeavesTrail">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Shell"/> should emit a blazing trail.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.TrailColor">
+            <summary>The color of the blazing trail emitted when <see cref="P:TanksRebirth.GameContent.ShellProperties.LeavesTrail"/> is true.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.EmitsSmoke">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Shell"/> emits smoke puffs.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.SmokeColor">
+            <summary>The color of the smoke puffs left by this <see cref="T:TanksRebirth.GameContent.Shell"/> when <see cref="P:TanksRebirth.GameContent.ShellProperties.EmitsSmoke"/> is true.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.IsDestructible">
+            <summary>Whether or not other <see cref="T:TanksRebirth.GameContent.Shell"/>s can destroy this one.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.ShellProperties.CanFriendlyFire">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Shell"/> can hit friendlies. Defaults to true.</summary>
+        </member>
+        <member name="F:TanksRebirth.GameContent.ShellProperties.Penetration">
+            <summary>The amount of times this bullet can penetrate other ones. A value of -1 will penetrate infinitely.</summary>
+        </member>
+        <member name="F:TanksRebirth.GameContent.ShellProperties.HomeProperties">
+            <summary>The homing properties of this <see cref="T:TanksRebirth.GameContent.Shell"/>.</summary>
+        </member>
         <member name="P:TanksRebirth.GameContent.Speedrunning.Speedrun.MissionTimes">
             <summary>Stores the name of the mission completed and the time it took to complete it both in TOTAL and BY-MISSION.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.AIManager.GetAiDefaults(TanksRebirth.GameContent.AITank,System.Int32)">
+            <summary>
+            Fetch the default AI parameters from the given input tank type.
+            </summary>
+            <param name="tank">The AI tank to set the defaults of.</param>
+            <param name="tankType">The type of the tank to retrieve the defaults from.</param>
+            <returns></returns>
+        </member>
+        <member name="M:TanksRebirth.GameContent.AIManager.GetHighestTierActive(System.Func{TanksRebirth.GameContent.AITank,System.Boolean})">
+            <summary>
+            Gets the highest tier that is present in-game, following the pattern you give.
+            </summary>
+            <param name="predicate">The pattern to take account for when searching. If null, just finds the highest active.</param>
+            <returns></returns>
+        </member>
+        <member name="M:TanksRebirth.GameContent.AIManager.CountAll(System.Func{TanksRebirth.GameContent.AITank,System.Boolean})">
+            <summary>
+            Counts every AI tank present in-game, following the pattern you give.
+            </summary>
+            <param name="predicate">The pattern to take account for when searching. If null, just counts every AI tank.</param>
+            <returns></returns>
+        </member>
+        <member name="M:TanksRebirth.GameContent.AIManager.GetTankCountOfType(System.Int32)">
+            <summary>
+            Counts all tanks of a given tank type.
+            </summary>
+            <param name="tier">The tank type to search for and count.</param>
+            <returns></returns>
         </member>
         <member name="P:TanksRebirth.GameContent.AiParameters.MeanderAngle">
             <summary>The max angle of which this tank will "meander," or change its movement direction.</summary>
@@ -738,10 +847,14 @@
             Creates a new <see cref="T:TanksRebirth.GameContent.AITank"/>.
             </summary>
             <param name="tier">The tier of this <see cref="T:TanksRebirth.GameContent.AITank"/>. If '<see cref="F:TanksRebirth.GameContent.ID.TankID.Random"/>', it will be randomly chosen.</param>
-            <param name="tankRange">The randomization range that this <see cref="T:TanksRebirth.GameContent.AITank"/> can become.</param>
             <param name="setTankDefaults">Whether or not to give this <see cref="T:TanksRebirth.GameContent.AITank"/> the default values.</param>
             <param name="isIngame">Whether or not this <see cref="T:TanksRebirth.GameContent.AITank"/> is a gameplay tank or a cosmetic tank (i.e: display models on menus, etc).</param>
-            <param name="isRandomizable">Whether or not this <see cref="T:TanksRebirth.GameContent.AITank"/> can be randomized or not using <paramref name="tankRange"/>.</param>
+        </member>
+        <member name="P:TanksRebirth.GameContent.AITank.ShotPathRicochetPoints">
+            <summary>The location(s) of which this tank's shot path hits an obstacle.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.AITank.ShotPathTankCollPoints">
+            <summary>The location(s) of which this tank's shot path hits an tank.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.Systems.AI.IAITankDanger.Position">
             <summary>The location of this dangerous object.</summary>
@@ -757,6 +870,17 @@
         </member>
         <member name="M:TanksRebirth.GameContent.Systems.Campaign.GetCampaignNames">
             <summary>Returns the names of campaigns in the user's <c>Campaigns/</c> directory.</summary>
+        </member>
+        <member name="F:TanksRebirth.GameContent.Systems.Campaign.MetaData">
+            <summary>The meta-data for this campaign.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.Systems.Campaign.LoadMission(TanksRebirth.GameContent.Systems.Mission)">
+            <summary>Load a specific mission into the current mission.</summary>
+            <param name="mission">The mission.</param>
+        </member>
+        <member name="M:TanksRebirth.GameContent.Systems.Campaign.LoadMission(System.Int32)">
+            <summary>Load a mission already in memory by ID.</summary>
+            <param name="id">The index of the mission in the <see cref="F:TanksRebirth.GameContent.Systems.Campaign.CachedMissions"/> array.</param>
         </member>
         <member name="M:TanksRebirth.GameContent.Systems.Campaign.LoadMissionsToCache(TanksRebirth.GameContent.Systems.Mission[])">
             <summary>Loads an array of <see cref="T:TanksRebirth.GameContent.Systems.Mission"/>s into memory.</summary>
@@ -789,13 +913,16 @@
         <member name="T:TanksRebirth.GameContent.Systems.ChatSystem">
             <summary>A system for handling chat.</summary>
         </member>
+        <member name="F:TanksRebirth.GameContent.Systems.ChatSystem.ChatTag.Colors">
+            <summary>The color for each character in the string array.</summary>
+        </member>
         <member name="M:TanksRebirth.GameContent.Systems.ChatSystem.SendMessage(System.String,Microsoft.Xna.Framework.Color,System.String,System.Boolean)">
             <summary>
             Sends a new <see cref="T:TanksRebirth.GameContent.Systems.ChatMessage"/> to the chat.
             </summary>
             <param name="message">The content of the <see cref="T:TanksRebirth.GameContent.Systems.ChatMessage"/>.</param>
             <param name="color">The color in which to render the content of the <see cref="T:TanksRebirth.GameContent.Systems.ChatMessage"/>.</param>
-            <param name="sender">The sender of the message.</param>
+            <param name="sender">The sender of the message, e.g: a player</param>
             <param name="netSend">If true, will send the message to the server in a multiplayer context.</param>
         </member>
         <member name="T:TanksRebirth.GameContent.Systems.ChatMessage">
@@ -922,9 +1049,8 @@
             <summary>
             Saves a mission as a <c>.mission</c> file for reading later.
             </summary>
+            <param name="path">The path to where the mission will be stored.</param>
             <param name="name">The name of the mission to save.</param>
-            <param name="useDefaultPaths">If true, the path for the location of the mission file will be located in <paramref name="campaignName"/></param>
-            <param name="fileName">If not null, will use this instead of <paramref name="name"/> for the file name.</param>
         </member>
         <member name="M:TanksRebirth.GameContent.Systems.Mission.Load(System.String,System.String)">
             <summary>
@@ -969,11 +1095,15 @@
             <param name="texture">The texture used for the particle.</param>
             <returns>The particle created.</returns>
         </member>
+        <member name="T:TanksRebirth.GameContent.ITankHurtContext">
+            <summary>Used for a family of things.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.PlayerTank.ClientTank">
+            <summary>A <see cref="T:TanksRebirth.GameContent.PlayerTank"/> instance which represents the current client's tank they *primarily* control. Will return null in cases where
+            the tank simply is inexistent (i.e: in the main menu). In a single-player context, this will always be the first player tank.</summary>
+        </member>
         <member name="P:TanksRebirth.GameContent.PlayerTank.Lives">
-            <summary>The amount of lives for every existing player.<para>Lives[0] = Blue Tank's Lives</para>
-            Lives[1] = Red Tank's Lives
-            <para>Lives[2] = Green Tank's Lives</para>
-            Lives[3] = Yellow Tank's Lives
+            <summary>The amount of lives for every existing player. Access a certain player's life count via indexing this array with a PlayerID entry.
             <para>Note that lives are always synced on multiplayer.</para>
             </summary>
         </member>
@@ -1049,6 +1179,13 @@
         <member name="M:TanksRebirth.GameContent.Tank.ApplyDefaults(TanksRebirth.GameContent.TankProperties@)">
             <summary>Apply all the default parameters for this <see cref="T:TanksRebirth.GameContent.Tank"/>.</summary>
         </member>
+        <member name="M:TanksRebirth.GameContent.Tank.InitPhysics">
+            <summary>Initializes the physics body for this tank. Only use if you know what you're doing with it.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.Tank.InitModelSemantics">
+            <summary>Initializes bone transforms and mesh assignments. You will want to call this method if you're modifying a tank model, and the new model
+            contains a different number of bones than the original one.</summary>
+        </member>
         <member name="M:TanksRebirth.GameContent.Tank.Update">
             <summary>Update this <see cref="T:TanksRebirth.GameContent.Tank"/>.</summary>
         </member>
@@ -1069,6 +1206,9 @@
         </member>
         <member name="P:TanksRebirth.GameContent.Tank.Speed">
             <summary>The current speed of this tank.</summary>
+        </member>
+        <member name="F:TanksRebirth.GameContent.TankDeathMark.StoredTank">
+            <summary>The tank that died here.</summary>
         </member>
         <member name="M:TanksRebirth.GameContent.TankDeathMark.ResurrectTank">
             <summary>Resurrects <see cref="F:TanksRebirth.GameContent.TankDeathMark.StoredTank"/>.</summary>
@@ -1475,11 +1615,6 @@
         <member name="F:TanksRebirth.Internals.Common.Utilities.WiiMap.WiiMapTileData.Stack">
             <summary>-1 for player tank, -2 for enemy tank.</summary>
         </member>
-        <member name="M:TanksRebirth.Internals.Core.Interfaces.IGameSystem.Update">
-            <summary>
-            Put simple update logic here.
-            </summary>
-        </member>
         <member name="F:TanksRebirth.Internals.LogType.Info">
             <summary>Information about what is happening during runtime to potentially serve as a sequence of events to
             any kind of potential fatal error.</summary>
@@ -1565,9 +1700,6 @@
             <param name="y">The y-coordinate of the top left corner of the created <see cref="T:TanksRebirth.Internals.UI.UIElement"/>.</param>
             <param name="width">The width of the created <see cref="T:TanksRebirth.Internals.UI.UIElement"/>.</param>
             <param name="height">The height of the created <see cref="T:TanksRebirth.Internals.UI.UIElement"/>.</param>
-        </member>
-        <member name="M:TanksRebirth.Internals.UI.UIElement.CunoSucks">
-            <summary>Final elements just... dont work?</summary>
         </member>
         <member name="M:TanksRebirth.Internals.UI.UIElement.SetDimensions(Microsoft.Xna.Framework.Rectangle)">
             <summary>
@@ -1686,7 +1818,6 @@
         <member name="T:TanksRebirth.Net.NetPlay">
             <summary>
             Holds the keys to all of what happens through the networking of the game.
-            
             </summary>
         </member>
         <member name="F:TanksRebirth.Net.NetPlay.DoPacketLogging">
@@ -1701,6 +1832,9 @@
         <member name="M:TanksRebirth.Net.NetPlay.IsClientMatched(System.Int32)">
             <summary>Check whether the current client's ID on the server matches a given integer.</summary>
         </member>
+        <member name="F:TanksRebirth.Net.PacketID.SyncShellId">
+            <summary>The game has to reassign identifiers of shells beacuse there can be a client-server mismatch of IDs.</summary>
+        </member>
         <member name="F:TanksRebirth.Net.PacketID.Cleanup">
             <summary>The packet for map cleanup (removal of death X's, etc)</summary>
         </member>
@@ -1713,8 +1847,21 @@
         <member name="F:TanksRebirth.Net.PacketID.SendCommandUsage">
             <summary>Sent across the network when a command is used that has serverside effects.</summary>
         </member>
+        <member name="F:TanksRebirth.Net.PacketID.SyncSeeds">
+            <summary>Syncs randomization seeds to random events are synchronous on each client.</summary>
+        </member>
         <member name="E:TanksRebirth.Net.Server.OnServerStart">
-            <summary>Fired when a server is created. Here you can hook into <see cref="F:TanksRebirth.Net.Server.serverNetListener"/>'s "NetworkReceiveEvent" to handle your packets.</summary>
+            <summary>Fired when a server is created. Here you can hook into <see cref="F:TanksRebirth.Net.Server.NetListener"/>'s "NetworkReceiveEvent" to handle your packets.</summary>
+        </member>
+        <member name="F:TanksRebirth.Net.Server.MaxClients">
+            <summary>If some nutcase wants to mod more than 4 player multiplayer into the game, they definitely won't need more than 255 players.</summary>
+        </member>
+        <member name="P:TanksRebirth.Net.Server.ServerRandom">
+            <summary>Can be used to do randomization on the client in single-player, but once the server is started, should only be used for random events
+            that should happen on both clients at the same time.</summary>
+        </member>
+        <member name="P:TanksRebirth.TankGame.MainThreadId">
+            <summary>The identifier of the main thread.</summary>
         </member>
         <member name="F:TanksRebirth.TankGame.GameCamera">
             <summary>Currently not functional due to programming problems.</summary>
@@ -1733,6 +1880,9 @@
         </member>
         <member name="F:TanksRebirth.TankGame.SpriteRenderer">
             <summary>The index/vertex buffer used to render to a framebuffer.</summary>
+        </member>
+        <member name="P:TanksRebirth.TankGame.ClientLog">
+            <summary>The handle of the game's logging file. Used to write information to a file that can be read after the game closes.</summary>
         </member>
     </members>
 </doc>

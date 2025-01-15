@@ -69,7 +69,7 @@ namespace CobaltsArmada
         {
 
             base.Shoot(tank, ref shell);
-            shell.FlameColor = AssociatedColor;
+             shell.Properties.FlameColor = AssociatedColor;
         }
 
         public override void TakeDamage(AITank tank, bool destroy, ITankHurtContext context)
@@ -80,7 +80,7 @@ namespace CobaltsArmada
             {
                 AITank showner = (AITank)((TankHurtContextShell)context).Shell.Owner;
                 if (showner.AiTankType == Type ||
-                    showner.AiTankType == ModContent.GetModTank<CA_05_Poppy>().Type) return;
+                    showner.AiTankType == ModContent.GetSingleton<CA_05_Poppy>().Type) return;
             }
             CA_Main.Fire_AbstractShell_Tank(tank, 8, context, 1, 0, 5f);
         }

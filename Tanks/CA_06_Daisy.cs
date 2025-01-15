@@ -75,7 +75,7 @@ namespace CobaltsArmada
         {
 
             base.Shoot(tank, ref shell);
-            shell.FlameColor = AssociatedColor;
+             shell.Properties.FlameColor = AssociatedColor;
         }
     }
 }

@@ -13,6 +13,7 @@ using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using System.Threading.Tasks;
 using System.Diagnostics.Tracing;
+using TanksRebirth.Net;
 
 namespace CobaltsArmada
 {
@@ -154,8 +155,8 @@ namespace CobaltsArmada
         {
 
             base.Shoot(tank, ref shell);
-            shell.FlameColor = Color.AliceBlue;
-            shell.TrailColor = Color.AliceBlue;
+             shell.Properties.FlameColor = Color.AliceBlue;
+            shell.Properties.TrailColor = Color.AliceBlue;
         }
 
         public override void PreUpdate(AITank tank)
@@ -164,7 +165,7 @@ namespace CobaltsArmada
           
             tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
             if (tank.SpecialBehaviors[1].Value == 0)
-                tank.SpecialBehaviors[1].Value = GameHandler.GameRand.NextFloat(400, 550)*(tank.Properties.Invisible?1.8f:1.3f)*4.5f;
+                tank.SpecialBehaviors[1].Value = 600;
 
             if (tank.SpecialBehaviors[0].Value > tank.SpecialBehaviors[1].Value)
             {

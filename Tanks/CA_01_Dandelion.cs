@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
@@ -25,6 +26,9 @@ namespace CobaltsArmada
         public override void PostApplyDefaults(AITank tank)
         {
             base.PostApplyDefaults(tank);
+
+            
+
             tank.Model = CA_Main.Neo_Stationary;
             tank.Scaling = Vector3.One * 100.0f;
             tank.AiParams.TurretMeanderFrequency = 15;
@@ -33,7 +37,7 @@ namespace CobaltsArmada
 
             tank.AiParams.ProjectileWarinessRadius_PlayerShot = 140;
 
-            tank.AiParams.Inaccuracy = 0.1f;
+            tank.AiParams.Inaccuracy = 0.7f;
 
             tank.Properties.DestructionColor = CA_Main.Dandy;
 
@@ -43,7 +47,7 @@ namespace CobaltsArmada
 
             tank.Properties.ShellSpeed = 4f;
 
-            tank.Properties.ShellType = ShellID.Standard;
+            tank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Rail>().Type;
 
             tank.Properties.RicochetCount = 2;
 
@@ -71,7 +75,7 @@ namespace CobaltsArmada
         {
 
             base.Shoot(tank, ref shell);
-            shell.FlameColor = AssociatedColor;
+            shell.Properties.FlameColor = AssociatedColor;
         }
 
     }

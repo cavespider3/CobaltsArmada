@@ -13,6 +13,7 @@ using TanksRebirth.GameContent.Systems;
 using TanksRebirth.Localization;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CobaltsArmada;
 
@@ -83,10 +84,12 @@ public class CA_Main : TanksMod {
 
     public static bool CustomDifficulty_Invasion = true;
 
-
+    [AllowNull]
     public static Model Neo_Stationary;
+    [AllowNull]
     public static Model Neo_Mobile;
-
+    [AllowNull]
+    public static Model Shell_Beam;
     public override void OnLoad() {
         Campaign.OnMissionLoad += Highjack_Mission;
    
@@ -99,40 +102,42 @@ public class CA_Main : TanksMod {
 
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
         Neo_Mobile = ImportAsset<Model>("assets/models/tank_moving");
+        Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
     }
 
 
     private void Highjack_Mission(ref Tank[] tanks, ref Block[] blocks)
     {
         if (!CustomDifficulty_Invasion) return;
-        GameHandler.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
+        TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
        // ChatSystem.SendMessage("Invading campaign...", Color.Yellow);
             for (int i = 0; i < tanks.Length; i++)
             {
             
-            if (tanks[i] is PlayerTank || tanks[i] is null) continue;
+            if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
+            if (ai is null) continue;
             float secret_tank_chance = (float)GameProperties.LoadedCampaign.CurrentMissionId / GameProperties.LoadedCampaign.CachedMissions.Length;
             if (GameHandler.GameRand.NextFloat(0, 1) <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
             {
-                GameHandler.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
-                if (GameHandler.GameRand.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetModTank<CA_X1_Kudzu>().Type, true);
-                else ai.Swap(ModContent.GetModTank<CA_X2_CorpseFlower>().Type, true);
+                TankGame.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
+                if (GameHandler.GameRand.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true);
+                else ai.Swap(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type, true);
 
             }
             else
             {
                 switch (ai.AiTankType)
                 {
-                    case TankID.Brown: ai.Swap(ModContent.GetModTank<CA_01_Dandelion>().Type, true); break;
-                    case TankID.Ash: ai.Swap(ModContent.GetModTank<CA_02_Perwinkle>().Type, true); break;
-                    case TankID.Marine: ai.Swap(ModContent.GetModTank<CA_03_Pansy>().Type, true); break;
-                    case TankID.Yellow: ai.Swap(ModContent.GetModTank<CA_04_Sunflower>().Type, true); break;
-                    case TankID.Pink: ai.Swap(ModContent.GetModTank<CA_05_Poppy>().Type, true); break;
-                    case TankID.Violet: ai.Swap(ModContent.GetModTank<CA_07_Lavender>().Type, true); break;
-                    case TankID.Green: ai.Swap(ModContent.GetModTank<CA_06_Daisy>().Type, true); break;
-                    case TankID.White: ai.Swap(ModContent.GetModTank<CA_08_Eryngium>().Type, true); break;
-                    case TankID.Black: ai.Swap(ModContent.GetModTank<CA_09_Carnation>().Type, true); break;
+                    case TankID.Brown: ai.Swap(ModContent.GetSingleton<CA_01_Dandelion>().Type, true); break;
+                    case TankID.Ash: ai.Swap(ModContent.GetSingleton<CA_02_Perwinkle>().Type, true); break;
+                    case TankID.Marine: ai.Swap(ModContent.GetSingleton<CA_03_Pansy>().Type, true); break;
+                    case TankID.Yellow: ai.Swap(ModContent.GetSingleton<CA_04_Sunflower>().Type, true); break;
+                    case TankID.Pink: ai.Swap(ModContent.GetSingleton<CA_05_Poppy>().Type, true); break;
+                    case TankID.Violet: ai.Swap(ModContent.GetSingleton<CA_07_Lavender>().Type, true); break;
+                    case TankID.Green: ai.Swap(ModContent.GetSingleton<CA_06_Daisy>().Type, true); break;
+                    case TankID.White: ai.Swap(ModContent.GetSingleton<CA_08_Eryngium>().Type, true); break;
+                    case TankID.Black: ai.Swap(ModContent.GetSingleton<CA_09_Carnation>().Type, true); break;
                     default: break;
 
                 }
@@ -150,17 +155,17 @@ public class CA_Main : TanksMod {
     {
         if (mine.Owner is PlayerTank||mine.Owner is null) return;
         AITank ai = (AITank)mine.Owner;
-        var Dandelion = ModContent.GetModTank<CA_01_Dandelion>();
-        var Peri = ModContent.GetModTank<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetModTank<CA_03_Pansy>();
-        var Sunny = ModContent.GetModTank<CA_04_Sunflower>();
-        var Poppy = ModContent.GetModTank<CA_05_Poppy>();
-        var Daisy = ModContent.GetModTank<CA_06_Daisy>();
-        var Lavi = ModContent.GetModTank<CA_07_Lavender>();
-        var Eryn = ModContent.GetModTank<CA_08_Eryngium>();
-        var Carnation = ModContent.GetModTank<CA_09_Carnation>();
-        var Kudzu = ModContent.GetModTank<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetModTank<CA_X2_CorpseFlower>();
+        var Dandelion = ModContent.GetSingleton<CA_01_Dandelion>();
+        var Peri = ModContent.GetSingleton<CA_02_Perwinkle>();
+        var Pansy = ModContent.GetSingleton<CA_03_Pansy>();
+        var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
+        var Poppy = ModContent.GetSingleton<CA_05_Poppy>();
+        var Daisy = ModContent.GetSingleton<CA_06_Daisy>();
+        var Lavi = ModContent.GetSingleton<CA_07_Lavender>();
+        var Eryn = ModContent.GetSingleton<CA_08_Eryngium>();
+        var Carnation = ModContent.GetSingleton<CA_09_Carnation>();
+        var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
+        var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
         
         if (ai.AiTankType == Sunny.Type)
             Fire_AbstractShell_Mine(mine, 8, 1, 0, 4f);
@@ -168,7 +173,7 @@ public class CA_Main : TanksMod {
     }
 
 
-    private void Shell_OnRicochetWithBlock(ref Block block, Shell shell)
+    private void Shell_OnRicochetWithBlock(Block block, Shell shell)
     {
         Shell_OnRicochet(shell);
     }
@@ -177,17 +182,17 @@ public class CA_Main : TanksMod {
     {
         if (shell.Owner is null) return;
         if (shell.Owner is PlayerTank) return;
-        var Dandelion = ModContent.GetModTank<CA_01_Dandelion>();
-        var Peri = ModContent.GetModTank<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetModTank<CA_03_Pansy>();
-        var Sunny = ModContent.GetModTank<CA_04_Sunflower>();
-        var Poppy = ModContent.GetModTank<CA_05_Poppy>();
-        var Daisy = ModContent.GetModTank<CA_06_Daisy>();
-        var Lavi = ModContent.GetModTank<CA_07_Lavender>();
-        var Eryn = ModContent.GetModTank<CA_08_Eryngium>();
-        var Carnation = ModContent.GetModTank<CA_09_Carnation>();
-        var Kudzu = ModContent.GetModTank<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetModTank<CA_X2_CorpseFlower>();
+        var Dandelion = ModContent.GetSingleton<CA_01_Dandelion>();
+        var Peri = ModContent.GetSingleton<CA_02_Perwinkle>();
+        var Pansy = ModContent.GetSingleton<CA_03_Pansy>();
+        var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
+        var Poppy = ModContent.GetSingleton<CA_05_Poppy>();
+        var Daisy = ModContent.GetSingleton<CA_06_Daisy>();
+        var Lavi = ModContent.GetSingleton<CA_07_Lavender>();
+        var Eryn = ModContent.GetSingleton<CA_08_Eryngium>();
+        var Carnation = ModContent.GetSingleton<CA_09_Carnation>();
+        var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
+        var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
         var ai = (AITank)shell.Owner;
        if (ai.AiTankType == Daisy.Type && shell.Type == ShellID.Rocket)
         Fire_AbstractShell(shell, 4,1,0,3.5f);
@@ -198,20 +203,20 @@ public class CA_Main : TanksMod {
     {
         if (context == Shell.DestructionContext.WithShell || context == Shell.DestructionContext.WithExplosion || context == Shell.DestructionContext.WithMine) return;
         if (shell.Owner is null) return;
-        if (shell.Owner is PlayerTank player) return;
+        if (shell.Owner is PlayerTank) return;
 
         AITank ai = (AITank)shell.Owner;
-        var Dandelion = ModContent.GetModTank<CA_01_Dandelion>();
-        var Peri = ModContent.GetModTank<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetModTank<CA_03_Pansy>();
-        var Sunny = ModContent.GetModTank<CA_04_Sunflower>();
-        var Poppy = ModContent.GetModTank<CA_05_Poppy>();
-        var Daisy = ModContent.GetModTank<CA_06_Daisy>();
-        var Lavi = ModContent.GetModTank<CA_07_Lavender>();
-        var Eryn = ModContent.GetModTank<CA_08_Eryngium>();
-        var Carnation = ModContent.GetModTank<CA_09_Carnation>();
-        var Kudzu = ModContent.GetModTank<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetModTank<CA_X2_CorpseFlower>();
+        var Dandelion = ModContent.GetSingleton<CA_01_Dandelion>();
+        var Peri = ModContent.GetSingleton<CA_02_Perwinkle>();
+        var Pansy = ModContent.GetSingleton<CA_03_Pansy>();
+        var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
+        var Poppy = ModContent.GetSingleton<CA_05_Poppy>();
+        var Daisy = ModContent.GetSingleton<CA_06_Daisy>();
+        var Lavi = ModContent.GetSingleton<CA_07_Lavender>();
+        var Eryn = ModContent.GetSingleton<CA_08_Eryngium>();
+        var Carnation = ModContent.GetSingleton<CA_09_Carnation>();
+        var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
+        var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
 
         if ((ai.AiTankType == Poppy.Type && shell.Type == ShellID.Rocket) || (ai.AiTankType == Lavi.Type && shell.Type == ShellID.Rocket))
             Fire_AbstractShell(shell, ai.AiTankType == Poppy.Type ? 4 : 6,1,0,3f);
@@ -232,7 +237,7 @@ public class CA_Main : TanksMod {
     public static void Fire_AbstractShell(Shell origin,int count, int newType = 1, uint burst_bounces = 0,float burst_expand=3.5f)
     {
         if ((!MainMenu.Active && !GameProperties.InMission)) return;
-        if (origin is null) return;
+        if (origin is null||origin.Owner is null) return;
         float angle = 0;
         float rng_burst = origin.Rotation+ (MathF.PI * 2f / (count*2f));
         for (int i = 0; i < count; i++)
@@ -240,7 +245,7 @@ public class CA_Main : TanksMod {
          
                 angle =(MathF.PI * 2f / count * i)+ rng_burst;
                 float newAngle = angle;
-                Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, origin.HomeProperties, false, true);
+                Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, origin.Properties.HomeProperties, true);
                 Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
                 Vector2 newPos2 = origin.Position + new Vector2(0f, 14f).RotatedByRadians(-newAngle);
                 shell2.Position = new Vector2(newPos2.X, newPos2.Y);
@@ -261,7 +266,7 @@ public class CA_Main : TanksMod {
 
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
-            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin , 0U, origin.Properties.ShellHoming, false, false);
+            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin , 0U, origin.Properties.ShellHoming, false);
             Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
             Vector2 newPos2 = origin.Position + new Vector2(0f, 20f).RotatedByRadians(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
@@ -272,7 +277,7 @@ public class CA_Main : TanksMod {
     public static void Fire_AbstractShell_Mine(Mine origin, int count, int newType = 1, uint burst_bounces = 0, float burst_expand = 3.5f)
     {
         if ((!MainMenu.Active && !GameProperties.InMission)) return;
-        if (origin is null) return;
+        if (origin is null || origin.Owner is null) return;
         float angle = 0;
         float rng_burst = GameHandler.GameRand.NextFloat(-MathF.PI, MathF.PI);
         for (int i = 0; i < count; i++)
@@ -280,7 +285,7 @@ public class CA_Main : TanksMod {
 
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
-            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, new Shell.HomingProperties(), false, true);
+            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, new Shell.HomingProperties(), true);
             Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
             Vector2 newPos2 = origin.Position + new Vector2(0f, 25f).RotatedByRadians(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
