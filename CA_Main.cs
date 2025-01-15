@@ -118,10 +118,10 @@ public class CA_Main : TanksMod {
                 var ai = tanks[i] as AITank;
             if (ai is null) continue;
             float secret_tank_chance = (float)GameProperties.LoadedCampaign.CurrentMissionId / GameProperties.LoadedCampaign.CachedMissions.Length;
-            if (GameHandler.GameRand.NextFloat(0, 1) <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
+            if (Server.ServerRandom.NextFloat(0,1) <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
             {
                 TankGame.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
-                if (GameHandler.GameRand.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true);
+                if (Server.ServerRandom.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true);
                 else ai.Swap(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type, true);
 
             }
@@ -260,7 +260,7 @@ public class CA_Main : TanksMod {
         if (origin is null) return;
 
         float angle = 0;
-        float rng_burst = GameHandler.GameRand.NextFloat(-MathF.PI, MathF.PI);
+        float rng_burst = Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI);
         for (int i = 0; i < count; i++)
         {
 
@@ -279,7 +279,7 @@ public class CA_Main : TanksMod {
         if ((!MainMenu.Active && !GameProperties.InMission)) return;
         if (origin is null || origin.Owner is null) return;
         float angle = 0;
-        float rng_burst = GameHandler.GameRand.NextFloat(-MathF.PI, MathF.PI);
+        float rng_burst = Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI);
         for (int i = 0; i < count; i++)
         {
 
