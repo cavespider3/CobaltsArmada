@@ -53,7 +53,7 @@ namespace CobaltsArmada
 
             properties.Invisible = false;
             properties.Stationary = false;
-            properties.ShellHoming = new();
+            
 
             properties.TreadPitch = 0.2f;
             properties.MaxSpeed = 1.7f;

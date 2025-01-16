@@ -52,8 +52,8 @@ namespace CobaltsArmada
             aiParams.TurretSpeed = 0.03f;
             aiParams.AimOffset = 0.18f;
 
-            aiParams.PursuitLevel = 0.05f;
-            aiParams.PursuitFrequency = 240;
+            aiParams.PursuitLevel = -0.05f;
+            aiParams.PursuitFrequency = 80;
 
             aiParams.ProjectileWarinessRadius_PlayerShot = 60;
             aiParams.MineWarinessRadius_PlayerLaid = 160;
@@ -64,9 +64,8 @@ namespace CobaltsArmada
             //RAIL CANNON!
             properties.ShootStun = 20;
             properties.ShellCooldown = 100;
-            properties.ShellLimit = 1;
+            properties.ShellLimit = 2;
             properties.ShellSpeed = 5f;
-            properties.Recoil = 500f;
             properties.ShellType = ShellID.TrailedRocket;
             properties.RicochetCount = 0;
             //we get a little devious
@@ -75,13 +74,15 @@ namespace CobaltsArmada
             properties.ShellHoming = new();
             tank.Properties.CanLayTread = true;
             aiParams.SmartRicochets = false;
+            properties.VulnerableToMines = true;
             aiParams.PredictsPositions = true;
             tank.Properties.TrackType = TrackID.Thick;
             properties.TreadPitch = -0.2f;
             properties.MaxSpeed = 1.4f;
             properties.TreadVolume = 0.2f;
             properties.Acceleration = 0.3f;
-
+            tank.Model = CA_Main.Neo_Mobile;
+            tank.InitModelSemantics();
             properties.MineCooldown = 700;
             properties.MineLimit = 2;
             properties.MineStun = 10;
@@ -100,50 +101,52 @@ namespace CobaltsArmada
             var properties = tank.Properties;
             aiParams.MeanderFrequency = 15;
             aiParams.MeanderAngle = MathHelper.ToRadians(25);
-            aiParams.TurretSpeed = 0.02f;
-            aiParams.AimOffset = MathHelper.ToRadians(80);
-            aiParams.Inaccuracy = MathHelper.ToRadians(25);
+            aiParams.TurretSpeed = 0.07f;
+            aiParams.TurretMeanderFrequency = 40;
+            aiParams.AimOffset = MathHelper.ToRadians(23);
+            aiParams.Inaccuracy = 6;
 
-            aiParams.TurretSpeed = 0.03f;
-            aiParams.AimOffset = 0.18f;
+            aiParams.AimOffset = 0.4f;
 
-            aiParams.PursuitLevel = 0.05f;
-            aiParams.PursuitFrequency = 240;
+            aiParams.PursuitLevel = 1f;
+            aiParams.PursuitFrequency = 12;
 
             aiParams.ProjectileWarinessRadius_PlayerShot = 60;
             aiParams.MineWarinessRadius_PlayerLaid = 160;
 
             properties.TurningSpeed = 0.06f;
             properties.MaximalTurn = MathHelper.ToRadians(30);
-
-            //RAIL CANNON!
-            properties.ShootStun = 20;
-            properties.ShellCooldown = 30;
-            properties.ShellLimit = 5;
-            properties.ShellSpeed = 5f;
-            properties.Recoil = 500f;
-            properties.ShellType = ShellID.TrailedRocket;
+            
+            //RAIL CANNON! (YASSSS)
+            properties.ShootStun = 120;
+            properties.ShellCooldown = 160;
+            properties.ShellLimit = 1;
+            properties.ShellSpeed = 3f;
+          
+            tank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Rail>().Type;
             properties.RicochetCount = 0;
-           
+            tank.Model = CA_Main.Neo_Stationary;
+            tank.InitModelSemantics();
             //we get a little devious
-        
-            properties.Stationary = false;
-            properties.ShellHoming = new();
 
+            properties.Stationary = true;
+
+            properties.ShellHoming = new();
+            properties.VulnerableToMines = false;
             tank.Properties.CanLayTread = false;
-            aiParams.PredictsPositions = false;
-            aiParams.SmartRicochets = true;
+            aiParams.PredictsPositions = true;
+            tank.Speed = 0f;
 
             properties.TreadPitch = -0.2f;
             properties.TreadVolume = 0f;
-            properties.MaxSpeed = 1.4f*2f;
+            properties.MaxSpeed = 0f;
             properties.Acceleration = 0.3f;
 
             properties.MineCooldown = 700;
-            properties.MineLimit = 2;
+            properties.MineLimit = 0;
             properties.MineStun = 10;
 
-            aiParams.MinePlacementChance = 0.05f;
+            aiParams.MinePlacementChance = 0.00f;
 
             aiParams.BlockWarinessDistance = 90;
             aiParams.BlockReadTime = 10;
@@ -155,14 +158,17 @@ namespace CobaltsArmada
         {
 
             base.Shoot(tank, ref shell);
-             shell.Properties.FlameColor = Color.AliceBlue;
-            shell.Properties.TrailColor = Color.AliceBlue;
         }
-
+        
         public override void PreUpdate(AITank tank)
-        {
+        { 
+        
             base.PreUpdate(tank);
-          
+
+            tank.Speed *= tank.Properties.Stationary ? 0f : 1f;
+            tank.AiParams.TurretSpeed = tank.CurShootStun > 0 ? 0f : 0.05f;
+
+
             tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
             if (tank.SpecialBehaviors[1].Value == 0)
                 tank.SpecialBehaviors[1].Value = 600;
@@ -171,10 +177,8 @@ namespace CobaltsArmada
             {
                 tank.SpecialBehaviors[1].Value = 0f;
                 tank.SpecialBehaviors[0].Value = 0f;
-
                 
-                tank.Properties.Invisible = !tank.Properties.Invisible;
-                
+                if (!tank.Properties.Stationary) Properties_Invisible(tank); else Properties_Visible(tank);
                 swap(tank);
             }
         }
@@ -184,8 +188,6 @@ namespace CobaltsArmada
             const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 
             if (tank.Dead) return;
-            if (tank.Properties.Invisible) Properties_Invisible(tank);
-            else Properties_Visible(tank);
             SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, gameplaySound: true);
 
             var lightParticle = GameHandler.Particles.MakeParticle(tank.Position3D,

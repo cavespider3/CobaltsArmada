@@ -14,6 +14,10 @@ using TanksRebirth.Localization;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
+using TanksRebirth.Internals.Common;
+using TanksRebirth.Internals.Common.GameUI;
+using static System.Net.Mime.MediaTypeNames;
+using static TanksRebirth.GameContent.UI.MainMenu;
 
 namespace CobaltsArmada;
 
@@ -82,7 +86,7 @@ public class CA_Main : TanksMod {
     static public Color Cosmium => Color.Fuchsia;  // Black Tank
 
 
-    public static bool CustomDifficulty_Invasion = true;
+    public static bool CustomDifficulty_Invasion = false;
 
     [AllowNull]
     public static Model Neo_Stationary;
@@ -90,24 +94,62 @@ public class CA_Main : TanksMod {
     public static Model Neo_Mobile;
     [AllowNull]
     public static Model Shell_Beam;
+
+    //Custom modifiers
+    [AllowNull]
+    public static UITextButton Invasion;
+    [AllowNull]
+    public static UITextButton MasterSpark;
+    [AllowNull]
+    public static UITextButton Prenerf_enemies;
+    
     public override void OnLoad() {
-     
+        MainMenu.OnMenuOpen += Open;
+        MainMenu.OnMenuClose += MainMenu_OnMenuClose;
         Campaign.OnMissionLoad += Highjack_Mission;
-   
+     
         Shell.OnDestroy += Shell_OnDestroy;
  
-        Shell.OnRicochet += Shell_OnRicochet;
-        Shell.OnRicochetWithBlock += Shell_OnRicochetWithBlock;
-    
+ 
+       
         Mine.OnExplode += Mine_OnExplode;
+     
 
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
         Neo_Mobile = ImportAsset<Model>("assets/models/tank_moving");
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
+
+        Invasion = new("Cobalt's Armada Mode", TankGame.TextFont, Color.White)
+        {
+            IsVisible = true,
+            Tooltip = "Vanilla tanks are converted into tanks from Cobalt's Armada.\nWARNING: Do not expect it to be a fair fight!\nWill not work with some modifiers",
+            OnLeftClick = (elem) =>
+            {
+                CustomDifficulty_Invasion = !CustomDifficulty_Invasion;
+                Invasion.Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red;
+            },
+            Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red
+        }; 
+        Invasion.SetDimensions(100, 800, 300, 40);
     }
+
+    private void MainMenu_OnMenuClose()
+    {
+        Invasion.IsVisible = false;
+      
+    }
+
+    private void Open()
+    {
+        Invasion.IsVisible = true;
+        Invasion.Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red;
+    }
+  
 
     private void Highjack_Mission(ref Tank[] tanks, ref Block[] blocks)
     {
+        //There was an issue where base roster tanks would convert to their CA counterparts during the editing process
+        if (LevelEditor.Active) return;
         if (MainMenu.Active) return;
         if (!CustomDifficulty_Invasion) return;
         TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
@@ -175,31 +217,6 @@ public class CA_Main : TanksMod {
     }
 
 
-    private void Shell_OnRicochetWithBlock(Block block, Shell shell)
-    {
-        Shell_OnRicochet(shell);
-    }
-
-    private void Shell_OnRicochet(Shell shell)
-    {
-        if (shell.Owner is null) return;
-        if (shell.Owner is PlayerTank) return;
-        var Dandelion = ModContent.GetSingleton<CA_01_Dandelion>();
-        var Peri = ModContent.GetSingleton<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetSingleton<CA_03_Pansy>();
-        var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
-        var Poppy = ModContent.GetSingleton<CA_05_Poppy>();
-        var Daisy = ModContent.GetSingleton<CA_06_Daisy>();
-        var Lavi = ModContent.GetSingleton<CA_07_Lavender>();
-        var Eryn = ModContent.GetSingleton<CA_08_Eryngium>();
-        var Carnation = ModContent.GetSingleton<CA_09_Carnation>();
-        var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
-        var ai = (AITank)shell.Owner;
-       if (ai.AiTankType == Daisy.Type && shell.Type == ShellID.Rocket)
-        Fire_AbstractShell(shell, 4,1,0,3.5f);
-    }
-
 
     private void Shell_OnDestroy(Shell shell, Shell.DestructionContext context)
     {
@@ -220,8 +237,6 @@ public class CA_Main : TanksMod {
         var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
         var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
 
-        if ((ai.AiTankType == Poppy.Type && shell.Type == ShellID.Rocket) || (ai.AiTankType == Lavi.Type && shell.Type == ShellID.Rocket))
-            Fire_AbstractShell(shell, ai.AiTankType == Poppy.Type ? 4 : 6,1,0,3f);
         if ((ai.AiTankType == Sunny.Type && shell.Type == ShellID.Rocket))
            new Mine(shell.Owner, shell.Position - new Vector2(0f, 10f).RotatedByRadians(shell.Rotation), 900f, 0.1f);
     }
@@ -300,8 +315,6 @@ public class CA_Main : TanksMod {
     public override void OnUnload() {
         Shell.OnDestroy -= Shell_OnDestroy;
      
-        Shell.OnRicochet -= Shell_OnRicochet;
-        Shell.OnRicochetWithBlock -= Shell_OnRicochetWithBlock;
        
         Mine.OnExplode -= Mine_OnExplode;
         Campaign.OnMissionLoad -= Highjack_Mission;

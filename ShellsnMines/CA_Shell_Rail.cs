@@ -22,6 +22,7 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.Internals.Common.Framework;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using TanksRebirth.GameContent.RebirthUtils;
+using TanksRebirth.GameContent.Systems;
 
 namespace CobaltsArmada
 {
@@ -64,9 +65,12 @@ namespace CobaltsArmada
 
             for (var i = 0; i < GameHandler.AllTanks.Length; i++)
             {
+               
                 var tank = Unsafe.Add(ref tankSSpace, i);
                 if (tank == null || tank.Dead) continue;
-                if (Vector2.Distance(tank.Position, Center) > Radius) continue;
+               
+                if (Vector2.Distance(tank.Position, Center) - tank.CollisionCircle.Radius > Radius) continue;
+               
                 tank.Damage(new TankHurtContextShell(shell));
             }
 
@@ -76,7 +80,7 @@ namespace CobaltsArmada
             {
                 ref var bullet = ref Unsafe.Add(ref bulletSSpace, i);
                 if (bullet == null || bullet == shell) continue;
-                if (Vector2.Distance(bullet.Position, Center) > Radius) continue;
+                if (Vector2.Distance(bullet.Position, Center)-bullet.HitCircle.Radius > Radius) continue;
                 if (bullet.Properties.IsDestructible)
                     bullet.Destroy(DestructionContext.WithShell);
                 // if two indestructible bullets come together, destroy them both. too powerful!
@@ -141,7 +145,7 @@ namespace CobaltsArmada
             return MAX_DIST;
         }
 
-        public static void DoKillcast(Shell shell,Vector2 start, Vector2 destination, float MAX_DIST = 1000,float unforgiveness=5.3f,bool draw = false)
+        public static void DoKillcast(Shell shell,float unforgiveness=5.3f,bool draw = false)
         {
             if (shell.Owner is null) return;
             if (shell.Owner is PlayerTank) return;
@@ -150,7 +154,8 @@ namespace CobaltsArmada
             for (var i = 0; i < ai.ShotPathTankCollPoints.Length; i++)
             {
                 CheckCollisions_DeathBeam(shell, ai.ShotPathTankCollPoints[i],unforgiveness);
-            } 
+            }
+            
         }
         
 
@@ -166,22 +171,25 @@ namespace CobaltsArmada
 
     public override void PostUpdate(Shell shell)
         {
+            if (shell is null) return;
             base.PostUpdate(shell);
             if (shell.Owner is null) return;
             if (shell.Owner is PlayerTank) return;
-
             AITank ai = (AITank)shell.Owner;
+            if (ai.ShotPathRicochetPoints.Length<1) return;
+            
             float Laser_length =Vector2.Distance(shell.Position,ai.ShotPathRicochetPoints[0]);
             float BEW = shell.LifeTime/60 * MathF.PI*2f;
-            float dur = 1.6f;
+            float dur = 1.5f;
 
-            float scaletimer = LaserLerp(MathF.Max(0.0f,-MathF.Cos(BEW/ dur) /2f + 0.5f),0.3f);
-            float laser_Magnify = 4.3f;
-            
-            shell.World = Matrix.CreateScale(scaletimer*laser_Magnify, scaletimer* laser_Magnify, Laser_length/2f) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
-                * Matrix.CreateTranslation(shell.Position3D)*Matrix.CreateTranslation(Vector3.Normalize(shell.Velocity3D) * Laser_length/2f);
+            float scaletimer = LaserLerp(MathF.Max(0f,-MathF.Cos(BEW/ dur) /2f + 0.5f),0.3f);
+            float laser_Magnify = 2f;
 
-            DoKillcast(shell, shell.Position, shell.Position + Vector2.Normalize(shell.Position) * Laser_length, Laser_length, 5.8f);
+            float reacher = 1.075f;
+            shell.World = Matrix.CreateScale(scaletimer*laser_Magnify, scaletimer* laser_Magnify, Laser_length/8f* reacher) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
+                * Matrix.CreateTranslation(shell.Position3D)*Matrix.CreateTranslation(Vector3.Normalize(shell.Velocity3D) * Laser_length/2f* reacher);
+            if(scaletimer > 0.2) DoKillcast(shell, laser_Magnify*1.25f);
+           
             if (dur*60f < shell.LifeTime)
             {
                 shell.Remove();

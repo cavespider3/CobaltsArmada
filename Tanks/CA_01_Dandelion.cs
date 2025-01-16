@@ -46,16 +46,17 @@ namespace CobaltsArmada
             tank.Properties.ShellLimit = 2;
 
             tank.Properties.ShellSpeed = 4f;
+            tank.Properties.ShootStun = 120;
 
-            tank.Properties.ShellType = ShellID.Rocket;//ModContent.GetSingleton<CA_Shell_Rail>().Type;
+            tank.Properties.ShellType = ShellID.Standard;
 
-            tank.Properties.RicochetCount = 2;
+            tank.Properties.RicochetCount = 1;
 
             tank.AiParams.ShootChance = 0.5f;
 
             tank.Properties.Invisible = false;
 
-            tank.AiParams.PredictsPositions = true;
+            tank.AiParams.SmartRicochets = true;
 
             tank.Properties.Stationary = true;
 
@@ -69,6 +70,11 @@ namespace CobaltsArmada
   
             base.TakeDamage(tank, destroy, context);
             CA_Main.Fire_AbstractShell_Tank(tank, 6, context, 1, 1, 5f);
+        }
+        public override void PreUpdate(AITank tank)
+        {
+            base.PreUpdate(tank);
+            //tank.AiParams.TurretSpeed = tank.CurShootStun > 0 ? 0f : 0.05f;
         }
 
         public override void Shoot(AITank tank, ref Shell shell)

@@ -46,8 +46,8 @@ namespace CobaltsArmada
             tank.Properties.ShellCooldown = 300;
             tank.Properties.ShellLimit = 1;
             tank.Properties.ShellSpeed = 5f;
-            tank.Properties.ShellType = ShellID.Rocket;
-            tank.Properties.RicochetCount = 3;
+            tank.Properties.ShellType = ModContent.GetSingleton<CA_ShatterBouncer>().Type;
+            tank.Properties.RicochetCount = 2;
             tank.AiParams.SmartRicochets =true;
 
             tank.Properties.Invisible = false;
@@ -77,5 +77,6 @@ namespace CobaltsArmada
             base.Shoot(tank, ref shell);
              shell.Properties.FlameColor = AssociatedColor;
         }
+
     }
 }

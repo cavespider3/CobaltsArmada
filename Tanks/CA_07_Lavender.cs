@@ -17,7 +17,7 @@ namespace CobaltsArmada
 
         public override string Texture => "assets/textures/tank_lavender";
         public override int Songs => 3;
-        public override Color AssociatedColor => Color.SteelBlue;
+        public override Color AssociatedColor => Color.Lavender;
         public override void PostApplyDefaults(AITank tank)
         {
             base.PostApplyDefaults(tank);
@@ -46,7 +46,7 @@ namespace CobaltsArmada
             tank.Properties.ShellCooldown = 180;
             tank.Properties.ShellLimit = 1;
             tank.Properties.ShellSpeed = 5f;
-            tank.Properties.ShellType = ShellID.Rocket;
+            tank.Properties.ShellType = ModContent.GetSingleton<CA_ShatterShell>().Type;
             tank.Properties.RicochetCount = 0;
 
             tank.Properties.Invisible = false;
