@@ -65,8 +65,8 @@ namespace CobaltsArmada
             tank.Properties.ShootStun = 12;
             tank.Properties.ShellCooldown = 50;
             tank.Properties.ShellLimit = 9;
-            tank.Properties.ShellSpread = 0.3f;
-            tank.Properties.ShellShootCount = 3;
+           // tank.Properties.ShellSpread = 0.3f;
+           // tank.Properties.ShellShootCount = 3;
             tank.Properties.ShellSpeed = 4f;
             tank.Properties.ShellType = ShellID.Standard;
             tank.Properties.RicochetCount = 0;

@@ -49,8 +49,8 @@ namespace CobaltsArmada
             properties.ShootStun = 20;
             properties.ShellCooldown = 150;
             properties.ShellSpread = 0.31f;
-            properties.ShellShootCount = 3;
-            properties.ShellLimit = 3;
+         //   properties.ShellShootCount = 3;
+         //   properties.ShellLimit = 3;
 
             properties.ShellSpeed = 5.25f;
          
