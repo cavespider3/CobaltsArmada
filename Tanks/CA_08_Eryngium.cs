@@ -37,8 +37,8 @@ namespace CobaltsArmada
             tank.Scaling = Vector3.One * 100.0f * 1.1f;
             Properties_Visible(tank);
         }
-
-        void Properties_Visible(AITank tank)
+        static AITank? _Tank;
+        static void Properties_Visible(AITank tank)
         {
             var aiParams = tank.AiParams;
             var properties = tank.Properties;
@@ -64,7 +64,7 @@ namespace CobaltsArmada
             //RAIL CANNON!
             properties.ShootStun = 20;
             properties.ShellCooldown = 100;
-            properties.ShellLimit = 2;
+            properties.ShellLimit = 0;
             properties.ShellSpeed = 5f;
             properties.ShellType = ShellID.TrailedRocket;
             properties.RicochetCount = 0;
@@ -78,7 +78,7 @@ namespace CobaltsArmada
             aiParams.PredictsPositions = true;
             tank.Properties.TrackType = TrackID.Thick;
             properties.TreadPitch = -0.2f;
-            properties.MaxSpeed = 1.4f;
+            properties.MaxSpeed = 1.3f;
             properties.TreadVolume = 0.2f;
             properties.Acceleration = 0.3f;
             tank.Model = CA_Main.Neo_Mobile;
@@ -93,9 +93,10 @@ namespace CobaltsArmada
             aiParams.BlockReadTime = 10;
 
             tank.BaseExpValue = 0.1f;
+           
         }
 
-        void Properties_Invisible(AITank tank)
+        static void Properties_Invisible(AITank tank)
         {
             var aiParams = tank.AiParams;
             var properties = tank.Properties;
@@ -154,36 +155,58 @@ namespace CobaltsArmada
             tank.BaseExpValue = 0.1f;
         }
 
-        public override void Shoot(AITank tank, ref Shell shell)
+      
+
+
+        public override void PostUpdate(AITank tonk)
         {
+            base.PostUpdate(tonk);
 
-            base.Shoot(tank, ref shell);
-        }
-        
-        public override void PreUpdate(AITank tank)
-        { 
-        
-            base.PreUpdate(tank);
-
-            tank.Speed *= tank.Properties.Stationary ? 0f : 1f;
-            tank.AiParams.TurretSpeed = tank.CurShootStun > 0 ? 0f : 0.05f;
+            tonk.Speed *= tonk.Properties.Stationary ? 0f : 1f;
+            tonk.Velocity *= tonk.Properties.Stationary ? 0f : 1f;
+            tonk.AiParams.TurretSpeed = tonk.CurShootStun > 0 ? 0f : 0.05f;
 
 
-            tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
-            if (tank.SpecialBehaviors[1].Value == 0)
-                tank.SpecialBehaviors[1].Value = 600;
+            tonk.SpecialBehaviors[0].Value += TankGame.DeltaTime;
+            if (tonk.SpecialBehaviors[1].Value == 0)
+                tonk.SpecialBehaviors[1].Value = tonk.Properties.Stationary ?600f: Server.ServerRandom.NextFloat(6,10)*100f;
 
-            if (tank.SpecialBehaviors[0].Value > tank.SpecialBehaviors[1].Value)
+            if (tonk.SpecialBehaviors[0].Value > tonk.SpecialBehaviors[1].Value)
             {
-                tank.SpecialBehaviors[1].Value = 0f;
-                tank.SpecialBehaviors[0].Value = 0f;
-                
-                if (!tank.Properties.Stationary) Properties_Invisible(tank); else Properties_Visible(tank);
-                swap(tank);
+                _Tank = tonk;
+                var ring = GameHandler.Particles.MakeParticle(_Tank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
+                ring.Scale = new(0.6f);
+                ring.Roll = MathHelper.PiOver2;
+                ring.HasAddativeBlending = false;
+                ring.Color = Color.Purple;
+
+                ring.UniqueBehavior = (a) =>
+                {
+                    ring.Alpha -= 0.06f * TankGame.DeltaTime;
+
+                    GeometryUtils.Add(ref ring.Scale, (0.03f) * TankGame.DeltaTime);
+                    if (ring.Alpha <= 0)
+                        ring.Destroy();
+                };
+                _Tank.SpecialBehaviors[1].Value = 0f;
+                _Tank.SpecialBehaviors[0].Value = 0f;
+
+                if (!_Tank.Properties.Stationary)
+                {
+                    CA_08_Eryngium.Properties_Invisible(_Tank);
+                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.3f, pitchOverride: -0.25f, gameplaySound: true);
+                }
+                else
+                {
+                    CA_08_Eryngium.Properties_Visible(_Tank);
+                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.3f, pitchOverride: 0.25f, gameplaySound: true);
+                }
+                CA_08_Eryngium.swap(_Tank);
             }
         }
+        
 
-        void swap(AITank tank)
+       static void swap(AITank tank)
         {
             const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 

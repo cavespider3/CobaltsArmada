@@ -13,6 +13,7 @@ using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using TanksRebirth.Internals;
+using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -34,8 +35,9 @@ namespace CobaltsArmada
 
         public override void PostApplyDefaults(AITank tank)
         {   
+            
             tank.SpecialBehaviors[2].Value = 32;
-       
+            CA_Main.boss = new BossBar(tank, "Zenith", "The Unbounded");
 
             //TANK NO BACK DOWN
             base.PostApplyDefaults(tank);
@@ -63,10 +65,10 @@ namespace CobaltsArmada
             tank.Properties.MaximalTurn = MathHelper.ToRadians(21);
             tank.Properties.Armor = new Armor(tank,1);
             tank.Properties.ShootStun = 12;
-            tank.Properties.ShellCooldown = 50;
+            tank.Properties.ShellCooldown = 150;
             tank.Properties.ShellLimit = 9;
-           // tank.Properties.ShellSpread = 0.3f;
-           // tank.Properties.ShellShootCount = 3;
+            tank.Properties.ShellSpread = 0.3f;
+            tank.Properties.ShellShootCount = 3;
             tank.Properties.ShellSpeed = 4f;
             tank.Properties.ShellType = ShellID.Standard;
             tank.Properties.RicochetCount = 0;
@@ -75,6 +77,7 @@ namespace CobaltsArmada
 
             tank.Properties.Invisible = false;
             tank.Properties.Stationary = false;
+            tank.Properties.CanLayTread = false;
 
             tank.Properties.TreadVolume = 0.1f;
             tank.Properties.TreadPitch = 0.3f;
@@ -101,6 +104,8 @@ namespace CobaltsArmada
             base.TakeDamage(tank, destroy, context);
            
         }
+
+
         public override void PostUpdate(AITank tank)
         {
             base.PostUpdate(tank);
@@ -153,16 +158,24 @@ namespace CobaltsArmada
                     for (int i = 0; i < 3; i++)
                     {
                         var pathPos = new Vector2(0, 40 + MathF.Abs(tank.SpecialBehaviors[0].Value / 30) * 40f).RotatedByRadians(MathHelper.TwoPi*(i/3f) - a);
-                        if (pathPos.X < MapRenderer.MIN_X || pathPos.X > MapRenderer.MAX_X)
-                        {
-                            continue;
-                        }
-                        if (pathPos.Y < MapRenderer.MIN_Y || pathPos.Y > MapRenderer.MAX_Y)
-                        {
-                            continue;
-                        }
-                        var crate = new Shell(pathPos + tank.Position, Vector2.One * 0.001f, ModContent.GetSingleton<CA_Shell_Judgement>().Type, tank, 0, default, true);
+                        new CA_OrbitalStrike(pathPos + tank.Position, tank);
+
+
                     }
+                    var ring = GameHandler.Particles.MakeParticle(tank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
+                    ring.Scale = new(0.6f);
+                    ring.Roll = MathHelper.PiOver2;
+                    ring.HasAddativeBlending = true;
+                    ring.Color = Color.Cyan;
+                   
+                    ring.UniqueBehavior = (a) =>
+                    {
+                        ring.Alpha -= 0.06f * TankGame.DeltaTime;
+
+                        GeometryUtils.Add(ref ring.Scale, (0.03f) * TankGame.DeltaTime);
+                        if (ring.Alpha <= 0)
+                            ring.Destroy();
+                    };
                 }
             
             }
@@ -183,16 +196,22 @@ namespace CobaltsArmada
                     for (int i = 0; i < 3; i++)
                     {
                         var pathPos = new Vector2(0,40+ MathF.Abs(tank.SpecialBehaviors[0].Value / 30 )* 40f).RotatedByRadians(MathHelper.TwoPi * (i / 3f)+ a);
-                        if (pathPos.X < MapRenderer.MIN_X || pathPos.X > MapRenderer.MAX_X)
-                        {
-                            continue;
-                        }
-                        if (pathPos.Y < MapRenderer.MIN_Y || pathPos.Y > MapRenderer.MAX_Y)
-                        {
-                            continue;
-                        }
-                        var crate = new Shell(pathPos + tank.Position, Vector2.One * 0.001f, ModContent.GetSingleton<CA_Shell_Judgement>().Type, tank, 0, default, true);
+                        new CA_OrbitalStrike(pathPos+tank.Position, tank);
                     }
+                    var ring = GameHandler.Particles.MakeParticle(tank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
+                    ring.Scale = new(0.6f);
+                    ring.Roll = MathHelper.PiOver2;
+                    ring.HasAddativeBlending = true;
+                    ring.Color = Color.Cyan;
+
+                    ring.UniqueBehavior = (a) =>
+                    {
+                        ring.Alpha -= 0.06f * TankGame.DeltaTime;
+
+                        GeometryUtils.Add(ref ring.Scale, (0.03f) * TankGame.DeltaTime);
+                        if (ring.Alpha <= 0)
+                            ring.Destroy();
+                    };
                 }
             }
 

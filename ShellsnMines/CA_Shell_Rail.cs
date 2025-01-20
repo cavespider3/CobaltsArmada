@@ -23,6 +23,7 @@ using TanksRebirth.Internals.Common.Framework;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
+using TanksRebirth.Net;
 
 namespace CobaltsArmada
 {
@@ -177,22 +178,24 @@ namespace CobaltsArmada
             if (shell.Owner is PlayerTank) return;
             AITank ai = (AITank)shell.Owner;
             if (ai.ShotPathRicochetPoints.Length<1) return;
-            
-            float Laser_length =Vector2.Distance(shell.Position,ai.ShotPathRicochetPoints[0]);
-            float BEW = shell.LifeTime/60 * MathF.PI*2f;
-            float dur = 1.5f;
-
-            float scaletimer = LaserLerp(MathF.Max(0f,-MathF.Cos(BEW/ dur) /2f + 0.5f),0.3f);
-            float laser_Magnify = 2f;
-
-            float reacher = 1.075f;
-            shell.World = Matrix.CreateScale(scaletimer*laser_Magnify, scaletimer* laser_Magnify, Laser_length/8f* reacher) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
-                * Matrix.CreateTranslation(shell.Position3D)*Matrix.CreateTranslation(Vector3.Normalize(shell.Velocity3D) * Laser_length/2f* reacher);
-            if(scaletimer > 0.2) DoKillcast(shell, laser_Magnify*1.25f);
-           
-            if (dur*60f < shell.LifeTime)
+            if (Server.NetManager != null || !Client.IsConnected())
             {
-                shell.Remove();
+                float Laser_length = Vector2.Distance(shell.Position, ai.ShotPathRicochetPoints[0]);
+                float BEW = shell.LifeTime / 60 * MathF.PI * 2f;
+                float dur = 1.5f;
+
+                float scaletimer = LaserLerp(MathF.Max(0f, -MathF.Cos(BEW / dur) / 2f + 0.5f), 0.3f);
+                float laser_Magnify = Difficulties.Types["PieFactory"] ? 4.4f : 2.1f;
+
+                float reacher = 1.075f;
+                shell.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
+                    * Matrix.CreateTranslation(shell.Position3D) * Matrix.CreateTranslation(Vector3.Normalize(shell.Velocity3D) * Laser_length / 2f * reacher);
+                if (scaletimer > 0.2) DoKillcast(shell, laser_Magnify * 1.25f);
+
+                if (dur * 60f < shell.LifeTime)
+                {
+                    shell.Remove();
+                }
             }
         }
 

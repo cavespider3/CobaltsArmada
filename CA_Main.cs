@@ -18,6 +18,7 @@ using TanksRebirth.Internals.Common;
 using TanksRebirth.Internals.Common.GameUI;
 using static System.Net.Mime.MediaTypeNames;
 using static TanksRebirth.GameContent.UI.MainMenu;
+using TanksRebirth.GameContent.RebirthUtils;
 
 namespace CobaltsArmada;
 
@@ -95,6 +96,12 @@ public class CA_Main : TanksMod {
     [AllowNull]
     public static Model Shell_Beam;
 
+    [AllowNull]
+    public static Texture2D Beam;
+    [AllowNull]
+    public static Texture2D Beam_Dan;
+
+
     //Custom modifiers
     [AllowNull]
     public static UITextButton Invasion;
@@ -102,18 +109,22 @@ public class CA_Main : TanksMod {
     public static UITextButton MasterSpark;
     [AllowNull]
     public static UITextButton Prenerf_enemies;
+
+    public static BossBar? boss;
     
     public override void OnLoad() {
+        Beam = ImportAsset<Texture2D>("assets/textures/tank_zenith");
+        Beam_Dan = ImportAsset<Texture2D>("assets/textures/tank_dandy");
         MainMenu.OnMenuOpen += Open;
         MainMenu.OnMenuClose += MainMenu_OnMenuClose;
         Campaign.OnMissionLoad += Highjack_Mission;
      
         Shell.OnDestroy += Shell_OnDestroy;
- 
+        SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;
  
        
         Mine.OnExplode += Mine_OnExplode;
-     
+
 
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
         Neo_Mobile = ImportAsset<Model>("assets/models/tank_moving");
@@ -131,6 +142,34 @@ public class CA_Main : TanksMod {
             Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red
         }; 
         Invasion.SetDimensions(100, 800, 300, 40);
+
+        GameHandler.OnPostRender += GameHandler_OnPostRender;
+        GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
+        
+    }
+
+    private void SceneManager_OnMissionCleanup()
+    {
+        foreach (var pu in CA_OrbitalStrike.AllLasers)
+            pu?.Remove();
+    }
+
+    private void GameHandler_OnPostUpdate()
+    {
+        if (!IntermissionSystem.IsAwaitingNewMission)
+        {
+            foreach (var fp in CA_OrbitalStrike.AllLasers)
+                fp?.Update();
+        }
+        boss?.Update();
+
+    }
+
+    private void GameHandler_OnPostRender()
+    {
+        foreach (var fp in CA_OrbitalStrike.AllLasers)
+            fp?.Render();
+        boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth-WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight-60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
     }
 
     private void MainMenu_OnMenuClose()
@@ -141,6 +180,7 @@ public class CA_Main : TanksMod {
 
     private void Open()
     {
+        boss = null;
         Invasion.IsVisible = true;
         Invasion.Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red;
     }
@@ -151,6 +191,7 @@ public class CA_Main : TanksMod {
         //There was an issue where base roster tanks would convert to their CA counterparts during the editing process
         if (LevelEditor.Active) return;
         if (MainMenu.Active) return;
+
         if (!CustomDifficulty_Invasion) return;
         TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
        // ChatSystem.SendMessage("Invading campaign...", Color.Yellow);

@@ -42,7 +42,7 @@ namespace CobaltsArmada
             aiParams.MineWarinessRadius_PlayerLaid = 140;
 
             properties.TurningSpeed = 0.13f;
-            properties.MaximalTurn = MathHelper.PiOver2;
+            properties.MaximalTurn = MathHelper.PiOver4/2;
 
             properties.ShootStun = 0;
             properties.ShellCooldown = 70;
@@ -56,7 +56,7 @@ namespace CobaltsArmada
             
 
             properties.TreadPitch = 0.2f;
-            properties.MaxSpeed = 1.7f;
+            properties.MaxSpeed = 1.3f;
             properties.Acceleration = 0.1f;
             properties.Deceleration = 0.1f;
 
