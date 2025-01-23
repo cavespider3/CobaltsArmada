@@ -16,7 +16,7 @@ namespace CobaltsArmada
         });
 
         public override string Texture => "assets/textures/tank_poppy";
-        public override int Songs => 4;
+        public override int Songs => 2;
         public override Color AssociatedColor => Color.Red;
         public override void PostApplyDefaults(AITank tank)
         {

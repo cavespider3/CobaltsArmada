@@ -16,7 +16,7 @@ namespace CobaltsArmada
         });
 
         public override string Texture => "assets/textures/tank_periwinkle";
-        public override int Songs => 3;
+        public override int Songs => 2;
         public override Color AssociatedColor => new Color(204, 204, 255);
        
         public override void PostApplyDefaults(AITank tank)

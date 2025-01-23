@@ -20,7 +20,7 @@ namespace CobaltsArmada
         });
 
         public override string Texture => "assets/textures/tank_pansy";
-        public override int Songs => 5;
+        public override int Songs => 2;
         public override Color AssociatedColor => Color.RoyalBlue;
         public override void PostApplyDefaults(AITank tank)
         {
@@ -33,9 +33,9 @@ namespace CobaltsArmada
             aiParams.MeanderFrequency = 15;
             aiParams.TurretMeanderFrequency = 20;
             aiParams.TurretSpeed = 0.025f;
-            aiParams.AimOffset = 0.01f;
+            aiParams.AimOffset = 0.6f;
 
-            aiParams.Inaccuracy = 0.4f;
+            aiParams.Inaccuracy = 0.1f;
 
             aiParams.PursuitLevel = -0.3f;
             aiParams.PursuitFrequency = 240;
@@ -47,10 +47,9 @@ namespace CobaltsArmada
             properties.MaximalTurn = MathHelper.PiOver2;
 
             properties.ShootStun = 20;
-            properties.ShellCooldown = 150;
-            properties.ShellSpread = 0.31f;
+            properties.ShellCooldown = 3;
             //   properties.ShellShootCount = 3;
-            //   properties.ShellLimit = 3;
+            properties.ShellLimit = 3;
             //ModContent.GetSingleton<CA_ShatterBouncer>().Type
             properties.ShellSpeed = 5.25f;
          

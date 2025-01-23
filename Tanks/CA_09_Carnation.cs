@@ -16,7 +16,7 @@ namespace CobaltsArmada
         });
 
         public override string Texture => "assets/textures/tank_carnation";
-        public override int Songs => 3;
+        public override int Songs => 2;
         public override Color AssociatedColor => Color.Fuchsia;
         public override void PostApplyDefaults(AITank tank)
         {

@@ -76,8 +76,7 @@ namespace CobaltsArmada
             Vector2 finalpos = position + Vector2.UnitY * 120f*Easings.InBack(1f-Anim_Up);
 
             string _Title = Name + (Subtitle.Length == 0 ? "" : " - " + Subtitle);
-           // TankGame.SpriteRenderer.DrawString(TankGame.TextFont, _Title
-            //    , finalpos - (Vector2.UnitY * 20).ToResolution(), Color.White, new Vector2(0.6f).ToResolution(), 0f, TankGame.TextFont.MeasureString(_Title)/2f,0f);
+           TankGame.SpriteRenderer.DrawString(TankGame.TextFont, _Title, finalpos - (Vector2.UnitY * 20).ToResolution(), Color.White, new Vector2(0.6f).ToResolution(), 0f, TankGame.TextFont.MeasureString(_Title)/2f,0f);
            
 
             sb.Draw(TankGame.WhitePixel, finalpos, null, emptyColor, 0f, GameUtils.GetAnchor(aligning, TankGame.WhitePixel.Size()), new Vector2(scale.X, scale.Y), default, 0f);

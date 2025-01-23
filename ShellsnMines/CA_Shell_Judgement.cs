@@ -36,9 +36,10 @@ namespace CobaltsArmada
 {/// <summary>
  /// JUDGEMENT
  /// </summary>
+    #nullable enable
     public class CA_OrbitalStrike : IAITankDanger
     {
-        private Vector2 _oldPosition;
+       // private Vector2 _oldPosition;
 
         // this used to be 1500. why?
         /// <summary>The maximum shells allowed at any given time.</summary>
@@ -75,7 +76,7 @@ namespace CobaltsArmada
 
         private bool Firing;
 
-        Tank? Owner;
+        public Tank? Owner;
         public Texture2D? _LaserTexture;
 
         public enum TeamkillContext
@@ -245,6 +246,7 @@ namespace CobaltsArmada
         public void Remove()
         {
             AITank.Dangers.Remove(this);
+
             AllLasers[Id] = null;
         }
 

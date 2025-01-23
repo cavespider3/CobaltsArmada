@@ -87,7 +87,7 @@ public class CA_Main : TanksMod {
     static public Color Cosmium => Color.Fuchsia;  // Black Tank
 
 
-    public static bool CustomDifficulty_Invasion = false;
+    
 
     [AllowNull]
     public static Model Neo_Stationary;
@@ -106,13 +106,51 @@ public class CA_Main : TanksMod {
     [AllowNull]
     public static UITextButton Invasion;
     [AllowNull]
+    public static UITextButton Touhoumode_2;
+    [AllowNull]
     public static UITextButton MasterSpark;
     [AllowNull]
     public static UITextButton Prenerf_enemies;
 
     public static BossBar? boss;
     
+    public enum ModDifficulty
+    {
+        Easy=-1,Normal,Hard,Lunatic,Extra,Phantasm
+    }
+    public static ModDifficulty modifier_Difficulty = ModDifficulty.Normal;
+    public static Color DifficultyColor(ModDifficulty difficulty)
+    {
+        switch (difficulty)
+        {
+            case ModDifficulty.Easy:
+                return new(0, 191, 71);
+            case ModDifficulty.Normal:
+                return new(0, 113, 226);
+            case ModDifficulty.Hard:
+                return new(0, 18, 225);
+            case ModDifficulty.Lunatic:
+                return new(179, 0, 179);
+            case ModDifficulty.Extra:
+                return new(176, 0, 0);
+            case ModDifficulty.Phantasm:
+                return new(199, 0, 154);
+            default:
+                return new(120, 120, 120);
+        }
+      
+    }
+
+    
+
     public override void OnLoad() {
+
+        Difficulties.Types.Add("CobaltArmada_Swap", false);
+        Difficulties.Types.Add("CobaltArmada_GetGud", false);
+        Difficulties.Types.Add("CobaltArmada_YouAndWhatArmy", false);
+        Difficulties.Types.Add("CobaltArmada_MasterSpark", false);
+        
+
         Beam = ImportAsset<Texture2D>("assets/textures/tank_zenith");
         Beam_Dan = ImportAsset<Texture2D>("assets/textures/tank_dandy");
         MainMenu.OnMenuOpen += Open;
@@ -133,19 +171,60 @@ public class CA_Main : TanksMod {
         Invasion = new("Cobalt's Armada Mode", TankGame.TextFont, Color.White)
         {
             IsVisible = true,
-            Tooltip = "Vanilla tanks are converted into tanks from Cobalt's Armada.\nWARNING: Do not expect it to be a fair fight!\nWill not work with some modifiers",
+            Tooltip = "Vanilla tanks are converted into their Armada counterpart.\nWARNING: Do not expect it to be a fair fight!\nWill not work with some modifiers.",
+           OnLeftClick = (elem) =>
+            {
+                Difficulties.Types["CobaltArmada_Swap"] = !Difficulties.Types["CobaltArmada_Swap"];
+                Invasion.Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red;
+            }, 
+            Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red
+           
+        };
+        Invasion.SetDimensions(800, 550, 300, 40);
+
+        Touhoumode_2 = new("Difficulty", TankGame.TextFont, Color.White)
+        {
+            IsVisible = true,
+            Tooltip = "Modifies Armada tanks to be easier or harder.",
             OnLeftClick = (elem) =>
             {
-                CustomDifficulty_Invasion = !CustomDifficulty_Invasion;
-                Invasion.Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red;
+                if (modifier_Difficulty + 1 > ModDifficulty.Phantasm) modifier_Difficulty = ModDifficulty.Easy;
+                else modifier_Difficulty += 1;
+                Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
+
+                Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
             },
-            Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red
-        }; 
-        Invasion.SetDimensions(100, 800, 300, 40);
+            OnRightClick = (elem) =>
+            {
+                if (modifier_Difficulty -1 < ModDifficulty.Easy) modifier_Difficulty = ModDifficulty.Phantasm;
+                else modifier_Difficulty -= 1;
+                Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
+
+                Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
+            },
+
+            Color = DifficultyColor(modifier_Difficulty)
+        };
+        Touhoumode_2.SetDimensions(800, 600, 300, 40);
+
+
 
         GameHandler.OnPostRender += GameHandler_OnPostRender;
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
         
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_04_Sunflower>().Type] = 0.32f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_05_Poppy>().Type] = 0.374f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_06_Daisy>().Type] = 0.43f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_07_Lavender>().Type] = 0.5f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_08_Eryngium>().Type] = 0.63f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_09_Carnation>().Type] = 0.85f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_X1_Kudzu>().Type] = 0.42f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_X2_CorpseFlower>().Type] = 0.21f;
+        DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_Z9_Zenith>().Type] = 1.00f;
+       
     }
 
     private void SceneManager_OnMissionCleanup()
@@ -154,14 +233,107 @@ public class CA_Main : TanksMod {
             pu?.Remove();
     }
 
+    private void UI_SHIT()
+    {
+
+
+    }
+
     private void GameHandler_OnPostUpdate()
     {
+        if (MainMenu.Active&&MainMenu.BulletHell.IsVisible)
+        {
+            Invasion.IsVisible = true;
+            Touhoumode_2.IsVisible = true;
+            Touhoumode_2.Text = "Difficulty: " + modifier_Difficulty.ToString();
+            Touhoumode_2.Tooltip = "Modifies Armada tanks to be easier or harder.\n\""+( modifier_Difficulty == ModDifficulty.Easy ? "for people who need to stop and smell the roses" :
+                modifier_Difficulty == ModDifficulty.Normal ? "for people who need a baseline experience" :
+                modifier_Difficulty == ModDifficulty.Hard ? "for people who need a challenge" :
+                modifier_Difficulty == ModDifficulty.Lunatic ? "for people that think master mod was too easy" :
+                modifier_Difficulty == ModDifficulty.Extra ? "for those who's middle name is \"Masochist\"" :
+                "DON'T"
+                ) +"\"";
+        }
+        else
+        {
+            Invasion.IsVisible = false;
+            Touhoumode_2.IsVisible = false;
+           
+        }
+
         if (!IntermissionSystem.IsAwaitingNewMission)
         {
             foreach (var fp in CA_OrbitalStrike.AllLasers)
                 fp?.Update();
         }
-        boss?.Update();
+        if(LevelEditor.Active)
+        {
+            //To CobaltTanks
+            if (InputUtils.AreKeysJustPressed([Microsoft.Xna.Framework.Input.Keys.C, Microsoft.Xna.Framework.Input.Keys.OemPeriod]) && !DebugManager.DebuggingEnabled && Difficulties.Types["CobaltArmada_Swap"])
+            {
+                SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.5f, pitchOverride: -0.25f, gameplaySound: true);
+                ref Tank[] tanks = ref GameHandler.AllTanks;
+                for (int i = 0; i < tanks.Length; i++)
+                {
+                    if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
+                    var ai = tanks[i] as AITank;
+                    if (ai is null) continue;
+                        switch (ai.AiTankType)
+                        {
+                            case TankID.Brown: ai.Swap(ModContent.GetSingleton<CA_01_Dandelion>().Type, true); break;
+                            case TankID.Ash: ai.Swap(ModContent.GetSingleton<CA_02_Perwinkle>().Type, true); break;
+                            case TankID.Marine: ai.Swap(ModContent.GetSingleton<CA_03_Pansy>().Type, true); break;
+                            case TankID.Yellow: ai.Swap(ModContent.GetSingleton<CA_04_Sunflower>().Type, true); break;
+                            case TankID.Pink: ai.Swap(ModContent.GetSingleton<CA_05_Poppy>().Type, true); break;
+                            case TankID.Violet: ai.Swap(ModContent.GetSingleton<CA_07_Lavender>().Type, true); break;
+                            case TankID.Green: ai.Swap(ModContent.GetSingleton<CA_06_Daisy>().Type, true); break;
+                            case TankID.White: ai.Swap(ModContent.GetSingleton<CA_08_Eryngium>().Type, true); break;
+                            case TankID.Black: ai.Swap(ModContent.GetSingleton<CA_09_Carnation>().Type, true); break;
+                        //For special tanks, use master mod tanks
+                            case TankID.Bronze: ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true); break;
+                            case TankID.Citrine: ai.Swap(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type, true); break;
+                            case TankID.Obsidian: ai.Swap(ModContent.GetSingleton<CA_Z9_Zenith>().Type, true); break;
+
+                        default: break;
+
+                        }   
+                    ai.InitModelSemantics();
+                }
+            }
+            //From CobaltTanks
+            else if (InputUtils.AreKeysJustPressed([Microsoft.Xna.Framework.Input.Keys.C, Microsoft.Xna.Framework.Input.Keys.OemComma]) && !DebugManager.DebuggingEnabled && Difficulties.Types["CobaltArmada_Swap"])
+            {
+                SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.5f, pitchOverride: -0.25f, gameplaySound: true);
+                ref Tank[] tanks = ref GameHandler.AllTanks;
+                for (int i = 0; i < tanks.Length; i++)
+                {
+                    if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
+                    var ai = tanks[i] as AITank;
+                    if (ai is null) continue;
+
+                    if(ModContent.GetSingleton<CA_01_Dandelion>().Type==ai.AiTankType) ai.Swap(TankID.Brown, true);
+                    if(ModContent.GetSingleton<CA_02_Perwinkle>().Type==ai.AiTankType) ai.Swap(TankID.Ash, true);
+                    if(ModContent.GetSingleton<CA_03_Pansy>().Type==ai.AiTankType) ai.Swap(TankID.Marine, true);
+                    if(ModContent.GetSingleton<CA_04_Sunflower>().Type==ai.AiTankType) ai.Swap(TankID.Yellow, true);
+                    if(ModContent.GetSingleton<CA_05_Poppy>().Type==ai.AiTankType) ai.Swap(TankID.Pink, true);
+                    if(ModContent.GetSingleton<CA_06_Daisy>().Type==ai.AiTankType) ai.Swap(TankID.Green, true);
+                    if(ModContent.GetSingleton<CA_07_Lavender>().Type==ai.AiTankType) ai.Swap(TankID.Violet, true);
+                    if(ModContent.GetSingleton<CA_08_Eryngium>().Type==ai.AiTankType) ai.Swap(TankID.White, true);
+                    if(ModContent.GetSingleton<CA_09_Carnation>().Type==ai.AiTankType) ai.Swap(TankID.Black, true);
+
+                    if(ModContent.GetSingleton<CA_X1_Kudzu>().Type==ai.AiTankType) ai.Swap(TankID.Bronze, true);
+                    if(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type==ai.AiTankType) ai.Swap(TankID.Silver, true);
+                    if(ModContent.GetSingleton<CA_Z9_Zenith>().Type==ai.AiTankType) ai.Swap(TankID.Obsidian, true);
+
+                    ai.InitModelSemantics();
+                    ai.Scaling = Vector3.One;
+                }
+            }
+
+        }
+         boss?.Update();
+
+
 
     }
 
@@ -174,15 +346,15 @@ public class CA_Main : TanksMod {
 
     private void MainMenu_OnMenuClose()
     {
-        Invasion.IsVisible = false;
+       
       
     }
 
     private void Open()
     {
         boss = null;
-        Invasion.IsVisible = true;
-        Invasion.Color = CustomDifficulty_Invasion ? Color.Lime : Color.Red;
+        
+        Invasion.Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red;
     }
   
 
@@ -192,7 +364,7 @@ public class CA_Main : TanksMod {
         if (LevelEditor.Active) return;
         if (MainMenu.Active) return;
 
-        if (!CustomDifficulty_Invasion) return;
+        if (Difficulties.Types["CobaltArmada_Swap"]) return;
         TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
        // ChatSystem.SendMessage("Invading campaign...", Color.Yellow);
             for (int i = 0; i < tanks.Length; i++)
@@ -354,10 +526,17 @@ public class CA_Main : TanksMod {
 
 
     public override void OnUnload() {
-        Shell.OnDestroy -= Shell_OnDestroy;
-     
-       
-        Mine.OnExplode -= Mine_OnExplode;
+        MainMenu.OnMenuOpen -= Open;
+        MainMenu.OnMenuClose -= MainMenu_OnMenuClose;
         Campaign.OnMissionLoad -= Highjack_Mission;
+
+        Shell.OnDestroy -= Shell_OnDestroy;
+        SceneManager.OnMissionCleanup -= SceneManager_OnMissionCleanup;
+
+
+        Mine.OnExplode -= Mine_OnExplode;
+        GameHandler.OnPostRender -= GameHandler_OnPostRender;
+        GameHandler.OnPostUpdate -= GameHandler_OnPostUpdate;
+
     }
 }

@@ -12,6 +12,7 @@ using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.Coordinates;
+using TanksRebirth.GameContent.UI;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Utilities;
@@ -108,6 +109,7 @@ namespace CobaltsArmada
 
         public override void PostUpdate(AITank tank)
         {
+            if (LevelEditor.Active) return;
             base.PostUpdate(tank);
             tank.SpecialBehaviors[0].Value -= TankGame.DeltaTime;
             if(tank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)

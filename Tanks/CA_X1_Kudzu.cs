@@ -4,6 +4,7 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems.Coordinates;
+using TanksRebirth.GameContent.UI;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -77,7 +78,8 @@ namespace CobaltsArmada
         }
         public override void PreUpdate(AITank tank)
         {
-            base.PreUpdate(tank);
+            base.PreUpdate(tank);//STOP SPAWNING SHIT
+            if (LevelEditor.Active) return;
             if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
             {
                 tank.SpecialBehaviors[1].Value = 0f;
@@ -86,16 +88,16 @@ namespace CobaltsArmada
             }
             tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
             if (tank.SpecialBehaviors[1].Value == 0)
-                tank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, AIManager.CountAll() / 7f), 0, 1);
+                tank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f,Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1);
 
             if (tank.SpecialBehaviors[0].Value > tank.SpecialBehaviors[1].Value)
             {
                 tank.SpecialBehaviors[1].Value = 0f;
                 tank.SpecialBehaviors[0].Value = 0f;
+                //Check to see if within bounds
+                if (tank.Position.X != Math.Clamp(tank.Position.X, MapRenderer.MIN_X, MapRenderer.MAX_X) && tank.Position.Y != Math.Clamp(tank.Position.Y, MapRenderer.MIN_Y, MapRenderer.MAX_Y)) return;
 
-                var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
-
-                var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
+                var crate = Crate.SpawnCrate(tank.Position3D + new Vector3(0, 100, 0), 2f);
                 crate.TankToSpawn = new TankTemplate()
                 {
                     AiTier = Type,
