@@ -66,12 +66,12 @@ namespace CobaltsArmada
             {
                 Hp_Ticked = BossHP;
             }
-            if (GameProperties.InMission)
+            if (!IntermissionSystem.IsAwaitingNewMission)
             {
                 Anim_Rising += TankGame.DeltaTime / 60f;
                 Anim_Rising = MathHelper.Clamp(Anim_Rising, 0f, 1f);
             }
-            Anim_Up += (GameProperties.InMission ? 0.025f:-0.025f) * TankGame.DeltaTime;
+            Anim_Up += (GameProperties.InMission && Owner is not null ? 0.025f:-0.025f) * TankGame.DeltaTime;
             Anim_Up = MathHelper.Clamp(Anim_Up, 0f, 1f);
             Vector2 finalpos = position + Vector2.UnitY * 120f*Easings.InBack(1f-Anim_Up);
 

@@ -128,7 +128,7 @@ namespace CobaltsArmada
             ActiveTime = firetime * 60f;
             Radius = radius;
             LifeTime = 0f;
-            Hitbox.Radius = radius;
+            Hitbox.Radius = radius * 2f;
             Hitbox.Center = position;
         }
 
@@ -154,19 +154,19 @@ namespace CobaltsArmada
             float Ani_ObliterateScale = MathF.Max(0, (LifeTime - WarningTime) / 60 * MathF.PI * 2f);
             float scaletimer = LaserLerp(MathF.Max(0f, -MathF.Cos(Ani_ObliterateScale / (ActiveTime/60f)) / 2f + 0.5f), 0.3f);
             World = Matrix.CreateScale(scaletimer * Radius * MathF.PI, scaletimer * Radius * MathF.PI, Laser_length) * Matrix.CreateFromYawPitchRoll(0, MathHelper.PiOver2, 0) * Matrix.CreateTranslation(Position3D);
-            Hitbox.Radius = scaletimer * Radius * MathF.PI * 0.99f;
+          
 
             //SERVER SIDED BS
             if (Server.NetManager != null || !Client.IsConnected())
             {
-                
+                Hitbox.Radius =scaletimer * Radius * MathF.PI;
                 LifeTime += TankGame.DeltaTime;
                 if(!Firing && Ani_ObliterateScale>0f)
                 {
                     SoundPlayer.PlaySoundInstance("Assets/sounds/mine_explode.ogg", SoundContext.Effect, 0.5f,pitchOverride:1f, gameplaySound: true);
                     Firing = true;
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
-                    ring.Scale = new(0.6f + WarningForgiveness * 0.035f);
+                    ring.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f );
                     ring.Roll = MathHelper.PiOver2;
                     ring.HasAddativeBlending = true;
                     ring.Color = Color.Cyan;
@@ -180,7 +180,7 @@ namespace CobaltsArmada
                             ring.Destroy();
                     };
                     var ring2 = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
-                    ring2.Scale = new(0.6f + WarningForgiveness * 0.035f);
+                    ring2.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f);
                     ring2.Roll = MathHelper.PiOver2;
                     ring2.HasAddativeBlending = true;
                     ring2.Color = Color.Cyan;
@@ -201,7 +201,7 @@ namespace CobaltsArmada
                 if ((Math.Floor(LifeTime) % 60f) % 20f == 0 && LifeTime < WarningTime)
                 {
                     var EasierWarning = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
-                    EasierWarning.Scale = new(0.6f + WarningForgiveness * 0.035f);
+                    EasierWarning.Scale = new(0.34f * Radius + WarningForgiveness * 0.035f);
                     EasierWarning.Roll = MathHelper.PiOver2;
                     EasierWarning.HasAddativeBlending = true;
                     EasierWarning.Color = Color.Cyan;
@@ -210,13 +210,13 @@ namespace CobaltsArmada
                     {
                         EasierWarning.Alpha -= 0.06f * TankGame.DeltaTime;
 
-                        EasierWarning.Position+= Vector3.UnitY * (0.3f + WarningForgiveness * 0.035f) * TankGame.DeltaTime;
+                        EasierWarning.Position+= Vector3.UnitY * (0.8f + WarningForgiveness * 0.035f) * TankGame.DeltaTime;
                         if (EasierWarning.Alpha <= 0)
                             EasierWarning.Destroy();
                     };
 
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
-                    ring.Scale = new(0.6f + WarningForgiveness * 0.035f);
+                    ring.Scale = new(0.34f * Radius + WarningForgiveness * 0.035f );
                     ring.Roll = MathHelper.PiOver2;
                     ring.HasAddativeBlending = true;
                     ring.Color = Color.Red;
