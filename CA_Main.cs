@@ -21,6 +21,7 @@ using static TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.Internals.Common.Framework;
 using Microsoft.Xna.Framework.Input;
+using CobaltsArmada.Objects.projectiles.futuristic;
 
 namespace CobaltsArmada;
 
@@ -283,9 +284,9 @@ public class CA_Main : TanksMod {
                 if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
 
                 bool NotIntoxicated = true;
-                if (CA_Y2_NightShade.PoisionedTanks.Find(x => x == ai) is null)
+                if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is null)
                 {
-                    CA_Y2_NightShade.PoisionedTanks.Add(ai);
+                    CA_Y2_NightShade.PoisonedTanks.Add(ai);
                     CA_Y2_NightShade.Tank_OnPoisoned(ai);
                 }
             }
@@ -296,6 +297,8 @@ public class CA_Main : TanksMod {
     private void SceneManager_OnMissionCleanup()
     {
         foreach (var pu in CA_OrbitalStrike.AllLasers)
+            pu?.Remove();
+        foreach (var pu in CA_Idol_Tether.AllTethers)
             pu?.Remove();
     }
 
@@ -342,11 +345,13 @@ public class CA_Main : TanksMod {
                 if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
                 if (ai is null) continue;
-                CA_Y2_NightShade.WhilePoisoned(ai);
+                CA_Y2_NightShade.WhilePoisoned_Update(ai);
 
             }
-            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled)
-                CA_Y2_NightShade.SpawnPoisonCloud(!TankGame.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
+            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) CA_Y2_NightShade.SpawnPoisonCloud(!TankGame.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
+            
+            foreach (var IT in CA_Idol_Tether.AllTethers)
+                IT?.Update();
 
         }
         if(LevelEditor.Active)

@@ -6,6 +6,7 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using TanksRebirth.GameContent.UI;
+using TanksRebirth.Graphics;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -82,7 +83,8 @@ namespace CobaltsArmada
         {
             base.PreUpdate(tank);//STOP SPAWNING SHIT
             if (LevelEditor.Active) return;
-            if (AIManager.CountAll(x => x.AiTankType == Type) >= Math.Floor(12*(CA_Main.Dif_Scalar_1()/1.5)) || CA_Main.KudzuRegen>0)
+            if (tank.Dead || !GameSceneRenderer.ShouldRenderAll) return;
+                if (AIManager.CountAll(x => x.AiTankType == Type) >= Math.Floor(12*(CA_Main.Dif_Scalar_1()/1.5)) || CA_Main.KudzuRegen>0)
             {
                 tank.SpecialBehaviors[1].Value = 0f;
                 tank.SpecialBehaviors[0].Value = 0f;
@@ -98,7 +100,7 @@ namespace CobaltsArmada
                 tank.SpecialBehaviors[0].Value = 0f;
                 CA_Main.KudzuRegen = 300f / CA_Main.Dif_Scalar_1();
                 //Check to see if within bounds
-                if (tank.Position.X != Math.Clamp(tank.Position.X, MapRenderer.MIN_X, MapRenderer.MAX_X) && tank.Position.Y != Math.Clamp(tank.Position.Y, MapRenderer.MIN_Y, MapRenderer.MAX_Y)) return;
+                if (tank.Position.X != Math.Clamp(tank.Position.X, GameSceneRenderer.MIN_X, GameSceneRenderer.MAX_X) && tank.Position.Y != Math.Clamp(tank.Position.Y, GameSceneRenderer.MIN_Z, GameSceneRenderer.MAX_Z)) return;
 
                 var crate = Crate.SpawnCrate(tank.Position3D + new Vector3(0, 100, 0), 2f);
                 crate.TankToSpawn = new TankTemplate()

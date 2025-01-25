@@ -148,7 +148,7 @@ namespace CobaltsArmada
 
         internal void Update()
         {
-            if (!MapRenderer.ShouldRenderAll || (!GameProperties.InMission && !MainMenu.Active))
+            if (!GameSceneRenderer.ShouldRenderAll || (!GameProperties.InMission && !MainMenu.Active))
                 return;
 
             float Ani_ObliterateScale = MathF.Max(0, (LifeTime - WarningTime) / 60 * MathF.PI * 2f);

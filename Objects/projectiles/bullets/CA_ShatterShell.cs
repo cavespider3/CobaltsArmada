@@ -57,6 +57,29 @@ namespace CobaltsArmada
             if (shell.Owner is null) return;
             int vibecheck = 0;
             if (shell.Owner is PlayerTank) vibecheck =ShellID.Player; else vibecheck = ShellID.Standard;
+
+            // EDGE CASE
+            if (context == DestructionContext.WithExplosion || context == DestructionContext.WithMine) return;
+            switch (CA_Main.modifier_Difficulty)
+            {
+                case CA_Main.ModDifficulty.Easy:
+                    if (context != DestructionContext.WithObstacle) return; break;
+
+                case CA_Main.ModDifficulty.Normal:
+                    if (context == DestructionContext.WithShell) return; break;
+
+                case CA_Main.ModDifficulty.Hard:
+                case CA_Main.ModDifficulty.Lunatic:
+                    if (context == DestructionContext.WithShell && CA_Y2_NightShade.PoisonedTanks.Find(x => x == shell.Owner) is null) return;break;
+
+                case CA_Main.ModDifficulty.Extra:
+                case CA_Main.ModDifficulty.Phantasm:
+                    if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == shell.Owner) is not null) BurstSize += CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm? 2:1;
+                    if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == shell.Owner) is not null) BurstBounces = CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1u : 0; break;
+                default:
+                break;
+            }
+            
             CA_Main.Fire_AbstractShell(shell, BurstSize, vibecheck, BurstBounces, shell.Velocity.Length()/1.1f);
                 
         }

@@ -1,8 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.UI;
+using TanksRebirth.Graphics;
+using TanksRebirth.Internals.Common.Utilities;
+using TanksRebirth.Internals;
 using TanksRebirth.Localization;
+using TanksRebirth.Net;
+using CobaltsArmada.Objects.projectiles.futuristic;
+using static CobaltsArmada.CA_Main;
 
 namespace CobaltsArmada
 {
@@ -15,71 +24,103 @@ namespace CobaltsArmada
             [LangCode.English] = "Forget-Me-Not"
         });
 
+
+ 
+
         public override string Texture => "assets/textures/tank_forget";
-    
+
+        public static List<Tank> IdoledTanks = new List<Tank>();
         public override Color AssociatedColor => Color.AliceBlue;
         public override void PostApplyDefaults(AITank tank)
         {
             //TANK NO BACK DOWN
             base.PostApplyDefaults(tank);
+            tank.SpecialBehaviors[0].Value = (
+      CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
+      CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
+      CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
+       150f : 105f : 75f : 60f) * 2.25f;
+
 
             tank.Model = CA_Main.Neo_Mobile;
-            tank.Scaling = Vector3.One * 100.0f * 1.1f;
+            tank.Scaling = Vector3.One * 100.0f * 0.95f;
+            var aiParams = tank.AiParams;
+            var properties = tank.Properties;
+            aiParams.MeanderAngle = MathHelper.ToRadians(40);
+            aiParams.MeanderFrequency = 10;
+            aiParams.TurretMeanderFrequency = 25;
 
-            tank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            tank.AiParams.MeanderFrequency = 10;
-            tank.AiParams.TurretMeanderFrequency = 20;
-            tank.AiParams.TurretSpeed = 0.06f;
-            tank.AiParams.AimOffset = MathHelper.ToRadians(3);
+            aiParams.Inaccuracy = 0.8f;
 
-            tank.AiParams.Inaccuracy = 0.6f;
+            aiParams.TurretSpeed = 0.03f;
+            aiParams.AimOffset = 0.18f;
 
-            tank.AiParams.PursuitLevel = 1f;
-            tank.AiParams.PursuitFrequency = 20;
+            aiParams.PursuitLevel = -0.9f;
+            aiParams.PursuitFrequency = 40;
 
-            tank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
-            tank.AiParams.ProjectileWarinessRadius_AIShot = 40;
-            tank.AiParams.MineWarinessRadius_PlayerLaid = 0;
-            tank.AiParams.MineWarinessRadius_AILaid = 50;
+            aiParams.ProjectileWarinessRadius_PlayerShot = 60;
+            aiParams.MineWarinessRadius_PlayerLaid = 160;
 
-            tank.Properties.TurningSpeed = 0.09f;
-            tank.Properties.MaximalTurn = MathHelper.ToRadians(21);
+            properties.TurningSpeed = 0.06f;
+            properties.MaximalTurn = MathHelper.ToRadians(10);
 
-            tank.Properties.ShootStun = 12;
-            tank.Properties.ShellCooldown = 500;
-            tank.Properties.ShellLimit = 1;
-            tank.Properties.ShellSpeed = 4f;
-            tank.Properties.ShellType = ShellID.Standard;
-            tank.Properties.RicochetCount = 0;
+            properties.ShootStun = 5;
+            properties.ShellCooldown = 30;
+            properties.ShellLimit = 2;
+            properties.ShellSpeed = 3f;
+            properties.ShellType = ShellID.Standard;
+            properties.RicochetCount = 1;
+            aiParams.ShootChance = 0.5f;
 
-            tank.AiParams.ShootChance = 0.8f;
+            properties.Invisible = false;
+            properties.Stationary = false;
+            properties.ShellHoming = new();
 
-            tank.Properties.Invisible = false;
-            tank.Properties.Stationary = false;
+            properties.TreadPitch = -0.2f;
+            properties.MaxSpeed = 1.2f;
+            properties.Acceleration = 0.3f;
 
-            tank.Properties.TreadVolume = 0.1f;
-            tank.Properties.TreadPitch = 0.3f;
-            tank.Properties.MaxSpeed = 1.5f;
+            aiParams.MinePlacementChance = 0.05f;
 
-            tank.Properties.Acceleration = 0.1f;
+            aiParams.BlockWarinessDistance = 45;
 
-            tank.Properties.MineCooldown = 0;
-            tank.Properties.MineLimit = 0;
-            tank.Properties.MineStun = 0;
-
-            tank.AiParams.BlockWarinessDistance = 44;
+            tank.BaseExpValue = 0.1f;
         }
-        public override void TakeDamage(AITank tank, bool destroy, ITankHurtContext context)
+
+        public override void PostUpdate(AITank tank)
         {
-            base.TakeDamage(tank, destroy, context);
-            if (!destroy) return;
-            new Mine(tank, tank.Position, 200f, 2.1f);
-        }
-        public override void Shoot(AITank tank, ref Shell shell)
-        {
+            base.PostUpdate(tank);
 
-            base.Shoot(tank, ref shell);
-             shell.Properties.FlameColor = AssociatedColor;
+            if (LevelEditor.Active) return;
+            if (tank.Dead || !GameSceneRenderer.ShouldRenderAll) return;
+
+            ref Tank[] tanks = ref GameHandler.AllTanks;
+            for (int i = 0; i < tanks.Length; i++)
+            {
+                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
+
+                var ai = tanks[i] as AITank;
+                if (ai is null || ai.Dead || ai.AiTankType == Type || ai == tank) continue;
+
+                if (Vector2.Distance(ai.Position, tank.Position) > tank.SpecialBehaviors[0].Value*3f)
+                {
+                     Array.Find(CA_Idol_Tether.AllTethers,x => x is not null && x.bindHost == tank && x.bindTarget == ai)?.Remove();
+                    continue;
+                }               
+                //for the idol buff to work, the target tank mustn't already be tethered.
+                
+                if (Array.Find(CA_Idol_Tether.AllTethers,x => x is not null && x.bindTarget == ai) is null)
+                {
+                    if( tank.Team == TeamID.NoTeam || ai.Team == tank.Team || CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic)
+                        _ = new CA_Idol_Tether(tank, ai); 
+
+                }
+
+            }
         }
+   
+
+
+     
     }
 }

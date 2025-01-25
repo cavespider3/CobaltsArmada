@@ -31,8 +31,8 @@ namespace CobaltsArmada
             tank.SpecialBehaviors[2].Value = 20;
             tank.Properties.Armor = new Armor(tank, 1);
             CA_Main.boss = new BossBar(tank, "Lotus", "The Reformer");
-          
-           
+            tank.Properties.Armor.HideArmor = true;
+
             tank.Model = CA_Main.Neo_Boss;
             tank.Scaling = Vector3.One * 100.0f * 1.1f;
 

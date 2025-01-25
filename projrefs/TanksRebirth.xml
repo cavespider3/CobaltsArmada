@@ -48,6 +48,17 @@
         <member name="P:TanksRebirth.GameConfig.GameTheme">
             <summary>Used to be casted to a MapTheme to change the... map's theme.</summary>
         </member>
+        <member name="M:TanksRebirth.GameContent.Airplane.ChooseRandomXZPosition(System.Random)">
+            <summary>Returns a random position on the outskirts of the playing field. Pass Server.ServerRandom if doing server-sided stuff.
+            Use GameHandler.GameRand if not.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.Airplane.ChooseRandomFlightTarget(System.Random,Microsoft.Xna.Framework.Vector2,System.Single,System.Single)">
+            <summary>Returns a random direction for a plane to use, normalized.</summary>
+            <param name="random">Pass Server.ServerRandom if doing server-sided stuff. Use GameHandler.GameRand if not.</param>
+            <param name="posXZ">The position of the plane, initially.</param>
+            <param name="xPotential">What percent of the map's x-axis, centering from the center of the map, the plane can take flight towards.</param>
+            <param name="zPotential">What percent of the map's z-axis, centering from the center of the map, the plane can take flight towards.</param>
+        </member>
         <member name="F:TanksRebirth.GameContent.Armor.Host">
             <summary>The tank who has this armor.</summary>
         </member>
@@ -78,13 +89,16 @@
         <member name="F:TanksRebirth.GameContent.Block.AllBlocks">
             <summary>All <see cref="T:TanksRebirth.GameContent.Block"/>s stored in the same array.</summary>
         </member>
+        <member name="P:TanksRebirth.GameContent.Block.HeightFromGround">
+            <summary>Represents how tall (in arbitrary units) the top of this block is from the ground.</summary>
+        </member>
         <member name="F:TanksRebirth.GameContent.Block.Body">
             <summary>The physics body for this <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
         </member>
         <member name="F:TanksRebirth.GameContent.Block.Hitbox">
             <summary>The hitbox for this <see cref="T:TanksRebirth.GameContent.Block"/>.</summary>
         </member>
-        <member name="F:TanksRebirth.GameContent.Block.Stack">
+        <member name="P:TanksRebirth.GameContent.Block.Stack">
             <summary>How tall this <see cref="T:TanksRebirth.GameContent.Block"/> is.</summary>
         </member>
         <member name="F:TanksRebirth.GameContent.Block.MAX_BLOCK_HEIGHT">
@@ -139,53 +153,56 @@
         <member name="P:TanksRebirth.GameContent.BlockProperties.HasShadow">
             <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Block"/> has a visible shadow under it.</summary>
         </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.RelativePosition">
-            <summary>The position of the cosmetic, relative to the tank's position.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.Texture">
-            <summary>The texture of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic2D"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.Name">
-            <summary>The name of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic2D"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.LockOptions">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic2D"/> rotates with the tank's turret.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.Rotation">
-            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic2D"/></summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.UniqueBehavior">
-            <summary>Change the properties of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic2D"/> every game tick.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic2D.Scale">
-            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.RelativePosition">
-            <summary>The position of the cosmetic, relative to the tank's position.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.Model">
-            <summary>The model of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.Name">
-            <summary>The name of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.LockOptions">
-            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/> rotates with the tank's turret.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.Rotation">
-            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/></summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.ModelTexture">
-            <summary>The texture applied to the model.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.UniqueBehavior">
-            <summary>Change the properties of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/> every game tick.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Cosmetics.Cosmetic3D.Scale">
-            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Cosmetic3D"/>.</summary>
-        </member>
         <member name="F:TanksRebirth.GameContent.Cosmetics.CosmeticChest.WeightedContents">
             <summary>All of the contents should add up to 100f.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.RelativePosition">
+            <summary>The position of the cosmetic, relative to the tank's position.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.Texture">
+            <summary>The texture of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop2D"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.Name">
+            <summary>The name of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop2D"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.LockOptions">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop2D"/> rotates with the tank's turret.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.Rotation">
+            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop2D"/></summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.UniqueBehavior">
+            <summary>Change the properties of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop2D"/> every game tick.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop2D.Scale">
+            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.RelativePosition">
+            <summary>The position of the cosmetic, relative to the tank's position.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.PropModel">
+            <summary>The model of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.Name">
+            <summary>The name of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.LockOptions">
+            <summary>Whether or not this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/> rotates with the tank's turret.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.Rotation">
+            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/></summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.ModelTexture">
+            <summary>The texture applied to the model.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.UniqueBehavior">
+            <summary>Change the properties of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/> every game tick.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.Scale">
+            <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Cosmetics.Prop3D"/>.</summary>
+        </member>
+        <member name="P:TanksRebirth.GameContent.Cosmetics.Prop3D.IgnoreMeshesByName">
+            <summary>An array of names of meshes in <see cref="P:TanksRebirth.GameContent.Cosmetics.Prop3D.PropModel"/> that will not be rendered to the screen.</summary>
         </member>
         <member name="F:TanksRebirth.GameContent.Crate.dropSpeedAccel">
             <summary>How much this <see cref="T:TanksRebirth.GameContent.Crate"/> accelerates while falling in the air.</summary>
@@ -230,14 +247,6 @@
         </member>
         <member name="T:TanksRebirth.GameContent.ID.TeamID">
             <summary>These should all be ACTUAL colors, otherwise exceptions will happen.</summary>
-        </member>
-        <member name="M:TanksRebirth.GameContent.MapRenderer.BoundsRenderer.SetBlockTexture(Microsoft.Xna.Framework.Graphics.ModelMesh,TanksRebirth.GameContent.MapRenderer.BoundsRenderer.BoundaryTextureContext)">
-            <summary>
-            Sets a block texture in the boundary model to the context.
-            </summary>
-            <param name="mesh"></param>
-            <param name="meshNameMatch"></param>
-            <param name="textureContext"></param>
         </member>
         <member name="F:TanksRebirth.GameContent.Mine.DetonateTime">
             <summary>The time left (in ticks) until detonation.</summary>
@@ -545,6 +554,9 @@
         <member name="P:TanksRebirth.GameContent.Particle.System">
             <summary>The <see cref="T:TanksRebirth.GameContent.ParticleSystem"/> this <see cref="T:TanksRebirth.GameContent.Particle"/> exists in.</summary>
         </member>
+        <member name="T:TanksRebirth.GameContent.ParticleGameplay">
+            <summary>Each of these particles are server-shared.</summary>
+        </member>
         <member name="P:TanksRebirth.GameContent.Powerup.AffectedTank">
             <summary>The <see cref="T:TanksRebirth.GameContent.Tank"/> this <see cref="T:TanksRebirth.GameContent.Powerup"/> is currently affecting, if any.</summary>
         </member>
@@ -798,7 +810,7 @@
             <summary>Each of these keep track of certain behaviors that take place during the AI Cycle, including, but not limited to:<para></para>
             Navigation, Shell/Mine avoidance, Mine Laying, Shell Shooting</summary>
         </member>
-        <member name="P:TanksRebirth.GameContent.AITank.SpecialBehaviors">
+        <member name="F:TanksRebirth.GameContent.AITank.SpecialBehaviors">
             <summary>Each of these are for super special tanks (by default). The currently unimplemented tanks have special abilities that
             use this.</summary>
         </member>
@@ -1125,6 +1137,9 @@
         <member name="E:TanksRebirth.GameContent.Tank.OnShoot">
             <summary>Does not run for spread-fire.</summary>
         </member>
+        <member name="F:TanksRebirth.GameContent.Tank.Props">
+            <summary>This <see cref="T:TanksRebirth.GameContent.Tank"/>'s swag apparel as a <see cref="T:System.Collections.Generic.List`1"/> of <see cref="T:TanksRebirth.GameContent.Cosmetics.IProp"/>s.</summary>
+        </member>
         <member name="P:TanksRebirth.GameContent.Tank.Model">
             <summary>This <see cref="T:TanksRebirth.GameContent.Tank"/>'s model.</summary>
         </member>
@@ -1137,10 +1152,11 @@
         <member name="P:TanksRebirth.GameContent.Tank.Projection">
             <summary>The projection from the screen to the <see cref="P:TanksRebirth.GameContent.Tank.Model"/>.</summary>
         </member>
-        <member name="P:TanksRebirth.GameContent.Tank.Team">
-            <summary>This <see cref="T:TanksRebirth.GameContent.Tank"/>'s <see cref="T:TanksRebirth.GameContent.ID.TeamID"/>.</summary>
+        <member name="P:TanksRebirth.GameContent.Tank.Speed">
+            <summary>The current speed of this tank.</summary>
         </member>
         <member name="P:TanksRebirth.GameContent.Tank.Worldbox">
+            <summary>This <see cref="T:TanksRebirth.GameContent.Tank"/>'s <see cref="T:TanksRebirth.GameContent.ID.TeamID"/>.</summary>
             <summary>The rotation of this <see cref="T:TanksRebirth.GameContent.Tank"/>'s barrel. Generally should not be modified in a player context.</summary>>
         </member>
         <member name="P:TanksRebirth.GameContent.Tank.CollisionCircle">
@@ -1173,18 +1189,15 @@
         <member name="P:TanksRebirth.GameContent.Tank.IsIngame">
             <summary>Whether or not this tank is used for ingame purposes or not.</summary>
         </member>
-        <member name="F:TanksRebirth.GameContent.Tank.Cosmetics">
-            <summary>This <see cref="T:TanksRebirth.GameContent.Tank"/>'s swag apparel as a <see cref="T:System.Collections.Generic.List`1"/> of <see cref="T:TanksRebirth.GameContent.Cosmetics.ICosmetic"/>s.</summary>
-        </member>
-        <member name="M:TanksRebirth.GameContent.Tank.ApplyDefaults(TanksRebirth.GameContent.TankProperties@)">
-            <summary>Apply all the default parameters for this <see cref="T:TanksRebirth.GameContent.Tank"/>.</summary>
-        </member>
         <member name="M:TanksRebirth.GameContent.Tank.InitPhysics">
             <summary>Initializes the physics body for this tank. Only use if you know what you're doing with it.</summary>
         </member>
         <member name="M:TanksRebirth.GameContent.Tank.InitModelSemantics">
             <summary>Initializes bone transforms and mesh assignments. You will want to call this method if you're modifying a tank model, and the new model
             contains a different number of bones than the original one.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.Tank.ApplyDefaults(TanksRebirth.GameContent.TankProperties@)">
+            <summary>Apply all the default parameters for this <see cref="T:TanksRebirth.GameContent.Tank"/>.</summary>
         </member>
         <member name="M:TanksRebirth.GameContent.Tank.Update">
             <summary>Update this <see cref="T:TanksRebirth.GameContent.Tank"/>.</summary>
@@ -1203,9 +1216,6 @@
         </member>
         <member name="M:TanksRebirth.GameContent.Tank.LayMine">
             <summary>Make this <see cref="T:TanksRebirth.GameContent.Tank"/> lay a <see cref="T:TanksRebirth.GameContent.Mine"/>.</summary>
-        </member>
-        <member name="P:TanksRebirth.GameContent.Tank.Speed">
-            <summary>The current speed of this tank.</summary>
         </member>
         <member name="F:TanksRebirth.GameContent.TankDeathMark.StoredTank">
             <summary>The tank that died here.</summary>
@@ -1327,6 +1337,12 @@
         <member name="M:TanksRebirth.GameContent.UI.CampaignCompleteUI.PerformSequence(TanksRebirth.Enums.MissionEndContext)">
             <summary>Perform a multithreaded operation that will display tanks killed and their kill counts for the player.</summary>
         </member>
+        <member name="T:TanksRebirth.GameContent.UI.DeltaMissionStats">
+            <summary>Track information only at the start of a mission to show changes in values by the end of the mission.</summary>
+        </member>
+        <member name="M:TanksRebirth.GameContent.UI.DeltaMissionStats.#ctor(TanksRebirth.GameContent.PlayerTank.CampaignStats,TanksRebirth.IO.GameData)">
+            <summary>Track information only at the start of a mission to show changes in values by the end of the mission.</summary>
+        </member>
         <member name="M:TanksRebirth.GameContent.UI.LevelEditor.Alert(System.String,System.Single)">
             <summary>Displays an alert to the screen.</summary>
             <param name="alert">The text to show in the alert.</param>
@@ -1337,6 +1353,15 @@
             Moves the currently loaded mission on the loaded levels tab. Will throw a <see cref="T:System.IndexOutOfRangeException"/> if the mission is too high or low.
             </summary>
             <param name="up">Whether to move it up (a mission BACK) or down (a mission FORWARD)</param>
+        </member>
+        <member name="P:TanksRebirth.Graphics.Cameras.Freecam.FieldOfView">
+            <summary>Degrees -> Radians</summary>
+        </member>
+        <member name="M:TanksRebirth.Graphics.GameSceneRenderer.BoundsRenderer.SetBlockTexture(Microsoft.Xna.Framework.Graphics.ModelMesh,TanksRebirth.Graphics.GameSceneRenderer.BoundsRenderer.BoundaryTextureContext)">
+            <summary>
+            Sets a block texture in the boundary model to the context.
+            </summary>
+            <param name="mesh"></param>
         </member>
         <member name="T:TanksRebirth.Graphics.Lighting">
             <summary>Represents a system in which to render lighting for the world.</summary>
@@ -1350,8 +1375,14 @@
         <member name="P:TanksRebirth.Internals.Common.Framework.Animation.Animator.TimeRemaining">
             <summary>The time left before the animation is complete.</summary>
         </member>
-        <member name="P:TanksRebirth.Internals.Common.Framework.Animation.Animator.CurrentPosition">
-            <summary>The current position of the given animation.</summary>
+        <member name="F:TanksRebirth.Internals.Common.Framework.Animation.Animator.NextKeyFrame">
+            <summary>If > -1, the animation will move from the current frame to this ID in the array of KeyFrames.</summary>
+        </member>
+        <member name="P:TanksRebirth.Internals.Common.Framework.Animation.Animator.CurrentPosition2D">
+            <summary>The current 2D position of the given animation.</summary>
+        </member>
+        <member name="P:TanksRebirth.Internals.Common.Framework.Animation.Animator.CurrentPosition3D">
+            <summary>The current 2D position of the given animation.</summary>
         </member>
         <member name="P:TanksRebirth.Internals.Common.Framework.Animation.Animator.CurrentScale">
             <summary>The current two-dimensional scale of the given animation.</summary>
@@ -1408,9 +1439,6 @@
             <param name="timeInTimeline">At what time during the timeline of the animation to jump to.</param>
         </member>
         <!-- Badly formed XML comment ignored for member "T:TanksRebirth.Internals.Common.Framework.Animation.KeyFrame" -->
-        <member name="M:TanksRebirth.Internals.Common.Framework.Animation.KeyFrame.#ctor(Microsoft.Xna.Framework.Vector2,System.Collections.Generic.List{Microsoft.Xna.Framework.Vector2},Microsoft.Xna.Framework.Vector2,System.Single[],System.TimeSpan,TanksRebirth.Internals.Common.Utilities.EasingFunction)">
-            <summary>BezierPoints automatically prepends <see cref="P:TanksRebirth.Internals.Common.Framework.Animation.KeyFrame.Position"/> and appends the next <see cref="T:TanksRebirth.Internals.Common.Framework.Animation.KeyFrame"/>'s <see cref="P:TanksRebirth.Internals.Common.Framework.Animation.KeyFrame.Position"/> when implemented into an <see cref="T:TanksRebirth.Internals.Common.Framework.Animation.Animator"/>.</summary>
-        </member>
         <member name="T:TanksRebirth.Internals.Common.Framework.Audio.Music">
             <summary>
             A class that allows simple usage of a music track.
@@ -1585,6 +1613,18 @@
             <summary>
             Useful for conversion of <see cref="T:Microsoft.Xna.Framework.Quaternion"/>s to basic Yaw/Pitch/Roll angles.
             </summary>
+        </member>
+        <member name="F:TanksRebirth.Internals.Common.Utilities.EulerAngles.Yaw">
+            <summary>The Z rotation</summary>
+        </member>
+        <member name="F:TanksRebirth.Internals.Common.Utilities.EulerAngles.Pitch">
+            <summary>The Y rotation</summary>
+        </member>
+        <member name="F:TanksRebirth.Internals.Common.Utilities.EulerAngles.Roll">
+            <summary>The X rotation</summary>
+        </member>
+        <member name="M:TanksRebirth.Internals.Common.Utilities.MathUtils.ToVector3(System.Single[])">
+            <summary>Turns a 3-element array into a Vector3, must be ordered [x, y, z]</summary>
         </member>
         <member name="M:TanksRebirth.Internals.Common.Utilities.RayUtils.CreateRayFrom2D(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single,System.Boolean)">
             <summary>
@@ -1866,7 +1906,7 @@
         <member name="F:TanksRebirth.TankGame.GameCamera">
             <summary>Currently not functional due to programming problems.</summary>
         </member>
-        <member name="F:TanksRebirth.TankGame.CompSpecs">
+        <member name="P:TanksRebirth.TankGame.CompSpecs">
             <summary>The hardware used by the user's computer.</summary>
         </member>
         <member name="P:TanksRebirth.TankGame.GCMemory">

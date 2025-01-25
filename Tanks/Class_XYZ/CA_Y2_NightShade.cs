@@ -3,15 +3,19 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Threading.Tasks;
 using TanksRebirth;
 using TanksRebirth.GameContent;
+using TanksRebirth.GameContent.GameMechanics;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Properties;
 using TanksRebirth.GameContent.UI;
+using TanksRebirth.Graphics;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
+using static CobaltsArmada.CA_Main;
 //Boss tank
 namespace CobaltsArmada
 {
@@ -28,24 +32,25 @@ namespace CobaltsArmada
             [LangCode.English] = "Nightshade"
         });
 
-        public delegate void ApplyShade(AITank tank);
 
-        public static event ApplyShade? OnPoisoned;
 
         public override string Texture => "assets/textures/tank_nightshade";
 
         public override Color AssociatedColor => Color.DarkViolet;
 
-        public static List<Tank> PoisionedTanks = new List<Tank>();
+        public static List<Tank> PoisonedTanks = new List<Tank>();
         public override void OnLoad()
         {
             base.OnLoad();
-            OnPoisoned += Tank_OnPoisoned;
+           
         }
 
         public static void Tank_OnPoisoned(AITank tank)
         {
-           switch(tank.AiTankType)
+            const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
+            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: -0.5f, gameplaySound: true);
+
+            switch (tank.AiTankType)
             {
                 default:
                     tank.Properties.ShootStun /=2;
@@ -62,18 +67,35 @@ namespace CobaltsArmada
                     tank.AiParams.PursuitFrequency /= 2;
                     break;
             }
+            if(tank.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
+            {
+                tank.Properties.Armor = new Armor(tank, 3);
+            }
+            
         }
 
         public override void PostApplyDefaults(AITank tank)
         {
             //TANK NO BACK DOWN
-
+            Array.Resize(ref tank.SpecialBehaviors, tank.SpecialBehaviors.Length + 4);
 
             base.PostApplyDefaults(tank);
-            tank.SpecialBehaviors[2].Value = 30;
+            
+            tank.SpecialBehaviors[6] = new() { Value = 30 };
+            tank.SpecialBehaviors[5] = new() { Value = 0 };
+            tank.SpecialBehaviors[4] = new() { Value = 0 };
+            tank.SpecialBehaviors[3] = new() { Value = 0 };
+            tank.SpecialBehaviors[2].Value = tank.SpecialBehaviors[6].Value;
             tank.Properties.Armor = new Armor(tank, 1);
-
+            tank.Properties.Armor.HideArmor = true;
             CA_Main.boss = new BossBar(tank, "Nightshade", "The Infector");
+
+            tank.SpecialBehaviors[3].Value =
+           CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
+           CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
+           CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
+            150f : 105f : 75f : 60f;
+
             tank.Model = CA_Main.Neo_Boss;
             tank.Scaling = Vector3.One * 100f * 1.03f;
 
@@ -170,9 +192,9 @@ namespace CobaltsArmada
 
                 if (Vector2.Distance(ai.Position, v.FlattenZ()) > 60f) continue;
                 bool NotIntoxicated = true;
-                if (PoisionedTanks.Find(x => x == ai) is null)
+                if (PoisonedTanks.Find(x => x == ai) is null)
                 {
-                    PoisionedTanks.Add(ai);
+                    PoisonedTanks.Add(ai);
                     CA_Y2_NightShade.Tank_OnPoisoned(ai);
                 }
             }
@@ -182,7 +204,8 @@ namespace CobaltsArmada
         public override void PostUpdate(AITank tank)
         {
             base.PostUpdate(tank);
-            Vector2 smokey = Vector2.One.RotatedByRadians(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, 60f);
+            bool Enraged = tank.SpecialBehaviors[6].Value/2f>= tank.SpecialBehaviors[2].Value;
+            Vector2 smokey = Vector2.One.RotatedByRadians(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, tank.SpecialBehaviors[3].Value);
             var smoke = GameHandler.Particles.MakeParticle(tank.Position3D + smokey.ExpandZ(),
                 GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
             smoke.Roll = -TankGame.DEFAULT_ORTHOGRAPHIC_ANGLE;
@@ -192,7 +215,7 @@ namespace CobaltsArmada
             smoke.UniqueBehavior = (part) => {
 
                 GeometryUtils.Add(ref part.Scale, -0.004f * TankGame.DeltaTime);
-                part.Position += Vector3.UnitY * 0.2f * TankGame.DeltaTime;
+                part.Position += Vector3.UnitY * 1f * TankGame.DeltaTime;
                 part.Alpha -= 0.04f * TankGame.DeltaTime;
 
                 if (part.Alpha <= 0)
@@ -206,7 +229,7 @@ namespace CobaltsArmada
 
             tank.SpecialBehaviors[0].Value += TankGame.DeltaTime;
             if (tank.SpecialBehaviors[1].Value == 0)
-                tank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(60, 120);
+                tank.SpecialBehaviors[1].Value = 5;
 
             if (tank.SpecialBehaviors[0].Value > tank.SpecialBehaviors[1].Value)
             {
@@ -221,24 +244,56 @@ namespace CobaltsArmada
                     var ai = tanks[i] as AITank;
                     if (ai is null || ai.Dead || ai.AiTankType == Type) continue;
 
-                    if (Vector2.Distance(ai.Position, tank.Position) > 60f) continue;
-                    bool NotIntoxicated = true;
-                    if (PoisionedTanks.Find(x => x == ai) is null)
+                    if (Vector2.Distance(ai.Position, tank.Position) > tank.SpecialBehaviors[3].Value) continue;
+                   
+                    if (PoisonedTanks.Find(x => x == ai) is null)
                     {
-                        PoisionedTanks.Add(ai);
+                        PoisonedTanks.Add(ai);
                         Tank_OnPoisoned(ai);
+                        if (tank.Team != TeamID.NoTeam)
+                            ai.Team = tank.Team;
                     }
                 }
             }
 
+            tank.SpecialBehaviors[4].Value += TankGame.DeltaTime;
+            if (tank.SpecialBehaviors[5].Value == 0)
+                tank.SpecialBehaviors[5].Value = 900;
+
+            if (tank.SpecialBehaviors[4].Value > tank.SpecialBehaviors[5].Value)
+            {
+                tank.SpecialBehaviors[5].Value = 0f;
+                tank.SpecialBehaviors[4].Value = 0f;
+                //Check to see if within bounds
+                if (tank.Position.X != Math.Clamp(tank.Position.X, GameSceneRenderer.MIN_X, GameSceneRenderer.MAX_X) && tank.Position.Y != Math.Clamp(tank.Position.Y, GameSceneRenderer.MIN_Z, GameSceneRenderer.MAX_Z)) return;
+                int[] Pool;
+                switch (CA_Main.modifier_Difficulty)
+                {
+                    default:Pool = !Enraged?
+                            [TankID.Brown,TankID.Ash,TankID.Marine,TankID.Pink]:
+                            [TankID.Brown,TankID.Ash,TankID.Marine,TankID.Pink,TankID.Violet,TankID.Green]; break;
+                }
+
+                var crate = Crate.SpawnCrate(tank.Position3D + new Vector3(0, 20, 0), 2f);
+                crate.TankToSpawn = new TankTemplate()
+                {
+                    AiTier = Pool[Server.ServerRandom.Next(0, Pool.Length - 1)],
+                    IsPlayer = false,
+                    Team = tank.Team
+                };
+            }
+
+
         }
         
+
         
 
+    
 
-        public static void WhilePoisoned(AITank tank)
+        public static void WhilePoisoned_Update(AITank tank)
         {
-           if( PoisionedTanks.Find(x => x == tank) is not null && Server.ServerRandom.NextFloat(0.1f, 1f)<0.7f && !tank.Dead)
+           if( PoisonedTanks.Find(x => x == tank) is not null && Server.ServerRandom.NextFloat(0.1f, 1f)<0.7f && !tank.Dead)
             {
                 Vector2 smokey = Vector2.One.RotatedByRadians(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI))* Server.ServerRandom.NextFloat(0.1f, 1f)*tank.CollisionCircle.Radius*1.1f;
 
@@ -249,7 +304,8 @@ namespace CobaltsArmada
                 smoke.Roll = -TankGame.DEFAULT_ORTHOGRAPHIC_ANGLE;
 
                 smoke.Scale = new(0.5f);
-           
+
+                smoke.Alpha = tank.Properties.Invisible ? 0.1f:0.7f;
 
                 smoke.Color = Color.DarkViolet;
 
@@ -261,7 +317,7 @@ namespace CobaltsArmada
                 smoke.UniqueBehavior = (part) => {
 
                     GeometryUtils.Add(ref part.Scale, -0.004f * TankGame.DeltaTime);
-                    part.Position += Vector3.UnitY * 0.2f * TankGame.DeltaTime;
+                    part.Position += Vector3.UnitY * 0.7f * TankGame.DeltaTime *(part.LifeTime/100f+1f);
                     part.Alpha -= 0.04f * TankGame.DeltaTime;
 
                         if (part.Alpha <= 0)

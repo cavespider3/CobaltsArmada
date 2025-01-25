@@ -63,4 +63,9 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Objects\blocks\" />
+    <Folder Include="Objects\mines\" />
+  </ItemGroup>
+
 </Project>

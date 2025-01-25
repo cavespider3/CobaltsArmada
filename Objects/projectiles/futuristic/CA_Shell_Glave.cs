@@ -50,7 +50,7 @@ namespace CobaltsArmada
         }
         public override void PostUpdate(Shell shell)
         {
-           shell.World = Matrix.CreateScale(2.4f) * Matrix.CreateFromYawPitchRoll(MathHelper.PiOver2 * shell.LifeTime / 30f * (shell.RicochetsRemaining % 2 == 1 ? 1f : -1f) * shell.Velocity.Length()/1.5f, 0, 0) * Matrix.CreateTranslation(shell.Position3D);
+           shell.World = Matrix.CreateScale(2.4f) * Matrix.CreateFromYawPitchRoll(MathHelper.PiOver2 * shell.LifeTime / 15f * (shell.RicochetsRemaining % 2 == 1 ? 1f : -1f) * shell.Velocity.Length()/1.2f, 0, 0) * Matrix.CreateTranslation(shell.Position3D);
 
             base.PostUpdate(shell);
 
@@ -68,7 +68,7 @@ namespace CobaltsArmada
 
             var p = GameHandler.Particles.MakeParticle(
                shell.Position3D, shell.Model, TankGame.WhitePixel);
-
+            p.Yaw = shell.Rotation;
             p.Color = shell.Properties.FlameColor;
             p.HasAddativeBlending = true;
             p.Scale = new(2.4f);
@@ -77,6 +77,17 @@ namespace CobaltsArmada
                 if (p.Alpha <= 0f)
                     p.Destroy();
             };
+        }
+        public override void OnRicochet(Shell shell, Block block)
+        {
+            if(CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic)
+            {
+                shell.Velocity *=
+                    CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Lunatic ?
+                    CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Extra ?
+                    CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1.175f : 1.10f : 1.05f :1f ;
+
+            }
         }
 
         public override void PostRender(Shell shell)

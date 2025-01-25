@@ -24,6 +24,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.Net;
+using TanksRebirth.Graphics;
 
 namespace CobaltsArmada
 {
@@ -113,11 +114,11 @@ namespace CobaltsArmada
             {
                 var dummyPos = Vector2.Zero;
 
-                if (pathPos.X < MapRenderer.MIN_X || pathPos.X > MapRenderer.MAX_X)
+                if (pathPos.X < GameSceneRenderer.MIN_X || pathPos.X > GameSceneRenderer.MAX_X)
                 {
                     return MAX_DIST;
                 }
-                if (pathPos.Y < MapRenderer.MIN_Y || pathPos.Y > MapRenderer.MAX_Y)
+                if (pathPos.Y < GameSceneRenderer.MIN_Z || pathPos.Y > GameSceneRenderer.MAX_Z)
                 {
                     return MAX_DIST;
                 }
