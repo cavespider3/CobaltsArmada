@@ -126,6 +126,13 @@ public class CA_Main : TanksMod {
         Easy=-1,Normal,Hard,Lunatic,Extra,Phantasm
     }
 
+    public enum Tanktosis
+    {
+        Single=1,Double,Triple,Quad
+    }
+
+    public static Tanktosis modifier_Tanktosis = Tanktosis.Single;
+
     public static ModDifficulty modifier_Difficulty = ModDifficulty.Normal;
     public static Color DifficultyColor(ModDifficulty difficulty)
     {
@@ -143,6 +150,23 @@ public class CA_Main : TanksMod {
                 return new(176, 0, 0);
             case ModDifficulty.Phantasm:
                 return new(199, 0, 154);
+            default:
+                return new(120, 120, 120);
+        }
+    }
+
+    public static Color DifficultyColor(Tanktosis difficulty)
+    {
+        switch (difficulty)
+        {
+            case Tanktosis.Single:
+                return new(0, 191, 71);
+            case Tanktosis.Double:
+                return new(0, 113, 226);
+            case Tanktosis.Triple:
+                return new(0, 18, 225);
+            case Tanktosis.Quad:
+                return new(179, 0, 179);
             default:
                 return new(120, 120, 120);
         }
@@ -190,7 +214,9 @@ public class CA_Main : TanksMod {
         Mine.OnExplode += Mine_OnExplode;
         GameHandler.OnPostRender += GameHandler_OnPostRender;
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
+
         CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
+
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
@@ -264,22 +290,25 @@ public class CA_Main : TanksMod {
             Tank[] tanks = GameHandler.AllTanks;
             for (int i = tanks.Length-1; i >= 0 ; i--)
             {
-                
                 if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
                 if (ai is null || ai.Dead) continue;
-                var t = new AITank(2);
-                t.Swap(ai.AiTankType);
-                t.InitModelSemantics();
-                t.Body.Position = ai.Body.Position;
-                ai.Scaling *= 0.75f;
-                t.Scaling *= 0.75f;
-                t.Team = ai.Team;
-                t.Properties = ai.Properties;
-                if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
+                ai.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
+                for (int j = 1; j < (int)modifier_Tanktosis; j++)
                 {
-                    CA_Y2_NightShade.PoisonedTanks.Add(t);
-                    CA_Y2_NightShade.Tank_OnPoisoned(t);
+                    var t = new AITank(2);
+                    t.Swap(ai.AiTankType);
+                    t.InitModelSemantics();
+                    t.Body.Position = ai.Body.Position;
+                    
+                    t.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
+                    t.Team = ai.Team;
+                    t.Properties = ai.Properties;
+                    if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
+                    {
+                        CA_Y2_NightShade.PoisonedTanks.Add(t);
+                        CA_Y2_NightShade.Tank_OnPoisoned(t);
+                    }
                 }
             }
 
@@ -637,5 +666,13 @@ public class CA_Main : TanksMod {
         GameHandler.OnPostUpdate -= GameHandler_OnPostUpdate;
         CampaignGlobals.OnMissionStart -= GameProperties_OnMissionStart;
         TankGame.PostDrawEverything -= TankGame_OnPostDraw;
+
+        Difficulties.Types.Remove("CobaltArmada_Swap");
+        Difficulties.Types.Remove("CobaltArmada_GetGud");
+        Difficulties.Types.Remove("CobaltArmada_YouAndWhatArmy");
+        Difficulties.Types.Remove("CobaltArmada_MasterSpark");
+        Difficulties.Types.Remove("CobaltArmada_TanksOnCrack");
+        Difficulties.Types.Remove("CobaltArmada_Mitosis");
+        Difficulties.Types.Remove("CobaltArmada_P2");
     }
 }

@@ -98,13 +98,25 @@ namespace CobaltsArmada.Hooks
             Tanktosis = new("Double Trouble", FontGlobals.RebirthFont, Color.White)
             {
                 IsVisible = true,
-                Tooltip = "EVERY AITank at the start of a mission is duplicated.",
+                Tooltip = "Multiplies the tanks into smaller, but just as dangerous clones",
                 OnLeftClick = (elem) =>
                 {
-                    Difficulties.Types["CobaltArmada_Mitosis"] = !Difficulties.Types["CobaltArmada_Mitosis"];
-                    Tanktosis.Color = Difficulties.Types["CobaltArmada_Mitosis"] ? Color.Lime : Color.Red;
+                    if (modifier_Tanktosis + 1 > CA_Main.Tanktosis.Quad) modifier_Tanktosis = CA_Main.Tanktosis.Single;
+                    else modifier_Tanktosis += 1;
+                    Difficulties.Types["CobaltArmada_Mitosis"] = modifier_Tanktosis != CA_Main.Tanktosis.Single;
+
+                    Tanktosis.Color = DifficultyColor(modifier_Tanktosis);
                 },
-                Color = Difficulties.Types["CobaltArmada_Mitosis"] ? Color.Lime : Color.Red
+                OnRightClick = (elem) =>
+                {
+                    if (modifier_Tanktosis - 1 < CA_Main.Tanktosis.Single) modifier_Tanktosis = CA_Main.Tanktosis.Quad;
+                    else modifier_Tanktosis -= 1;
+                    Difficulties.Types["CobaltArmada_Mitosis"] = modifier_Tanktosis != CA_Main.Tanktosis.Single;
+
+                    Tanktosis.Color = DifficultyColor(modifier_Tanktosis);
+                },
+
+                Color = DifficultyColor(modifier_Difficulty)
 
             };
             Tanktosis.SetDimensions(800, 700, 300, 40);
@@ -142,6 +154,12 @@ namespace CobaltsArmada.Hooks
                     modifier_Difficulty == ModDifficulty.Extra ? "for those who's middle name is \"Masochist\"" :
                     "DON'T"
                     ) + "\"";
+
+                Tanktosis.Tooltip = modifier_Tanktosis == CA_Main.Tanktosis.Single ? "Multiplies the tanks into smaller, but just as dangerous clones" :
+                    modifier_Tanktosis == CA_Main.Tanktosis.Double ? "Prepare for trouble..." :
+                     modifier_Tanktosis == CA_Main.Tanktosis.Triple ? "That's like more than two!" :
+                     "YOU PICK THE WRONG HOUSE, FOOL!";
+
             }
             else
             {
