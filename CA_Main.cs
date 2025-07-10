@@ -5,27 +5,30 @@ using TanksRebirth;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.Properties;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Net;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.Localization;
 using TanksRebirth.GameContent.Systems.Coordinates;
-using System.Threading.Tasks;
 using System.Diagnostics.CodeAnalysis;
 using TanksRebirth.Internals.Common;
-using TanksRebirth.Internals.Common.GameUI;
-using static System.Net.Mime.MediaTypeNames;
-using static TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.GameContent.RebirthUtils;
-using TanksRebirth.Internals.Common.Framework;
 using Microsoft.Xna.Framework.Input;
 using CobaltsArmada.Objects.projectiles.futuristic;
+using CobaltsArmada.Hooks;
+using TanksRebirth.Internals;
+using System.Threading.Tasks;
+using tainicom.Aether.Physics2D.Fluids;
+using TanksRebirth.GameContent.UI.MainMenu;
+using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.UI.LevelEditor;
+using WiimoteLib;
+
 
 namespace CobaltsArmada;
 
 public class CA_Main : TanksMod {
+    //Asset loading handled by this
     /*
 
  Tier 1
@@ -64,7 +67,6 @@ public class CA_Main : TanksMod {
 
      */
     public override string Name => "Cobalt's Armada";
-    
     /// <summary>
     /// Lilac Tank Color
     /// </summary>
@@ -101,7 +103,7 @@ public class CA_Main : TanksMod {
     [AllowNull]
     public static Model Shell_Beam;
     [AllowNull]
-    public static Model Shell_Glave;
+    public static Model Shell_Glaive;
 
     [AllowNull]
     public static Texture2D Beam;
@@ -112,17 +114,7 @@ public class CA_Main : TanksMod {
     [AllowNull]
     public static Texture2D Tank_Y1;
 
-    //Custom modifiers
-    [AllowNull]
-    public static UITextButton Invasion;
-    [AllowNull]
-    public static UITextButton Touhoumode_2;
-    [AllowNull]
-    public static UITextButton MasterSpark;
-    [AllowNull]
-    public static UITextButton Prenerf_enemies;
-    [AllowNull]
-    public static UITextButton Tankbonic_Plague;
+
 
     public static BossBar? boss;
     public static VindicationTimer? MissionDeadline;
@@ -156,6 +148,7 @@ public class CA_Main : TanksMod {
         }
     }
 
+
     public static float Dif_Scalar_1()
     {
         return  modifier_Difficulty > ModDifficulty.Easy ?
@@ -173,19 +166,21 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Add("CobaltArmada_YouAndWhatArmy", false);
         Difficulties.Types.Add("CobaltArmada_MasterSpark", false);
         Difficulties.Types.Add("CobaltArmada_TanksOnCrack", false);
+        Difficulties.Types.Add("CobaltArmada_Mitosis", false);
+        Difficulties.Types.Add("CobaltArmada_P2", false);
 
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
         Neo_Mobile = ImportAsset<Model>("assets/models/tank_moving");
         Neo_Boss = ImportAsset<Model>("assets/models/tank_elite_a");
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
-        Shell_Glave = ImportAsset<Model>("assets/models/bullet_glave");
+        Shell_Glaive = ImportAsset<Model>("assets/models/bullet_glave");
 
         Tank_Y1 = ImportAsset<Texture2D>("assets/textures/tank_lotus");
         Beam = ImportAsset<Texture2D>("assets/textures/tank_zenith");
         Beam_Dan = ImportAsset<Texture2D>("assets/textures/tank_dandy");
         
-        MainMenu.OnMenuOpen += Open;
-        MainMenu.OnMenuClose += MainMenu_OnMenuClose;
+        MainMenuUI.OnMenuOpen += Open;
+        MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
         Campaign.OnMissionLoad += Highjack_Mission;
      
         Shell.OnDestroy += Shell_OnDestroy;
@@ -193,66 +188,9 @@ public class CA_Main : TanksMod {
  
        
         Mine.OnExplode += Mine_OnExplode;
-
-
-
-
-        Invasion = new("Cobalt's Armada Mode", TankGame.TextFont, Color.White)
-        {
-            IsVisible = true,
-            Tooltip = "Vanilla tanks are converted into their Armada counterpart.\nWARNING: Do not expect it to be a fair fight!\nWill not work with some modifiers.",
-           OnLeftClick = (elem) =>
-            {
-                Difficulties.Types["CobaltArmada_Swap"] = !Difficulties.Types["CobaltArmada_Swap"];
-                Invasion.Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red;
-            }, 
-            Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red
-           
-        };
-        Invasion.SetDimensions(800, 550, 300, 40);
-
-        Touhoumode_2 = new("Difficulty", TankGame.TextFont, Color.White)
-        {
-            IsVisible = true,
-            Tooltip = "Modifies Armada tanks to be easier or harder.",
-            OnLeftClick = (elem) =>
-            {
-                if (modifier_Difficulty + 1 > ModDifficulty.Phantasm) modifier_Difficulty = ModDifficulty.Easy;
-                else modifier_Difficulty += 1;
-                Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
-
-                Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
-            },
-            OnRightClick = (elem) =>
-            {
-                if (modifier_Difficulty -1 < ModDifficulty.Easy) modifier_Difficulty = ModDifficulty.Phantasm;
-                else modifier_Difficulty -= 1;
-                Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
-
-                Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
-            },
-
-            Color = DifficultyColor(modifier_Difficulty)
-        };
-        Touhoumode_2.SetDimensions(800, 600, 300, 40);
-
-        Tankbonic_Plague = new("Nightshaded", TankGame.TextFont, Color.White)
-        {
-            IsVisible = true,
-            Tooltip = "Every tank will be inflicted with the Nightshade tank's buff.",
-            OnLeftClick = (elem) =>
-            {
-                Difficulties.Types["CobaltArmada_TanksOnCrack"] = !Difficulties.Types["CobaltArmada_TanksOnCrack"];
-                Tankbonic_Plague.Color = Difficulties.Types["CobaltArmada_TanksOnCrack"] ? Color.Lime : Color.Red;
-            },
-            Color = Difficulties.Types["CobaltArmada_TanksOnCrack"] ? Color.Lime : Color.Red
-
-        };
-        Tankbonic_Plague.SetDimensions(800, 650, 300, 40);
-
         GameHandler.OnPostRender += GameHandler_OnPostRender;
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
-        GameProperties.OnMissionStart += GameProperties_OnMissionStart;
+        CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
@@ -265,8 +203,36 @@ public class CA_Main : TanksMod {
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_X1_Kudzu>().Type] = 0.42f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_X2_CorpseFlower>().Type] = 0.21f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_Z9_Hydrangea>().Type] = 1.00f;
-       
+
+        Hook_UI.Load();
+        TankGame.PostDrawEverything += TankGame_OnPostDraw;
     }
+
+    private void TankGame_OnPostDraw(GameTime obj)
+    {
+        TankGame.SpriteRenderer.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, rasterizerState: RenderGlobals.DefaultRasterizer);
+        for (int i = 0; i < Modifieralert.AllModifiers.Length; i++)
+        {
+            Modifieralert.AllModifiers[i]?.Render(TankGame.SpriteRenderer, i, Vector2.One, Anchor.LeftCenter);
+        }
+        TankGame.SpriteRenderer.End();
+    }
+
+    public static int Modifiers_currentlyactive;
+   
+    private void SceneManager_OnMissionCleanup()
+    {
+        foreach (var pu in CA_OrbitalStrike.AllLasers)
+            pu?.Remove();
+        foreach (var pu in CA_Idol_Tether.AllTethers)
+            pu?.Remove();
+       
+        foreach (var item in Modifieralert.AllModifiers)
+        {
+            item?.Remove();
+        }
+    }
+
 
     private void GameProperties_OnMissionStart()
     {
@@ -283,7 +249,7 @@ public class CA_Main : TanksMod {
                 if (ai is null) continue;
                 if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
 
-                bool NotIntoxicated = true;
+              
                 if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is null)
                 {
                     CA_Y2_NightShade.PoisonedTanks.Add(ai);
@@ -292,47 +258,64 @@ public class CA_Main : TanksMod {
             }
             
         }
+
+        if (Difficulties.Types["CobaltArmada_Mitosis"])
+        {
+            Tank[] tanks = GameHandler.AllTanks;
+            for (int i = tanks.Length-1; i >= 0 ; i--)
+            {
+                
+                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
+                var ai = tanks[i] as AITank;
+                if (ai is null || ai.Dead) continue;
+                var t = new AITank(2);
+                t.Swap(ai.AiTankType);
+                t.InitModelSemantics();
+                t.Body.Position = ai.Body.Position;
+                ai.Scaling *= 0.75f;
+                t.Scaling *= 0.75f;
+                t.Team = ai.Team;
+                t.Properties = ai.Properties;
+                if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
+                {
+                    CA_Y2_NightShade.PoisonedTanks.Add(t);
+                    CA_Y2_NightShade.Tank_OnPoisoned(t);
+                }
+            }
+
+        }
+
+        if (Difficulties.Types["CobaltArmada_P2"])
+        {
+            Tank[] tanks = GameHandler.AllTanks;
+
+            Tank[] tanks2 = GameHandler.AllTanks.ToList().FindAll(x => x is not null && x is not PlayerTank && !x.Dead).ToArray();
+            for (int i = tanks2.Length - 1; i >= 0; i--)
+            {
+                var ai = tanks2[i] as AITank;
+                if (ai is null || ai.Dead) continue;
+                var t = new AITank(2);
+                t.Swap(ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type);
+                t.InitModelSemantics();
+                t.Body.Position = ai.Body.Position;
+                t.Team = ai.Team;
+                if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
+                {
+                    CA_Y2_NightShade.PoisonedTanks.Add(t);
+                    CA_Y2_NightShade.Tank_OnPoisoned(t);
+                }
+            }
+        }
+
     }
 
-    private void SceneManager_OnMissionCleanup()
-    {
-        foreach (var pu in CA_OrbitalStrike.AllLasers)
-            pu?.Remove();
-        foreach (var pu in CA_Idol_Tether.AllTethers)
-            pu?.Remove();
-    }
-
-    private void UI_SHIT()
-    {
-
-
-    }
+  
 
     private void GameHandler_OnPostUpdate()
     {
         
-        KudzuRegen -= TankGame.DeltaTime;
-        if (MainMenu.Active&&MainMenu.BulletHell.IsVisible)
-        {
-            Invasion.IsVisible = true;
-            Touhoumode_2.IsVisible = true;
-            Tankbonic_Plague.IsVisible = true;
-
-            Touhoumode_2.Text = "Difficulty: " + modifier_Difficulty.ToString();
-            Touhoumode_2.Tooltip = "Modifies Armada tanks to be easier or harder.\n\""+( modifier_Difficulty == ModDifficulty.Easy ? "for people who need to stop and smell the roses" :
-                modifier_Difficulty == ModDifficulty.Normal ? "for people who need a baseline experience" :
-                modifier_Difficulty == ModDifficulty.Hard ? "for people who need a challenge" :
-                modifier_Difficulty == ModDifficulty.Lunatic ? "for people that think master mod was too easy" :
-                modifier_Difficulty == ModDifficulty.Extra ? "for those who's middle name is \"Masochist\"" :
-                "DON'T"
-                ) +"\"";
-        }
-        else
-        {
-            Invasion.IsVisible = false;
-            Touhoumode_2.IsVisible = false;
-            Tankbonic_Plague.IsVisible = false;
-        }
+        KudzuRegen -= RuntimeData.DeltaTime;
+        Hook_UI.Hook_UpdateUI();
 
         if (!IntermissionSystem.IsAwaitingNewMission)
         {
@@ -348,13 +331,34 @@ public class CA_Main : TanksMod {
                 CA_Y2_NightShade.WhilePoisoned_Update(ai);
 
             }
-            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) CA_Y2_NightShade.SpawnPoisonCloud(!TankGame.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
+            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) CA_Y2_NightShade.SpawnPoisonCloud(!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
             
             foreach (var IT in CA_Idol_Tether.AllTethers)
                 IT?.Update();
 
         }
-        if(LevelEditor.Active)
+        else
+        {
+            if(IntermissionSystem.Alpha>=0.8 && Difficulties.Types.Count(diff => diff.Value)!= Modifiers_currentlyactive && !LevelEditorUI.Active)
+            {
+                Modifiers_currentlyactive = Difficulties.Types.Count(diff => diff.Value);
+               // TankGame.ClientLog.Write(Modifiers_currentlyactive + "Modifiers were active",LogType.Info);
+                List<string> bops = new() { "$START$" };
+                foreach (var item in Difficulties.Types)
+                {
+                    if (item.Value) bops.Add(item.Key);
+                }  
+                   
+                for (int i = 0;  i < bops.Count; i++)
+                {
+                    new Modifieralert(bops[i], Color.DarkRed,i == 0?0f:0.1f+i*0.1f);
+                }
+            }
+            
+
+        }
+
+        if(LevelEditorUI.Active)
         {
             //To CobaltTanks
             if (InputUtils.AreKeysJustPressed([Keys.C, Keys.OemPeriod]) && !DebugManager.DebuggingEnabled && Difficulties.Types["CobaltArmada_Swap"])
@@ -421,8 +425,8 @@ public class CA_Main : TanksMod {
             }
 
         }
-        boss?.Update();
-        MissionDeadline?.Update();
+      
+       
 
 
     }
@@ -435,6 +439,7 @@ public class CA_Main : TanksMod {
             fp?.Render();
         boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth-WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight-60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
         MissionDeadline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
+
     }
 
     private void MainMenu_OnMenuClose()
@@ -447,15 +452,15 @@ public class CA_Main : TanksMod {
     {
         boss = null;
         MissionDeadline = null;
-        Invasion.Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red;
+        
     }
   
 
     private void Highjack_Mission(ref Tank[] tanks, ref Block[] blocks)
     {
         //There was an issue where base roster tanks would convert to their CA counterparts during the editing process
-        if (LevelEditor.Active) return;
-        if (MainMenu.Active) return;
+        if (LevelEditorUI.Active) return;
+        if (MainMenuUI.Active) return;
 
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
         TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
@@ -466,7 +471,7 @@ public class CA_Main : TanksMod {
             if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
             if (ai is null) continue;
-            float secret_tank_chance = (float)GameProperties.LoadedCampaign.CurrentMissionId / GameProperties.LoadedCampaign.CachedMissions.Length;
+            float secret_tank_chance = (float)CampaignGlobals.LoadedCampaign.CurrentMissionId / CampaignGlobals.LoadedCampaign.CachedMissions.Length;
             var nextFloat = Server.ServerRandom.NextFloat(0, 1);
             if (nextFloat <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
             {
@@ -544,14 +549,14 @@ public class CA_Main : TanksMod {
         var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
 
         if ((ai.AiTankType == Sunny.Type && shell.Type == ShellID.Rocket))
-           new Mine(shell.Owner, shell.Position - new Vector2(0f, 10f).RotatedByRadians(shell.Rotation), 900f, 0.1f);
+           new Mine(shell.Owner, shell.Position - new Vector2(0f, 10f).Rotate(shell.Rotation), 900f, 0.1f);
     }
 
 
     public static void Lay_AbstractMine(Shell origin)
     {
-        if ((!MainMenu.Active && !GameProperties.InMission))return;
-        Mine mine = new Mine(origin.Owner, origin.Position - new Vector2(0f, 10f).RotatedByRadians(origin.Rotation), 400f, 1f);
+        if (!MainMenuUI.Active && !CampaignGlobals.InMission)return;
+        Mine mine = new Mine(origin.Owner, origin.Position - new Vector2(0f, 10f).Rotate(origin.Rotation), 400f, 1f);
     }
 
     /// <summary>
@@ -559,7 +564,7 @@ public class CA_Main : TanksMod {
     /// </summary>
     public static void Fire_AbstractShell(Shell origin,int count, int newType = 1, uint burst_bounces = 0,float burst_expand=3.5f)
     {
-        if (MainMenu.Active || !GameProperties.InMission) return;
+        if (MainMenuUI.Active || !CampaignGlobals.InMission) return;
         if (origin is null||origin.Owner is null) return;
         float angle = 0;
         float rng_burst = origin.Rotation+ (MathF.PI * 2f / (count*2f));
@@ -569,8 +574,8 @@ public class CA_Main : TanksMod {
                 angle =(MathF.PI * 2f / count * i)+ rng_burst;
                 float newAngle = angle;
                 Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, origin.Properties.HomeProperties, true);
-                Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
-                Vector2 newPos2 = origin.Position + new Vector2(0f, 14f).RotatedByRadians(-newAngle);
+                Vector2 new2d2 = Vector2.UnitY.Rotate(newAngle);
+                Vector2 newPos2 = origin.Position + new Vector2(0f, 14f).Rotate(-newAngle);
                 shell2.Position = new Vector2(newPos2.X, newPos2.Y);
                 shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y)* burst_expand;
                 shell2.RicochetsRemaining = burst_bounces;
@@ -579,7 +584,7 @@ public class CA_Main : TanksMod {
 
     public static void Fire_AbstractShell_Tank(Tank origin, int count,ITankHurtContext player_kill, int newType = 1, uint burst_bounces=0, float burst_expand = 3.4f)
     {
-        if (MainMenu.Active || !GameProperties.InMission) return;
+        if (MainMenuUI.Active || !CampaignGlobals.InMission) return;
         if (origin is null) return;
 
         float angle = 0;
@@ -590,8 +595,8 @@ public class CA_Main : TanksMod {
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
             Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin , 0U, origin.Properties.ShellHoming, false);
-            Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
-            Vector2 newPos2 = origin.Position + new Vector2(0f, 20f).RotatedByRadians(-newAngle);
+            Vector2 new2d2 = Vector2.UnitY.Rotate(newAngle);
+            Vector2 newPos2 = origin.Position + new Vector2(0f, 20f).Rotate(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
             shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y)* burst_expand;
             shell2.RicochetsRemaining = burst_bounces;
@@ -599,7 +604,7 @@ public class CA_Main : TanksMod {
     }
     public static void Fire_AbstractShell_Mine(Mine origin, int count, int newType = 1, uint burst_bounces = 0, float burst_expand = 3.5f)
     {
-        if ((!MainMenu.Active && !GameProperties.InMission)) return;
+        if ((!MainMenuUI.Active && !CampaignGlobals.InMission)) return;
         if (origin is null || origin.Owner is null) return;
         float angle = 0;
         float rng_burst = Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI);
@@ -609,8 +614,8 @@ public class CA_Main : TanksMod {
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
             Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0U, new Shell.HomingProperties(), true);
-            Vector2 new2d2 = Vector2.UnitY.RotatedByRadians(newAngle);
-            Vector2 newPos2 = origin.Position + new Vector2(0f, 25f).RotatedByRadians(-newAngle);
+            Vector2 new2d2 = Vector2.UnitY.Rotate(newAngle);
+            Vector2 newPos2 = origin.Position + new Vector2(0f, 25f).Rotate(-newAngle);
             shell2.Position = new Vector2(newPos2.X, newPos2.Y);
             shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y) * burst_expand;
             shell2.RicochetsRemaining = burst_bounces;
@@ -619,8 +624,8 @@ public class CA_Main : TanksMod {
 
 
     public override void OnUnload() {
-        MainMenu.OnMenuOpen -= Open;
-        MainMenu.OnMenuClose -= MainMenu_OnMenuClose;
+        MainMenuUI.OnMenuOpen -= Open;
+        MainMenuUI.OnMenuClose -= MainMenu_OnMenuClose;
         Campaign.OnMissionLoad -= Highjack_Mission;
 
         Shell.OnDestroy -= Shell_OnDestroy;
@@ -630,7 +635,7 @@ public class CA_Main : TanksMod {
         Mine.OnExplode -= Mine_OnExplode;
         GameHandler.OnPostRender -= GameHandler_OnPostRender;
         GameHandler.OnPostUpdate -= GameHandler_OnPostUpdate;
-        GameProperties.OnMissionStart -= GameProperties_OnMissionStart;
-
+        CampaignGlobals.OnMissionStart -= GameProperties_OnMissionStart;
+        TankGame.PostDrawEverything -= TankGame_OnPostDraw;
     }
 }
