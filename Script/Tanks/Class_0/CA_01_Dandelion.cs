@@ -37,10 +37,11 @@ namespace CobaltsArmada
 
         public override void PostApplyDefaults()
         {
-            base.PostApplyDefaults();
+           
 
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Stationary;
+            
             AITank.Scaling = Vector3.One * 100f;
             AITank.AiParams.MeanderAngle = MathHelper.ToRadians(40);
             AITank.AiParams.MeanderFrequency = 10;
@@ -89,6 +90,7 @@ namespace CobaltsArmada
 
             AITank.BaseExpValue = 0.025f;
 
+            base.PostApplyDefaults();
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {

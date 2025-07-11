@@ -49,7 +49,7 @@ namespace CobaltsArmada
             ["Monochrome"] = "Monochrome",
             ["InfiniteLives"] = "Infinite Lives",
             ["MasterModBuff"] = "Master Mod Buff",
-            ["MarbleModBuff"] = "Marble Mod Buff", //RIP
+           // ["MarbleModBuff"] = "Marble Mod Buff", //RIP
             ["CobaltArmada_Swap"] = "Armada Mod Buff",
             ["CobaltArmada_GetGud"] = "$Difficulty$",
             ["MachineGuns"] = "Machine Guns",

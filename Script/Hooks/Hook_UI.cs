@@ -20,31 +20,34 @@ using TanksRebirth.Internals.Common.GameUI;
 using static CobaltsArmada.CA_Main;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.MainMenu;
+using DiscordRPC;
 
 namespace CobaltsArmada.Hooks
 {
     public class Hook_UI
     {
         //Custom modifiers
-        [AllowNull]
-        public static UITextButton Invasion;
-        [AllowNull]
-        public static UITextButton Touhoumode_2;
-        [AllowNull]
-        public static UITextButton MasterSpark;
-        [AllowNull]
-        public static UITextButton Prenerf_enemies;
-        [AllowNull]
-        public static UITextButton Tankbonic_Plague;
-        [AllowNull]
-        public static UITextButton Tanktosis;
-        [AllowNull]
-        public static UITextButton oopsAllIdol;
+        public static UITextButton? Invasion;
+        
+        public static UITextButton? Touhoumode_2;
+        
+        public static UITextButton? MasterSpark;
+        
+        public static UITextButton? Prenerf_enemies;
+        
+        public static UITextButton? Tankbonic_Plague;
+        
+        public static UITextButton? Tanktosis;
+        
+        public static UITextButton? oopsAllIdol;
+        public static List<UITextButton> buttons = new();
+
+        public static int startIndex;
         public static void Load()
         {
             Invasion = new("Armada Mod Buff", FontGlobals.RebirthFont, Color.White)
             {
-                IsVisible = true,
+                IsVisible = false,
                 Tooltip = "Vanilla tanks are converted into their Armada counterpart.\nWARNING: Do not expect it to be a fair fight!\nWill not work with some modifiers.",
                 OnLeftClick = (elem) =>
                 {
@@ -54,11 +57,11 @@ namespace CobaltsArmada.Hooks
                 Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red
 
             };
-            Invasion.SetDimensions(800, 550, 300, 40);
+    
 
             Touhoumode_2 = new("Difficulty", FontGlobals.RebirthFont, Color.White)
             {
-                IsVisible = true,
+                IsVisible = false,
                 Tooltip = "Modifies Armada tanks to be easier or harder.",
                 OnLeftClick = (elem) =>
                 {
@@ -79,12 +82,12 @@ namespace CobaltsArmada.Hooks
 
                 Color = DifficultyColor(modifier_Difficulty)
             };
-            Touhoumode_2.SetDimensions(800, 600, 300, 40);
+           
 
             Tankbonic_Plague = new("Nightshaded", FontGlobals.RebirthFont, Color.White)
             {
-                IsVisible = true,
-                Tooltip = "Every AITank will be inflicted with the Nightshade AITank's buff.",
+                IsVisible = false,
+                Tooltip = "Every non-player tank will be nightshaded, making them significantly more aggresive.",
                 OnLeftClick = (elem) =>
                 {
                     Difficulties.Types["CobaltArmada_TanksOnCrack"] = !Difficulties.Types["CobaltArmada_TanksOnCrack"];
@@ -93,11 +96,11 @@ namespace CobaltsArmada.Hooks
                 Color = Difficulties.Types["CobaltArmada_TanksOnCrack"] ? Color.Lime : Color.Red
 
             };
-            Tankbonic_Plague.SetDimensions(800, 650, 300, 40);
+       
 
             Tanktosis = new("Double Trouble", FontGlobals.RebirthFont, Color.White)
             {
-                IsVisible = true,
+                IsVisible = false,
                 Tooltip = "Multiplies the tanks into smaller, but just as dangerous clones",
                 OnLeftClick = (elem) =>
                 {
@@ -119,10 +122,10 @@ namespace CobaltsArmada.Hooks
                 Color = DifficultyColor(modifier_Difficulty)
 
             };
-            Tanktosis.SetDimensions(800, 700, 300, 40);
+           
             oopsAllIdol = new("Idol Support", FontGlobals.RebirthFont, Color.White)
             {
-                IsVisible = true,
+                IsVisible = false,
                 Tooltip = "Forget-Me-Nots will spawn to assist the enemy.",
                 OnLeftClick = (elem) =>
                 {
@@ -132,12 +135,21 @@ namespace CobaltsArmada.Hooks
                 Color = Difficulties.Types["CobaltArmada_P2"] ? Color.Lime : Color.Red
 
             };
-            oopsAllIdol.SetDimensions(800, 750, 300, 40);
+       
             //Hooks
+
+            buttons.AddRange([
+               Invasion, Touhoumode_2, Tankbonic_Plague, Tanktosis, oopsAllIdol
+           ]);
+            startIndex = MainMenuUI.AllDifficultyButtons.Count - 1;
+            MainMenuUI.AllDifficultyButtons.AddRange(buttons);
+
 
         }
         public static void Hook_UpdateUI()
         {
+            if (Invasion is null) return;
+
             if (MainMenuUI.Active && MainMenuUI.BulletHell.IsVisible)
             {
                 Invasion.IsVisible = true;
@@ -159,7 +171,10 @@ namespace CobaltsArmada.Hooks
                     modifier_Tanktosis == CA_Main.Tanktosis.Double ? "Prepare for trouble..." :
                      modifier_Tanktosis == CA_Main.Tanktosis.Triple ? "That's like more than two!" :
                      "YOU PICK THE WRONG HOUSE, FOOL!";
-
+                Tanktosis.Text = modifier_Tanktosis == CA_Main.Tanktosis.Single ? "Double Trouble" :
+                    modifier_Tanktosis == CA_Main.Tanktosis.Double ? "Double Trouble" :
+                     modifier_Tanktosis == CA_Main.Tanktosis.Triple ? "Triple Threat" :
+                     "Quad Squad";
             }
             else
             {

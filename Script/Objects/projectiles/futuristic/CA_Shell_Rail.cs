@@ -25,6 +25,7 @@ using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.Net;
 using TanksRebirth.Graphics;
+using TanksRebirth.Internals.Common.Framework.Audio;
 
 namespace CobaltsArmada
 {
@@ -42,6 +43,7 @@ namespace CobaltsArmada
         public override void OnCreate()
         {
             base.OnCreate();
+        
             Shell.Model = CA_Main.Shell_Beam;
             Shell.Properties.IsDestructible = false;
             //SLOOWWWW

@@ -205,8 +205,8 @@ public class CA_Main : TanksMod {
         
         MainMenuUI.OnMenuOpen += Open;
         MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
-        Campaign.OnMissionLoad += Highjack_Mission;
-     
+        Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
+
         Shell.OnDestroy += Shell_OnDestroy;
         SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;
  
@@ -323,8 +323,8 @@ public class CA_Main : TanksMod {
             {
                 var ai = tanks2[i] as AITank;
                 if (ai is null || ai.Dead) continue;
-                var t = new AITank(2);
-                t.Swap(ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type);
+                var t = new AITank(ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type);
+
                 t.InitModelSemantics();
                 t.Body.Position = ai.Body.Position;
                 t.Team = ai.Team;
@@ -483,53 +483,45 @@ public class CA_Main : TanksMod {
         MissionDeadline = null;
         
     }
-  
-
-    private void Highjack_Mission(ref Tank[] tanks, ref Block[] blocks)
+    //Hijack mission
+    private void Campaign_OnPreLoadTank(ref TankTemplate template)
     {
-        //There was an issue where base roster tanks would convert to their CA counterparts during the editing process
         if (LevelEditorUI.Active) return;
         if (MainMenuUI.Active) return;
-
+        if (template.IsPlayer) return;
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
-        TankGame.ClientLog.Write("Invading campaign...", TanksRebirth.Internals.LogType.Info);
-       // ChatSystem.SendMessage("Invading campaign...", Color.Yellow);
-            for (int i = 0; i < tanks.Length; i++)
-            {
-            
-            if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                var ai = tanks[i] as AITank;
-            if (ai is null) continue;
-            float secret_tank_chance = (float)CampaignGlobals.LoadedCampaign.CurrentMissionId / CampaignGlobals.LoadedCampaign.CachedMissions.Length;
-            var nextFloat = Server.ServerRandom.NextFloat(0, 1);
-            if (nextFloat <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
-            {
-                TankGame.ClientLog.Write("RARE TANK GO!", TanksRebirth.Internals.LogType.Info);
-                if (Server.ServerRandom.NextFloat(0, 1) < 0.25) ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true);
-                else ai.Swap(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type, true);
 
-            }
+        TankGame.ClientLog.Write("Invading campaign...", LogType.Info);
+
+        float secret_tank_chance = (float)CampaignGlobals.LoadedCampaign.CurrentMissionId / CampaignGlobals.LoadedCampaign.CachedMissions.Length;
+        var nextFloat = Server.ServerRandom.NextFloat(0, 1);
+
+        if (nextFloat <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
+        {
+            TankGame.ClientLog.Write("RARE TANK GO!", LogType.Info);
+
+            if (Server.ServerRandom.NextFloat(0, 1) < 0.25)
+                template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type;
             else
-            {
-                switch (ai.AiTankType)
-                {
-                    case TankID.Brown: ai.Swap(ModContent.GetSingleton<CA_01_Dandelion>().Type, true); break;
-                    case TankID.Ash: ai.Swap(ModContent.GetSingleton<CA_02_Perwinkle>().Type, true); break;
-                    case TankID.Marine: ai.Swap(ModContent.GetSingleton<CA_03_Pansy>().Type, true); break;
-                    case TankID.Yellow: ai.Swap(ModContent.GetSingleton<CA_04_Sunflower>().Type, true); break;
-                    case TankID.Pink: ai.Swap(ModContent.GetSingleton<CA_05_Poppy>().Type, true); break;
-                    case TankID.Violet: ai.Swap(ModContent.GetSingleton<CA_07_Lavender>().Type, true); break;
-                    case TankID.Green: ai.Swap(ModContent.GetSingleton<CA_06_Daisy>().Type, true); break;
-                    case TankID.White: ai.Swap(ModContent.GetSingleton<CA_08_Eryngium>().Type, true); break;
-                    case TankID.Black: ai.Swap(ModContent.GetSingleton<CA_09_Carnation>().Type, true); break;
-                    default: break;
-
-                }
-               
-            }
-            ai.InitModelSemantics();
+                template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type;
         }
-        
+        else
+        {
+            switch (template.AiTier)
+            {
+                case TankID.Brown: template.AiTier = ModContent.GetSingleton<CA_01_Dandelion>().Type; break;
+                case TankID.Ash: template.AiTier = ModContent.GetSingleton<CA_02_Perwinkle>().Type; break;
+                case TankID.Marine: template.AiTier = ModContent.GetSingleton<CA_03_Pansy>().Type; break;
+                case TankID.Yellow: template.AiTier = ModContent.GetSingleton<CA_04_Sunflower>().Type; break;
+                case TankID.Pink: template.AiTier = ModContent.GetSingleton<CA_05_Poppy>().Type; break;
+                case TankID.Violet: template.AiTier = ModContent.GetSingleton<CA_07_Lavender>().Type; break;
+                case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
+                case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
+                case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
+                default: break;
+
+            }
+        }
     }
 
 
@@ -655,7 +647,7 @@ public class CA_Main : TanksMod {
     public override void OnUnload() {
         MainMenuUI.OnMenuOpen -= Open;
         MainMenuUI.OnMenuClose -= MainMenu_OnMenuClose;
-        Campaign.OnMissionLoad -= Highjack_Mission;
+        Campaign.OnPreLoadTank -= Campaign_OnPreLoadTank;
 
         Shell.OnDestroy -= Shell_OnDestroy;
         SceneManager.OnMissionCleanup -= SceneManager_OnMissionCleanup;
@@ -674,5 +666,7 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Remove("CobaltArmada_TanksOnCrack");
         Difficulties.Types.Remove("CobaltArmada_Mitosis");
         Difficulties.Types.Remove("CobaltArmada_P2");
+
+        MainMenuUI.AllDifficultyButtons.RemoveRange(Hook_UI.startIndex, MainMenuUI.AllDifficultyButtons.Count - Hook_UI.startIndex - 1);
     }
 }
