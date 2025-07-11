@@ -39,25 +39,25 @@ namespace CobaltsArmada
         {
             [LangCode.English] = "Razor Shell"
         });
-        public override void OnCreate(Shell shell)
+        public override void OnCreate()
         {
-            base.OnCreate(shell);
-            shell.Model = CA_Main.Shell_Glaive;
-            shell.LifeTime = 0f;
-            if (shell.Owner is null) return;
-            shell.Properties.EmitsSmoke = false;
-            shell.Properties.IsDestructible = false;
+            base.OnCreate();
+            Shell.Model = CA_Main.Shell_Glaive;
+            Shell.LifeTime = 0f;
+            if (Shell.Owner is null) return;
+            Shell.Properties.EmitsSmoke = false;
+            Shell.Properties.IsDestructible = false;
             
         }
-        public override void PostUpdate(Shell shell)
+        public override void PostUpdate()
         {
-           shell.World = Matrix.CreateScale(2.4f) * Matrix.CreateFromYawPitchRoll(MathHelper.PiOver2 * shell.LifeTime / 15f * (shell.RicochetsRemaining % 2 == 1 ? 1f : -1f) * shell.Velocity.Length()/1.2f, 0, 0) * Matrix.CreateTranslation(shell.Position3D);
+           Shell.World = Matrix.CreateScale(2.4f) * Matrix.CreateFromYawPitchRoll(MathHelper.PiOver2 * Shell.LifeTime / 15f * (Shell.RicochetsRemaining % 2 == 1 ? 1f : -1f) * Shell.Velocity.Length()/1.2f, 0, 0) * Matrix.CreateTranslation(Shell.Position3D);
 
-            base.PostUpdate(shell);
+            base.PostUpdate();
 
             //where the fun begins
-            if(Math.Floor(shell.LifeTime) % 60f % 10f == 0)
-             RenderLeaveTrail(shell);
+            if(Math.Floor(Shell.LifeTime) % 60f % 10f == 0)
+             RenderLeaveTrail(Shell);
 
         }
 
@@ -79,11 +79,11 @@ namespace CobaltsArmada
                     p.Destroy();
             };
         }
-        public override void OnRicochet(Shell shell, Block block)
+        public override void OnRicochet(Block?block)
         {
             if(CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic)
             {
-                shell.Velocity *=
+                Shell.Velocity *=
                     CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Lunatic ?
                     CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Extra ?
                     CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1.175f : 1.10f : 1.05f :1f ;
@@ -91,7 +91,7 @@ namespace CobaltsArmada
             }
         }
 
-        public override void PostRender(Shell shell)
+        public override void PostRender()
         {
             void RenderMeshEffects(int i, ModelMesh mesh)
             {
@@ -99,11 +99,11 @@ namespace CobaltsArmada
                 {
                     var effect = (BasicEffect)mesh.Effects[j];
                     effect.World =
-                        shell.World;
+                        Shell.World;
                       
 
-                    effect.View = shell.View;
-                    effect.Projection = shell.Projection;
+                    effect.View = Shell.View;
+                    effect.Projection = Shell.Projection;
                     effect.TextureEnabled = true;
 
                     effect.SetDefaultGameLighting_IngameEntities();
@@ -111,9 +111,9 @@ namespace CobaltsArmada
                 }
             }
 
-            for (var i = 0; i < shell.Model.Meshes.Count; i++)
+            for (var i = 0; i < Shell.Model.Meshes.Count; i++)
             {
-                var mesh = shell.Model.Meshes[i];
+                var mesh = Shell.Model.Meshes[i];
                 RenderMeshEffects(0, mesh);
                 mesh.Draw();
             }

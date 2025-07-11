@@ -39,14 +39,14 @@ namespace CobaltsArmada
         {
             [LangCode.English] = "Laser"
         });
-        public override void OnCreate(Shell shell)
+        public override void OnCreate()
         {
-            base.OnCreate(shell);
-            shell.Model = CA_Main.Shell_Beam;
-            shell.Properties.IsDestructible = false;
+            base.OnCreate();
+            Shell.Model = CA_Main.Shell_Beam;
+            Shell.Properties.IsDestructible = false;
             //SLOOWWWW
-            shell.Velocity = Vector2.Normalize(shell.Velocity)*0.001f;
-            shell.LifeTime = 0f;
+            Shell.Velocity = Vector2.Normalize(Shell.Velocity)*0.001f;
+            Shell.LifeTime = 0f;
            
         }
 
@@ -171,31 +171,31 @@ namespace CobaltsArmada
         }
         
 
-    public override void PostUpdate(Shell shell)
+    public override void PostUpdate()
         {
-            if (shell is null) return;
-            base.PostUpdate(shell);
-            if (shell.Owner is null) return;
-            if (shell.Owner is PlayerTank) return;
-            AITank ai = (AITank)shell.Owner;
+            if (Shell is null) return;
+            base.PostUpdate();
+            if (Shell.Owner is null) return;
+            if (Shell.Owner is PlayerTank) return;
+            AITank ai = (AITank)Shell.Owner;
             if (ai.ShotPathRicochetPoints.Length<1) return;
             if (Server.NetManager != null || !Client.IsConnected())
             {
-                float Laser_length = Vector2.Distance(shell.Position, ai.ShotPathRicochetPoints[0]);
-                float BEW = shell.LifeTime / 60 * MathF.PI * 2f;
+                float Laser_length = Vector2.Distance(Shell.Position, ai.ShotPathRicochetPoints[0]);
+                float BEW = Shell.LifeTime / 60 * MathF.PI * 2f;
                 float dur = 1.5f;
 
                 float scaletimer = LaserLerp(MathF.Max(0f, -MathF.Cos(BEW / dur) / 2f + 0.5f), 0.3f);
                 float laser_Magnify = Difficulties.Types["PieFactory"] ? 4.4f : 2.1f;
 
                 float reacher = 1.075f;
-                shell.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-shell.Rotation, 0, 0)
-                    * Matrix.CreateTranslation(shell.Position3D) * Matrix.CreateTranslation(Vector3.Normalize(shell.Velocity3D) * Laser_length / 2f * reacher);
-                if (scaletimer > 0.2) DoKillcast(shell, laser_Magnify * 1.25f);
+                Shell.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-Shell.Rotation, 0, 0)
+                    * Matrix.CreateTranslation(Shell.Position3D) * Matrix.CreateTranslation(Vector3.Normalize(Shell.Velocity3D) * Laser_length / 2f * reacher);
+                if (scaletimer > 0.2) DoKillcast(Shell, laser_Magnify * 1.25f);
 
-                if (dur * 60f < shell.LifeTime)
+                if (dur * 60f < Shell.LifeTime)
                 {
-                    shell.Remove();
+                    Shell.Remove();
                 }
             }
         }

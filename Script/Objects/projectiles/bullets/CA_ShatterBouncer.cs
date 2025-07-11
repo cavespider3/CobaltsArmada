@@ -36,22 +36,22 @@ namespace CobaltsArmada
         {
             [LangCode.English] = "Rico-Shatter Shell"
         });
-        public override void OnCreate(Shell shell)
+        public override void OnCreate()
         {
-            base.OnCreate(shell);
-            shell.Properties.IsDestructible = false;
+            base.OnCreate();
+            Shell.Properties.IsDestructible = false;
 
-            shell.LifeTime = 0f;
-            if (shell.Owner is null) return;
+            Shell.LifeTime = 0f;
+            if (Shell.Owner is null) return;
             int vibecheck = 0;
-            if (shell.Owner is PlayerTank) vibecheck = PlayerTank.ClientTank.PlayerType; else vibecheck = ((AITank)shell.Owner).AiTankType;
+            if (Shell.Owner is PlayerTank) vibecheck = PlayerTank.ClientTank.PlayerType; else vibecheck = ((AITank)Shell.Owner).AiTankType;
 
 
         }
 
-        public override void OnRicochet(Shell shell, Block block)
+        public override void OnRicochet(Block?block)
         {
-            CA_Main.Fire_AbstractShell(shell, 4, 1, 0, 3.5f);
+            CA_Main.Fire_AbstractShell(Shell, 4, 1, 0, 3.5f);
         }
 
 
