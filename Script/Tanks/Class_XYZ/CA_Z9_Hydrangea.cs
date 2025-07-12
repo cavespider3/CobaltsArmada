@@ -7,6 +7,7 @@ using tainicom.Aether.Physics2D.Dynamics;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.GameMechanics;
+using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.RebirthUtils;
@@ -30,7 +31,7 @@ namespace CobaltsArmada
             [LangCode.English] = "Hydrangea"
         });
 
-        public override string Texture => "assets/textures/tank_Hydrangea";
+        public override string Texture => "assets/textures/tank_zenith";
         public override int Songs => 2;
         public override Color AssociatedColor => Color.Cyan;
 
@@ -38,9 +39,6 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
           
-           
-
-            CA_Main.boss = new BossBar(AITank, "Hydrangea", "The Unbounded");
 
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
@@ -68,6 +66,8 @@ namespace CobaltsArmada
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21); 
             AITank.SpecialBehaviors[2].Value = 32;
             AITank.Properties.Armor = new TankArmor(AITank,1);
+
+            CA_Main.boss = new BossBar(AITank, "Hydrangea", "The Unbounded");
             AITank.Properties.Armor.HideArmor = true;
             AITank.Properties.ShootStun = 12;
             AITank.Properties.ShellCooldown = 150;
@@ -112,21 +112,22 @@ namespace CobaltsArmada
 
         public override void PostUpdate()
         {
-            if (LevelEditorUI.Active) return;
+            if (LevelEditorUI.Active ||AITank.Dead) return;
+           
             base.PostUpdate();
             AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
-            if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
-            {
-                var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
+            //if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
+            //{
+            //    var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
 
-                var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
-                crate.TankToSpawn = new TankTemplate()
-                {
-                    AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type,
-                    IsPlayer = false,
-                    Team = AITank.Team
-                };
-            }
+            //    var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
+            //    crate.TankToSpawn = new TankTemplate()
+            //    {
+            //        AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type,
+            //        IsPlayer = false,
+            //        Team = AITank.Team
+            //    };
+            //}
             if (AITank.SpecialBehaviors[0].Value < 0f && AITank.SpecialBehaviors[1].Value == 0f)
             {
               if(AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
@@ -223,14 +224,16 @@ namespace CobaltsArmada
             if (AITank.SpecialBehaviors[0].Value < 0f && AITank.SpecialBehaviors[1].Value == 2f)
             {
                 var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
-                var r2 = new int[AITank.SpecialBehaviors[2].Value < 17f ? 6 : 3];
+                var r2 = new int[AITank.SpecialBehaviors[2].Value < 17f ? 8 : 4];
                 r2[0] = ModContent.GetSingleton<CA_02_Perwinkle>().Type;
                 r2[1] = ModContent.GetSingleton<CA_03_Pansy>().Type;
                 r2[2] = ModContent.GetSingleton<CA_01_Dandelion>().Type;
+                r2[3] = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type;
                 if (AITank.SpecialBehaviors[2].Value < 17f) {
-                    r2[3] = ModContent.GetSingleton<CA_05_Poppy>().Type;
-                    r2[4] = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type;
-                    r2[5] = Server.ServerRandom.Next(TankID.Brown, TankID.Marine);
+                    r2[4] = ModContent.GetSingleton<CA_05_Poppy>().Type;
+                    r2[5] = ModContent.GetSingleton<CA_X4_Allium>().Type;
+                    r2[7] = ModContent.GetSingleton<CA_X5_LilyValley>().Type;
+                    r2[6] = Server.ServerRandom.Next(TankID.Brown, TankID.Marine);
                 }
 
                 var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);

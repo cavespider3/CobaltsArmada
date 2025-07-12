@@ -153,12 +153,12 @@ namespace CobaltsArmada
 
         }
 
-        public static void SpawnPoisonCloud(Vector3 v)
+        public static void SpawnPoisonCloud(Vector3 v,float radius = 60f)
         {
             const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 
             SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f,pitchOverride:0.5f,gameplaySound:true);
-            int length = 17;
+            int length = 23;
 
             for (int i = 0; i < length; i++)
             {
@@ -189,7 +189,7 @@ namespace CobaltsArmada
                 var ai = tanks[i] as AITank;
                 if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
 
-                if (Vector2.Distance(ai.Position, v.FlattenZ()) > 60f) continue;
+                if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
                 bool NotIntoxicated = true;
                 if (PoisonedTanks.Find(x => x == ai) is null)
                 {

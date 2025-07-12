@@ -48,9 +48,9 @@ namespace CobaltsArmada
             ["BumpUp"] = "BumpUp",
             ["Monochrome"] = "Monochrome",
             ["InfiniteLives"] = "Infinite Lives",
-            ["MasterModBuff"] = "Master Mod Buff",
+            ["MasterModBuff"] = "Master Mod",
            // ["MarbleModBuff"] = "Marble Mod Buff", //RIP
-            ["CobaltArmada_Swap"] = "Armada Mod Buff",
+            ["CobaltArmada_Swap"] = "Armada Mod",
             ["CobaltArmada_GetGud"] = "$Difficulty$",
             ["MachineGuns"] = "Machine Guns",
             ["RandomizedTanks"] = "Randomized Tanks",

@@ -131,7 +131,7 @@ namespace CobaltsArmada
             //we get a little devious
 
             properties.Stationary = true;
-
+      
             properties.ShellHoming = new();
             properties.InvulnerableToMines = true;
             tank.Properties.CanLayTread = false;

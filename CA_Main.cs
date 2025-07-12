@@ -23,6 +23,7 @@ using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using WiimoteLib;
+using TanksRebirth.Enums;
 
 
 namespace CobaltsArmada;
@@ -94,27 +95,16 @@ public class CA_Main : TanksMod {
 
     
 
-    [AllowNull]
-    public static Model Neo_Stationary;
-    [AllowNull]
-    public static Model Neo_Mobile;
-    [AllowNull]
-    public static Model Neo_Boss;
-    [AllowNull]
-    public static Model Shell_Beam;
-    [AllowNull]
-    public static Model Shell_Glaive;
 
-    [AllowNull]
-    public static Texture2D Beam;
-    [AllowNull]
-    public static Texture2D Beam_Dan;
+    public static Model? Neo_Stationary;
+    public static Model? Neo_Mobile;
+    public static Model? Neo_Boss;
+    public static Model? Shell_Beam;
+    public static Model? Shell_Glaive;
 
-
-    [AllowNull]
-    public static Texture2D Tank_Y1;
-
-
+    public static Texture2D? Beam;
+    public static Texture2D? Beam_Dan;
+    public static Texture2D? Tank_Y1;
 
     public static BossBar? boss;
     public static VindicationTimer? MissionDeadline;
@@ -160,13 +150,13 @@ public class CA_Main : TanksMod {
         switch (difficulty)
         {
             case Tanktosis.Single:
-                return new(0, 191, 71);
+                return Color.Red;
             case Tanktosis.Double:
-                return new(0, 113, 226);
+                return Color.Lime;
             case Tanktosis.Triple:
-                return new(0, 18, 225);
+                return Color.Orange;
             case Tanktosis.Quad:
-                return new(179, 0, 179);
+                return Color.Yellow;
             default:
                 return new(120, 120, 120);
         }
@@ -206,7 +196,7 @@ public class CA_Main : TanksMod {
         MainMenuUI.OnMenuOpen += Open;
         MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
         Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
-
+        Campaign.OnMissionLoad += Campaign_OnMissionLoad;
         Shell.OnDestroy += Shell_OnDestroy;
         SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;
  
@@ -216,6 +206,7 @@ public class CA_Main : TanksMod {
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
 
         CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
+        CampaignGlobals.OnMissionEnd += CampaignGlobals_OnMissionEnd;
 
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
@@ -232,7 +223,10 @@ public class CA_Main : TanksMod {
 
         Hook_UI.Load();
         TankGame.PostDrawEverything += TankGame_OnPostDraw;
+
     }
+
+  
 
     private void TankGame_OnPostDraw(GameTime obj)
     {
@@ -298,7 +292,7 @@ public class CA_Main : TanksMod {
                 {
                     var t = new AITank(2);
                     t.Swap(ai.AiTankType);
-                    t.InitModelSemantics();
+
                     t.Body.Position = ai.Body.Position;
                     
                     t.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
@@ -325,7 +319,6 @@ public class CA_Main : TanksMod {
                 if (ai is null || ai.Dead) continue;
                 var t = new AITank(ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type);
 
-                t.InitModelSemantics();
                 t.Body.Position = ai.Body.Position;
                 t.Team = ai.Team;
                 if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
@@ -419,7 +412,7 @@ public class CA_Main : TanksMod {
                         default: break;
 
                         }   
-                    ai.InitModelSemantics();
+                   
                 }
             }
             //From CobaltTanks
@@ -448,7 +441,7 @@ public class CA_Main : TanksMod {
                     if (ModContent.GetSingleton<CA_Y3_Peony>().Type == ai.AiTankType) ai.Swap(TankID.Sapphire, true);
                     if (ModContent.GetSingleton<CA_Z9_Hydrangea>().Type==ai.AiTankType) ai.Swap(TankID.Obsidian, true);
 
-                    ai.InitModelSemantics();
+            
                     ai.Scaling = Vector3.One;
                 }
             }
@@ -481,47 +474,127 @@ public class CA_Main : TanksMod {
     {
         boss = null;
         MissionDeadline = null;
-        
     }
-    //Hijack mission
-    private void Campaign_OnPreLoadTank(ref TankTemplate template)
+
+    private void Campaign_OnMissionLoad(Tank[] tanks, Block[] blocks)
     {
         if (LevelEditorUI.Active) return;
         if (MainMenuUI.Active) return;
-        if (template.IsPlayer) return;
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
 
-        TankGame.ClientLog.Write("Invading campaign...", LogType.Info);
-
-        float secret_tank_chance = (float)CampaignGlobals.LoadedCampaign.CurrentMissionId / CampaignGlobals.LoadedCampaign.CachedMissions.Length;
-        var nextFloat = Server.ServerRandom.NextFloat(0, 1);
-
-        if (nextFloat <= float.Lerp(0, 0.075f, secret_tank_chance) * (1 + secret_tank_chance / 2f))
+        if (IntermissionHandler.LastResult != MissionEndContext.Lose)
         {
-            TankGame.ClientLog.Write("RARE TANK GO!", LogType.Info);
-
-            if (Server.ServerRandom.NextFloat(0, 1) < 0.25)
-                template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type;
-            else
-                template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type;
-        }
-        else
-        {
-            switch (template.AiTier)
+            foreach (TankTemplate _template in CampaignGlobals.LoadedCampaign.CachedMissions[CampaignGlobals.LoadedCampaign.CurrentMissionId].Tanks)
             {
-                case TankID.Brown: template.AiTier = ModContent.GetSingleton<CA_01_Dandelion>().Type; break;
-                case TankID.Ash: template.AiTier = ModContent.GetSingleton<CA_02_Perwinkle>().Type; break;
-                case TankID.Marine: template.AiTier = ModContent.GetSingleton<CA_03_Pansy>().Type; break;
-                case TankID.Yellow: template.AiTier = ModContent.GetSingleton<CA_04_Sunflower>().Type; break;
-                case TankID.Pink: template.AiTier = ModContent.GetSingleton<CA_05_Poppy>().Type; break;
-                case TankID.Violet: template.AiTier = ModContent.GetSingleton<CA_07_Lavender>().Type; break;
-                case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
-                case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
-                case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
-                default: break;
-
+                if (_template.IsPlayer) continue;
+                FutureSpawns[_template.AiTier] += 1;
             }
         }
+
+    }
+    private void CampaignGlobals_OnMissionEnd(int delay, MissionEndContext context, bool result1up)
+    {
+        if (LevelEditorUI.Active) return;
+        if (MainMenuUI.Active) return;
+        if (!Difficulties.Types["CobaltArmada_Swap"]) return;
+
+        if (context == MissionEndContext.Win)
+        {
+            for (int i = 0; i < TankID.Collection.Keys.Length; i++)
+            {
+                Spawns[i] = FutureSpawns[i];
+                PreSpawns[i] = FutureSpawns[i];
+            }
+
+        }else if(context == MissionEndContext.Lose)
+        {
+            for (int i = 0; i < TankID.Collection.Keys.Length; i++)
+            {
+                Spawns[i] = PreSpawns[i];
+            }
+
+        }
+    }
+
+
+
+    //It's probably overkill and poor coding, but if it works, then it works!
+    public static int[] FutureSpawns = Array.Empty<int>();
+    public static int[] Spawns = Array.Empty<int>();
+    public static int[] PreSpawns = Array.Empty<int>();
+    //Hijack mission
+    private void Campaign_OnPreLoadTank(ref TankTemplate template)
+    {
+       
+        if (LevelEditorUI.Active) return;
+        if (MainMenuUI.Active) return;
+       
+        if (!Difficulties.Types["CobaltArmada_Swap"]) return;
+        //Set up the new swap out process
+        if (Spawns.Length == 0)
+        {
+            Spawns = new int[TankID.Collection.Keys.Length];
+            PreSpawns = new int[TankID.Collection.Keys.Length];
+            FutureSpawns = new int[TankID.Collection.Keys.Length];
+            if (CampaignGlobals.LoadedCampaign.CurrentMissionId == MainMenuUI.MissionCheckpoint)
+            {
+                // ChatSystem.SendMessage("New Campaign!", Color.Pink);
+                for (int i = 0; i < CampaignGlobals.LoadedCampaign.CurrentMissionId; i++)
+                {
+                    foreach (TankTemplate _template in CampaignGlobals.LoadedCampaign.CachedMissions[i].Tanks)
+                    {
+                        if (_template.IsPlayer) continue;
+                        PreSpawns[_template.AiTier] += 1;
+                        Spawns[_template.AiTier] += 1;
+                        FutureSpawns[_template.AiTier] += 1;
+                    }
+                }
+            }
+        }
+
+        if (template.IsPlayer) return;
+        TankGame.ClientLog.Write("Invading campaign...", LogType.Info);
+        //New system, anytime a specific tank shows up, add to a counter. When the counter reaches a certain point, replace that tank with a special type
+
+        Spawns[template.AiTier] += 1;
+        if (template.AiTier == TankID.Ash)
+        {
+            if (Spawns[template.AiTier] % 25 == 0) { template.AiTier = ModContent.GetSingleton<CA_X4_Allium>().Type; return; }
+            if (Spawns[template.AiTier] % 4 == 0 && CampaignGlobals.LoadedCampaign.CurrentMissionId >= 10) { template.AiTier = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type; return; }
+
+        }
+
+        if (template.AiTier == TankID.Yellow)
+        {
+            if (Spawns[template.AiTier] % 8 == 0) { template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type; return; }
+            if (Spawns[template.AiTier] % 5 == 0 && CampaignGlobals.LoadedCampaign.CurrentMissionId>=50) { template.AiTier = ModContent.GetSingleton<CA_X5_LilyValley>().Type; return; }
+        }
+        if (template.AiTier == TankID.Marine)
+        {
+            if (Spawns[template.AiTier] % 17 == 0) { template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type; return; }
+        }
+        if (template.AiTier == TankID.White)
+        {
+            if (Spawns[template.AiTier] == 1) { template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; return; }
+        }
+
+
+
+        switch (template.AiTier)
+        {
+            case TankID.Brown: template.AiTier = ModContent.GetSingleton<CA_01_Dandelion>().Type; break;
+            case TankID.Ash: template.AiTier = ModContent.GetSingleton<CA_02_Perwinkle>().Type; break;
+            case TankID.Marine: template.AiTier = ModContent.GetSingleton<CA_03_Pansy>().Type; break;
+            case TankID.Yellow: template.AiTier = ModContent.GetSingleton<CA_04_Sunflower>().Type; break;
+            case TankID.Pink: template.AiTier = ModContent.GetSingleton<CA_05_Poppy>().Type; break;
+            case TankID.Violet: template.AiTier = ModContent.GetSingleton<CA_07_Lavender>().Type; break;
+            case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
+            case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
+            case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
+            default: break;
+
+        }
+        
     }
 
 
@@ -531,21 +604,9 @@ public class CA_Main : TanksMod {
     {
         if (mine.Owner is PlayerTank||mine.Owner is null) return;
         AITank ai = (AITank)mine.Owner;
-        var Dandelion = ModContent.GetSingleton<CA_01_Dandelion>();
-        var Peri = ModContent.GetSingleton<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetSingleton<CA_03_Pansy>();
         var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
-        var Poppy = ModContent.GetSingleton<CA_05_Poppy>();
-        var Daisy = ModContent.GetSingleton<CA_06_Daisy>();
-        var Lavi = ModContent.GetSingleton<CA_07_Lavender>();
-        var Eryn = ModContent.GetSingleton<CA_08_Eryngium>();
-        var Carnation = ModContent.GetSingleton<CA_09_Carnation>();
-        var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
-        
         if (ai.AiTankType == Sunny.Type)
             Fire_AbstractShell_Mine(mine, 8, 1, 0, 4f);
-
     }
 
 

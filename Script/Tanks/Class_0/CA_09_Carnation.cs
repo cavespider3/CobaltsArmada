@@ -1,7 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
+using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems;
+using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.Localization;
 
 namespace CobaltsArmada
@@ -20,7 +23,6 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.Fuchsia;
         public override void PostApplyDefaults()
         {
-           
             base.PostApplyDefaults();
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One * 100.0f * 1.25f;
@@ -28,9 +30,9 @@ namespace CobaltsArmada
             var properties = AITank.Properties;
             aiParams.MeanderAngle = MathHelper.ToRadians(30);
             aiParams.MeanderFrequency = 20;
-            aiParams.TurretMeanderFrequency = 40;
+            aiParams.TurretMeanderFrequency = 60;
             aiParams.TurretSpeed = 0.2f;
-            aiParams.AimOffset = 0.18f;
+            aiParams.AimOffset = 0.03f;
 
             aiParams.Inaccuracy = 0.9f;
 
@@ -48,11 +50,11 @@ namespace CobaltsArmada
             properties.MaximalTurn = MathHelper.ToRadians(34);
 
             properties.ShootStun = 1;
-            properties.ShellCooldown = 20;
-           // properties.ShellShootCount = 5;
-           // properties.ShellSpread =0.4f;
+            properties.ShellCooldown = 40;
+            // properties.ShellShootCount = 5;
+            // properties.ShellSpread =0.4f;
             properties.ShellLimit = 2;
-            properties.ShellSpeed = 6.5f;
+            properties.ShellSpeed = 6f;
             properties.ShellType = ShellID.Rocket;
 
             properties.RicochetCount = 0;
@@ -61,11 +63,10 @@ namespace CobaltsArmada
             properties.Stationary = false;
             properties.InvulnerableToMines = true;
 
-         
+
             aiParams.ShootsMinesSmartly = true;
 
             properties.TreadPitch = -0.26f;
-            properties.MaxSpeed = 2.6f;
             properties.Acceleration = 0.4f;
             properties.Deceleration = 0.4f;
 
@@ -86,6 +87,32 @@ namespace CobaltsArmada
             
             base.Shoot(shell);
              shell.Properties.FlameColor = AssociatedColor;
+        }
+        public override void PreUpdate()
+        {
+            base.PreUpdate();
+            AITank.Properties.MaxSpeed = 0.8f+MathF.Min(1f, AITank.SpecialBehaviors[0].Value/60f/1.5f)*3.8f + AITank.SpecialBehaviors[2].Value;
+            AITank.Properties.TreadPitch = MathHelper.Lerp(-0.5f,0.6f, MathHelper.Clamp(AITank.Properties.MaxSpeed*0.2f,0f,1f));
+
+            //   AITank.Properties.TurningSpeed = 0.06f + MathF.Min(1f, AITank.SpecialBehaviors[0].Value)*0.055f;
+            //  AITank.Properties.MaximalTurn = MathHelper.ToRadians(30+ MathF.Min(1f, AITank.SpecialBehaviors[0].Value)*45f);
+
+            if (AITank.SpecialBehaviors[0].Value > 0f) { AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime; }
+            else { AITank.SpecialBehaviors[0].Value = 0f; }
+
+            AITank.SpecialBehaviors[1].Value -= RuntimeData.DeltaTime;
+        }
+
+        public override void DangerDetected(IAITankDanger danger)
+        {
+            base.DangerDetected(danger);
+            if (danger.IsPlayerSourced && danger is Shell && AITank.SpecialBehaviors[1].Value <0.1f)
+            {
+                ChatSystem.SendMessage("NOPE", Color.Fuchsia);
+                AITank.SpecialBehaviors[0].Value = 1.5f*60f;
+                AITank.SpecialBehaviors[1].Value = 2.6f * 60f;
+                AITank.SpecialBehaviors[2].Value +=0.02f;
+            }
         }
     }
 }

@@ -3,6 +3,7 @@
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.MainMenu;
@@ -21,6 +22,10 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
         public Tank? bindHost;
         public Tank? bindTarget;
         public float Ticker;
+        /// <summary>
+        /// Kills the tethered target
+        /// </summary>
+        public bool Inverse;
 
         public static CA_Idol_Tether[] AllTethers= new CA_Idol_Tether[GameHandler.MAX_AI_TANKS];
         public int Id { get; private set; }
@@ -29,8 +34,10 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
         public List<Particle> vfx_shield = new();
 
 
-        public CA_Idol_Tether(Tank host, Tank target)
+
+        public CA_Idol_Tether(Tank host, Tank target,bool _Inverse = false)
         {
+            Inverse = _Inverse;
             SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.8f,pitchOverride:0.7f, gameplaySound: true);
             bindHost = host;
             bindTarget = target;
@@ -42,11 +49,11 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                 float a = MathF.PI / 6 * i;
                 float h = 5f;
                 Vector3 path = (Vector2.UnitY.Rotate(a)*target.CollisionCircle.Radius*1.1f).ExpandZ()+ Vector3.UnitY * h;
-                var p = GameHandler.Particles.MakeParticle(path, TextureGlobals.Pixels[Color.Blue]);
-                p.FaceTowardsMe = true;
+                var p = GameHandler.Particles.MakeParticle(path, TextureGlobals.Pixels[Inverse? Color.Crimson :Color.Blue]);
                 p.Scale = new(3f);
-                p.Pitch = MathHelper.PiOver4;
-                p.Roll = MathHelper.PiOver2;
+                p.Yaw = MathHelper.PiOver4+ a;
+                p.Roll = MathHelper.PiOver4;
+                p.HasAddativeBlending = !Inverse;
                 p.Alpha = 0.8f;
                 p.UniqueBehavior = (a) => {
 
@@ -73,7 +80,8 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                 return;
             if (bindHost is null || bindTarget is null) { Remove(); return; }
             if (!(Valid(bindHost) && Valid(bindTarget))) { Remove(); return; }
-            bindTarget.Properties.Immortal = !bindTarget.Dead;
+
+            bindTarget.Properties.Immortal = !(bindTarget.Dead || Inverse);
 
             Ticker += RuntimeData.DeltaTime;
             int bits = (int)Math.Floor(distance() / 8f);
@@ -91,10 +99,11 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                     a += MathF.PI / (bits * 2f);
                     float h = MathF.Sin(a) * distance() * 0.3f + 5f;
                     Vector3 path = Vector2.Lerp(bindHost.Position, bindTarget.Position, (float)i / bits).ExpandZ() + Vector3.UnitY * h;
-                    var p = GameHandler.Particles.MakeParticle(path, TextureGlobals.Pixels[Color.Cyan]);
+                    var p = GameHandler.Particles.MakeParticle(path, TextureGlobals.Pixels[Inverse ? Color.Red : Color.Cyan]);
                     p.FaceTowardsMe = true;
+                    p.HasAddativeBlending = !Inverse;
                     p.Scale = new(1.5f);
-                    p.Yaw = MathHelper.PiOver4;
+                    p.Pitch = MathHelper.PiOver4;
                     p.Alpha = 0.5f;
                     p.UniqueBehavior = (a) => {
                         
@@ -141,8 +150,17 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                 item.Alpha = 0f;
                 item?.Destroy();
             }
-            if (bindTarget is not null) bindTarget.Properties.Immortal = false;
+            //Evil sick and twisted
+            if (bindHost is not null && bindHost.Dead && bindTarget is not null && Inverse)
+            {
+                ChatSystem.SendMessage("YOU'RE COMING WITH ME",Color.Crimson);
+                    bindTarget.Properties.Immortal = false;
+                    bindTarget.Properties.Armor?.Remove();
+                    bindTarget.Damage(new TankHurtContextOther(null, TankHurtContextOther.HurtContext.FromIngame, "Destiny Bonded"), true, Color.Crimson);
+            }else if (bindTarget is not null) bindTarget.Properties.Immortal = false;
+
             AllTethers[Id] = null;
+
         }
 
     }

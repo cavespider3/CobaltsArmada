@@ -49,7 +49,7 @@ namespace CobaltsArmada
             properties.ShootStun = 20;
             properties.ShellCooldown = 3;
             //   properties.ShellShootCount = 3;
-            properties.ShellLimit = 3;
+            properties.ShellLimit = 1;
             //ModContent.GetSingleton<CA_ShatterBouncer>().Type
             properties.ShellSpeed = 5.25f;
          

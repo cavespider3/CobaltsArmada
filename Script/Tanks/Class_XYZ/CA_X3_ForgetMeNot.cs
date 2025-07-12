@@ -14,6 +14,7 @@ using CobaltsArmada.Objects.projectiles.futuristic;
 using static CobaltsArmada.CA_Main;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.UI.LevelEditor;
+using TanksRebirth.GameContent.Globals;
 
 namespace CobaltsArmada
 {   
@@ -29,8 +30,8 @@ namespace CobaltsArmada
             [LangCode.English] = "Forget-Me-Not"
         });
 
+        public override int Songs => 2;
 
- 
 
         public override string Texture => "assets/textures/tank_forget";
 
@@ -104,31 +105,31 @@ namespace CobaltsArmada
         {
             base.PostUpdate();
 
-            if (LevelEditorUI.Active) return;
+            if (LevelEditorUI.Active || !CampaignGlobals.InMission) return;
             if (AITank.Dead || !GameScene.ShouldRenderAll) return;
 
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
-                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-
-                var ai = tanks[i] as AITank;
-                if (ai is null || ai.Dead || ai.AiTankType == Type || ai == AITank) continue;
-
-                if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[0].Value*3f)
+                if (tanks[i] is Tank ai)
                 {
-                    Array.Find(CA_Idol_Tether.AllTethers,x => x is not null && x.bindHost == AITank && x.bindTarget == ai)?.Remove();
-                    continue;
-                }               
-                //for the idol buff to work, the target AITank mustn't already be tethered.
-                
-                if (Array.Find(CA_Idol_Tether.AllTethers,x => x is not null && x.bindTarget == ai) is null)
-                {
-                    if( (AITank.Team == TeamID.NoTeam || ai.Team == AITank.Team || CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic) && Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank).Length < AITank.SpecialBehaviors[1].Value)
-                        _ = new CA_Idol_Tether(AITank, ai); 
+                    if (ai.Dead || ai is AITank ai2 && ai2.AiTankType == Type || ai == AITank) continue;
+
+                    if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[0].Value * 3f)
+                    {
+                        Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && x.bindTarget == ai && !x.Inverse)?.Remove();
+                        continue;
+                    }
+                    //for the idol buff to work, the target AITank mustn't already be tethered.
+
+                    if (Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindTarget == ai && !x.Inverse) is null)
+                    {
+                        if ((AITank.Team == TeamID.NoTeam || ai.Team == AITank.Team || CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic) && Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && !x.Inverse).Length < AITank.SpecialBehaviors[1].Value)
+                            _ = new CA_Idol_Tether(AITank, ai);
+
+                    }
 
                 }
-
             }
            
         }

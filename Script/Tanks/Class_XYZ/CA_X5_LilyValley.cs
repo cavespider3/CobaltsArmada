@@ -15,6 +15,7 @@ namespace CobaltsArmada
         {
             [LangCode.English] = "Lily"
         });
+        public override int Songs => 3;
 
         public override string Texture => "assets/textures/tank_medicine";
 
@@ -74,7 +75,7 @@ namespace CobaltsArmada
         {
             base.TakeDamage(destroy, context);
             if (!destroy) return;
-            CA_Y2_NightShade.SpawnPoisonCloud(AITank.Position3D);
+            CA_Y2_NightShade.SpawnPoisonCloud(AITank.Position3D,180f);
         }
         public override void Shoot(Shell shell)
         {
