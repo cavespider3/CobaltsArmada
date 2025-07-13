@@ -15,6 +15,7 @@ using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
+using TanksRebirth.Graphics;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Utilities;
@@ -64,7 +65,7 @@ namespace CobaltsArmada
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21); 
-            AITank.SpecialBehaviors[2].Value = 32;
+            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 7 : 31;
             AITank.Properties.Armor = new TankArmor(AITank,1);
 
             CA_Main.boss = new BossBar(AITank, "Hydrangea", "The Unbounded");
@@ -112,9 +113,10 @@ namespace CobaltsArmada
 
         public override void PostUpdate()
         {
-            if (LevelEditorUI.Active ||AITank.Dead) return;
            
+
             base.PostUpdate();
+            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
             //if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
             //{

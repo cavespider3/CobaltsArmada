@@ -85,7 +85,7 @@ namespace CobaltsArmada
             base.PreUpdate();//STOP SPAWNING SHIT
             if (LevelEditorUI.Active) return;
             if (AITank.Dead || !GameScene.ShouldRenderAll) return;
-                if (AIManager.CountAll(x => x.AiTankType == Type) >= Math.Floor(12*(CA_Main.Dif_Scalar_1()/1.5)) || CA_Main.KudzuRegen>0)
+                if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
             {
                 AITank.SpecialBehaviors[1].Value = 0f;
                 AITank.SpecialBehaviors[0].Value = 0f;
@@ -93,13 +93,13 @@ namespace CobaltsArmada
             }
             AITank.SpecialBehaviors[0].Value += RuntimeData.DeltaTime;
             if (AITank.SpecialBehaviors[1].Value == 0)
-                AITank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f,Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1) / CA_Main.Dif_Scalar_1();
+                AITank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f,Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1);
 
             if (AITank.SpecialBehaviors[0].Value > AITank.SpecialBehaviors[1].Value)
             {
                 AITank.SpecialBehaviors[1].Value = 0f;
                 AITank.SpecialBehaviors[0].Value = 0f;
-                CA_Main.KudzuRegen = 300f / CA_Main.Dif_Scalar_1();
+              
                 //Check to see if within bounds
                 if (AITank.Position.X != Math.Clamp(AITank.Position.X, GameScene.MIN_X, GameScene.MAX_X) && AITank.Position.Y != Math.Clamp(AITank.Position.Y, GameScene.MIN_Z, GameScene.MAX_Z)) return;
 

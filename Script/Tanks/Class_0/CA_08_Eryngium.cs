@@ -19,7 +19,7 @@ namespace CobaltsArmada
 {
     public class CA_08_Eryngium : ModTank 
     {
-      
+      //Sea Holly
         public override bool HasSong => true;
         public override LocalizedString Name => new(new()
         {
@@ -102,7 +102,7 @@ namespace CobaltsArmada
             var properties = tank.Properties;
             aiParams.MeanderFrequency = 15;
             aiParams.MeanderAngle = MathHelper.ToRadians(25);
-            aiParams.TurretSpeed = 0.07f;
+            aiParams.TurretSpeed = 0.03f;
             aiParams.TurretMeanderFrequency = 40;
             aiParams.AimOffset = MathHelper.ToRadians(23);
             aiParams.Inaccuracy = 6;
@@ -119,8 +119,8 @@ namespace CobaltsArmada
             properties.MaximalTurn = MathHelper.ToRadians(30);
             
             //RAIL CANNON! (YASSSS)
-            properties.ShootStun = 120;
-            properties.ShellCooldown = 160;
+            properties.ShootStun = 170;
+            properties.ShellCooldown = 180;
             properties.ShellLimit = 1;
             properties.ShellSpeed = 3f;
           
@@ -165,8 +165,8 @@ namespace CobaltsArmada
             AITank.Velocity *= AITank.Properties.Stationary ? 0f : 1f;
             AITank.AiParams.TurretSpeed = AITank.CurShootStun > 0 ? 0f : 0.05f;
 
-
             AITank.SpecialBehaviors[0].Value += RuntimeData.DeltaTime;
+
             if (AITank.SpecialBehaviors[1].Value == 0)
                 AITank.SpecialBehaviors[1].Value = AITank.Properties.Stationary ?600f: Server.ServerRandom.NextFloat(6,10)*100f;
 
@@ -193,24 +193,23 @@ namespace CobaltsArmada
                 if (!_Tank.Properties.Stationary)
                 {
                     CA_08_Eryngium.Properties_Invisible(_Tank);
-                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.3f, pitchOverride: -0.25f, gameplaySound: true);
+                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.3f, pitchOverride: -0.25f);
                 }
                 else
                 {
                     CA_08_Eryngium.Properties_Visible(_Tank);
-                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.3f, pitchOverride: 0.25f, gameplaySound: true);
+                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.3f, pitchOverride: 0.25f);
                 }
                 CA_08_Eryngium.swap(_Tank);
             }
         }
-        
 
        static void swap(AITank tank)
         {
             const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 
             if (tank.Dead) return;
-            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, gameplaySound: true);
+            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f);
 
             var lightParticle = GameHandler.Particles.MakeParticle(tank.Position3D,
                 GameResources.GetGameResource<Texture2D>("Assets/textures/misc/light_particle"));

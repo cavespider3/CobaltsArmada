@@ -67,7 +67,7 @@ namespace CobaltsArmada
             properties.MineCooldown = 60 * 20;
             properties.MineLimit = 1;
             properties.MineStun = 10;
-
+            aiParams.SmartRicochets = true;
             aiParams.MinePlacementChance = 0.05f;
         }
     }

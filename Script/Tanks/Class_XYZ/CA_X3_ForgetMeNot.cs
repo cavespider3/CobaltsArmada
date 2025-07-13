@@ -115,16 +115,18 @@ namespace CobaltsArmada
                 {
                     if (ai.Dead || ai is AITank ai2 && ai2.AiTankType == Type || ai == AITank) continue;
 
-                    if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[0].Value * 3f)
-                    {
-                        Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && x.bindTarget == ai && !x.Inverse)?.Remove();
-                        continue;
-                    }
+                    //removing the tether limit for FMN tanks
+
+                    //if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[0].Value * 3f)
+                    //{
+                    //    Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && x.bindTarget == ai && !x.Inverse)?.Remove();        
+                    //    continue;
+                    //}
                     //for the idol buff to work, the target AITank mustn't already be tethered.
 
                     if (Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindTarget == ai && !x.Inverse) is null)
                     {
-                        if ((AITank.Team == TeamID.NoTeam || ai.Team == AITank.Team || CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic) && Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && !x.Inverse).Length < AITank.SpecialBehaviors[1].Value)
+                        if ((AITank.Team == TeamID.NoTeam || ai.Team == AITank.Team) && Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && !x.Inverse).Length < AITank.SpecialBehaviors[1].Value)
                             _ = new CA_Idol_Tether(AITank, ai);
 
                     }

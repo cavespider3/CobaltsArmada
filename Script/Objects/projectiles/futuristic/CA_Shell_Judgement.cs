@@ -106,7 +106,7 @@ namespace CobaltsArmada
         /// <param name="firetime"> how long the laser is active for</param>
         public CA_OrbitalStrike(Vector2 position , Tank owner , float radius =2f, float warningtime=1.5f , float warningforgiveness = 0f , float firetime=2f , TeamkillContext friendlyfire = TeamkillContext.NotMyself)
         {
-            SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.5f,pitchOverride:0.5f, gameplaySound: true);
+            SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.8f,pitchOverride:0.8f);
             TankGame.ClientLog.Write("Calling Orbital Strike", TanksRebirth.Internals.LogType.Info);
             WarningForgiveness = MathF.Max(0f, warningforgiveness);
             Position = position;
@@ -164,7 +164,7 @@ namespace CobaltsArmada
                 LifeTime += RuntimeData.DeltaTime;
                 if(!Firing && Ani_ObliterateScale>0f)
                 {
-                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_explode.ogg", SoundContext.Effect, 0.5f,pitchOverride:1f, gameplaySound: true);
+                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_explode.ogg", SoundContext.Effect, 0.5f,pitchOverride:1f);
                     Firing = true;
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f );
@@ -221,7 +221,7 @@ namespace CobaltsArmada
                     ring.Roll = MathHelper.PiOver2;
                     ring.HasAddativeBlending = true;
                     ring.Color = Color.Red;
-                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_trip.ogg", SoundContext.Effect, 0.8f, gameplaySound: true);
+                    SoundPlayer.PlaySoundInstance("Assets/sounds/mine_trip.ogg", SoundContext.Effect, 0.2f,pitchOverride:(LifeTime/WarningTime)-0.5f);
                     ring.UniqueBehavior = (a) =>
                     {
                         ring.Alpha -= 0.08f * RuntimeData.DeltaTime;

@@ -7,6 +7,7 @@ using TanksRebirth.GameContent.GameMechanics;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
@@ -38,40 +39,13 @@ namespace CobaltsArmada
 
         public override Color AssociatedColor => Color.DarkViolet;
 
-        public static List<Tank> PoisonedTanks = new List<Tank>();
+       
         public override void OnLoad()
         {
             base.OnLoad();
         }
 
-        public static void Tank_OnPoisoned(AITank tank)
-        {
-            const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
-            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: -0.5f, gameplaySound: true);
-
-            switch (tank.AiTankType)
-            {
-                default:
-                    tank.Properties.ShootStun /=2;
-                    tank.Properties.ShellCooldown /=2;               
-                    tank.AiParams.ShootChance *= 1.5f;
-                    tank.AiParams.MeanderAngle /= 2;
-                    tank.AiParams.MeanderFrequency /= 2;
-                    tank.AiParams.TurretMeanderFrequency /=2;
-                    tank.AiParams.Inaccuracy /= 1.5f;
-                    tank.AiParams.TurretSpeed *=1.75f;
-                    tank.AiParams.AimOffset /=2f;
-                    tank.Properties.MaxSpeed *=1.25f;
-                    tank.AiParams.PursuitLevel = MathF.Sign(tank.AiParams.PursuitLevel) * tank.AiParams.PursuitLevel * 1.3f;
-                    tank.AiParams.PursuitFrequency /= 2;
-                    break;
-            }
-            if(tank.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
-            {
-                tank.Properties.Armor = new TankArmor(tank, 3);
-            }
-            
-        }
+       
 
         public override void PostApplyDefaults()
         {
@@ -84,7 +58,7 @@ namespace CobaltsArmada
             AITank.SpecialBehaviors[5] = new() { Value = 0 };
             AITank.SpecialBehaviors[4] = new() { Value = 0 };
             AITank.SpecialBehaviors[3] = new() { Value = 0 };
-            AITank.SpecialBehaviors[2].Value = AITank.SpecialBehaviors[6].Value;
+            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 5 : AITank.SpecialBehaviors[6].Value;
             AITank.Properties.Armor = new TankArmor(AITank, 1);
             AITank.Properties.Armor.HideArmor = true;
             CA_Main.boss = new BossBar(AITank, "Nightshade", "The Infector");
@@ -153,56 +127,13 @@ namespace CobaltsArmada
 
         }
 
-        public static void SpawnPoisonCloud(Vector3 v,float radius = 60f)
-        {
-            const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
-
-            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f,pitchOverride:0.5f,gameplaySound:true);
-            int length = 23;
-
-            for (int i = 0; i < length; i++)
-            {
-                Vector2 smokey = Vector2.One.Rotate(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, 60f);
-                var smoke = GameHandler.Particles.MakeParticle(v + smokey.ExpandZ(),
-                    GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
-                smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
-                smoke.Scale = new(0.8f * Server.ServerRandom.NextFloat(0.1f, 1f));
-                smoke.Color = Color.DarkViolet;
-                smoke.HasAddativeBlending = false;
-                smoke.UniqueBehavior = (part) => {
-
-                    GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
-                    part.Position += Vector3.UnitY * 0.2f * RuntimeData.DeltaTime;
-                    part.Alpha -= 0.04f * RuntimeData.DeltaTime;
-
-                    if (part.Alpha <= 0)
-                        part.Destroy();
-
-                };
-            }
-            ref Tank[] tanks = ref GameHandler.AllTanks;
-            for (int i = 0; i < tanks.Length; i++)
-            {
-
-                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-
-                var ai = tanks[i] as AITank;
-                if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
-
-                if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
-                bool NotIntoxicated = true;
-                if (PoisonedTanks.Find(x => x == ai) is null)
-                {
-                    PoisonedTanks.Add(ai);
-                    CA_Y2_NightShade.Tank_OnPoisoned(ai);
-                }
-            }
-
-        }
+       
 
         public override void PostUpdate()
         {
+          
             base.PostUpdate();
+            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             bool Enraged = AITank.SpecialBehaviors[6].Value/2f>= AITank.SpecialBehaviors[2].Value;
             Vector2 smokey = Vector2.One.Rotate(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, AITank.SpecialBehaviors[3].Value);
             var smoke = GameHandler.Particles.MakeParticle(AITank.Position3D + smokey.ExpandZ(),

@@ -60,12 +60,12 @@ namespace CobaltsArmada
 
                 case CA_Main.ModDifficulty.Hard:
                 case CA_Main.ModDifficulty.Lunatic:
-                    if (context == DestructionContext.WithShell && CA_Y2_NightShade.PoisonedTanks.Find(x => x == Shell.Owner) is null) return;break;
+                    if (context == DestructionContext.WithShell && CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is null) return;break;
 
                 case CA_Main.ModDifficulty.Extra:
                 case CA_Main.ModDifficulty.Phantasm:
-                    if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstSize += CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm? 2:1;
-                    if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstBounces = CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1u : 0; break;
+                    if (CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstSize += CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm? 2:1;
+                    if (CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstBounces = CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1u : 0; break;
                 default:
                 break;
             }

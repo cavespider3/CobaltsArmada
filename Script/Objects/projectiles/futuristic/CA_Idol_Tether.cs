@@ -3,8 +3,10 @@
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.ParticleSystem;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.Graphics;
@@ -38,7 +40,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
         public CA_Idol_Tether(Tank host, Tank target,bool _Inverse = false)
         {
             Inverse = _Inverse;
-            SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.8f,pitchOverride:0.7f, gameplaySound: true);
+            SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.8f,pitchOverride:0.7f);
             bindHost = host;
             bindTarget = target;
             int index = Array.IndexOf(AllTethers, null);
@@ -158,6 +160,19 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                     bindTarget.Properties.Armor?.Remove();
                     bindTarget.Damage(new TankHurtContextOther(null, TankHurtContextOther.HurtContext.FromIngame, "Destiny Bonded"), true, Color.Crimson);
             }else if (bindTarget is not null) bindTarget.Properties.Immortal = false;
+
+            if (bindHost is not null && bindHost.Dead && bindTarget is not null && !Inverse)
+            {
+                if (bindHost is AITank ai && ai.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
+                {
+                    if (bindTarget is AITank _AITank && CA_Main.PoisonedTanks.Find(x => x == bindTarget) is null && CA_Main.PoisonedTanks.Find(x => x == ai) is not null)
+                    {
+                        CA_Main.PoisonedTanks.Add(_AITank);
+                        CA_Main.Tank_OnPoisoned(_AITank);
+                    }
+                }
+
+            }
 
             AllTethers[Id] = null;
 

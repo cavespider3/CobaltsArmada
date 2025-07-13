@@ -1,5 +1,6 @@
 ﻿using CobaltsArmada.Objects.projectiles.futuristic;
 using Microsoft.Xna.Framework;
+using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
@@ -28,17 +29,15 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.BlueViolet;
         public override void PostApplyDefaults()
         {
+            Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
 
             base.PostApplyDefaults();
-            AITank.SpecialBehaviors[0].Value = (
-      CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
-      CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
-      CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
-       150f : 105f : 75f : 60f)*1.3f;
+            AITank.SpecialBehaviors[3] = new() { Label = "Mutany", Value = 0 };
+            AITank.SpecialBehaviors[0].Value = 75f;
             AITank.SpecialBehaviors[1].Value =
      CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
      CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
-        3f : 2f : 1f;
+        2f : 1f : 1f;
 
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One * 100.0f * 0.95f;
@@ -95,8 +94,8 @@ namespace CobaltsArmada
         }
         public override void PreUpdate()
         {
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             base.PreUpdate();
+            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             if (AITank.SpecialBehaviors[2].Value < 0f){
                 AITank.SpecialBehaviors[2].Value = AITank.Team;
             }
@@ -137,10 +136,26 @@ namespace CobaltsArmada
             AITank.AiParams.MineWarinessRadius_AILaid = Tethered ? 0 : 150;
             AITank.AiParams.PursuitLevel = Tethered ? 0.9f : 0.1f;
             AITank.AiParams.PursuitFrequency = Tethered ? 3 : 75;
-            AITank.Properties.MaxSpeed = Tethered ? 1.2f : 1.7f;
+            AITank.Properties.MaxSpeed = Tethered ? 1.2f : 1.9f;
             AITank.AiParams.ShootChance = Tethered ? 0.00f : 0.01f;
             AITank.Properties.ShellLimit = Tethered ? 0 : 1;
-            AITank.Team = Tethered ? TeamID.Magenta : (int)AITank.SpecialBehaviors[2].Value;
+            if (Tethered)
+            {
+                if(Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.Inverse && x.bindTarget is PlayerTank && x.bindHost == AITank) is not null)
+                {
+                    AITank.SpecialBehaviors[3].Value += RuntimeData.DeltaTime;
+                }
+                else
+                {
+                    AITank.SpecialBehaviors[3].Value += RuntimeData.DeltaTime*4f;
+                }
+            }
+            else
+            {
+                AITank.SpecialBehaviors[3].Value -= RuntimeData.DeltaTime*5f;
+            }
+            AITank.SpecialBehaviors[3].Value = MathHelper.Clamp(AITank.SpecialBehaviors[3].Value,0,300f);
+            AITank.Team = Tethered && AITank.SpecialBehaviors[3].Value>600f ? TeamID.Magenta : (int)AITank.SpecialBehaviors[2].Value;
 
         }
 

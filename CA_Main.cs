@@ -5,25 +5,28 @@ using TanksRebirth;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.UI;
+
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Net;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.Coordinates;
-using System.Diagnostics.CodeAnalysis;
+
 using TanksRebirth.Internals.Common;
 using TanksRebirth.GameContent.RebirthUtils;
 using Microsoft.Xna.Framework.Input;
 using CobaltsArmada.Objects.projectiles.futuristic;
 using CobaltsArmada.Hooks;
 using TanksRebirth.Internals;
-using System.Threading.Tasks;
-using tainicom.Aether.Physics2D.Fluids;
+
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.LevelEditor;
-using WiimoteLib;
+
 using TanksRebirth.Enums;
+using TanksRebirth.GameContent.Globals.Assets;
+using TanksRebirth.Graphics;
+using Octokit;
+using System.Threading.Tasks;
 
 
 namespace CobaltsArmada;
@@ -92,10 +95,6 @@ public class CA_Main : TanksMod {
     /// </summary>
     static public Color Cosmium => Color.Fuchsia;  // Black Tank
 
-
-    
-
-
     public static Model? Neo_Stationary;
     public static Model? Neo_Mobile;
     public static Model? Neo_Boss;
@@ -109,8 +108,12 @@ public class CA_Main : TanksMod {
     public static BossBar? boss;
     public static VindicationTimer? MissionDeadline;
 
-    public static float KudzuRegen=0f; 
-    
+    public static float KudzuRegen=0f;
+    /// <summary>
+    /// A list of tanks affected by the nightshade buff
+    /// </summary>
+    public static List<Tank> PoisonedTanks = new List<Tank>();
+
     public enum ModDifficulty
     {
         Easy=-1,Normal,Hard,Lunatic,Extra,Phantasm
@@ -122,8 +125,59 @@ public class CA_Main : TanksMod {
     }
 
     public static Tanktosis modifier_Tanktosis = Tanktosis.Single;
-
     public static ModDifficulty modifier_Difficulty = ModDifficulty.Normal;
+
+    #region TankIds
+    #region NormalTanks
+    public static int Dandelion => ModContent.GetSingleton<CA_01_Dandelion>().Type;
+
+    public static int Periwinkle => ModContent.GetSingleton<CA_02_Perwinkle>().Type;
+
+    public static int Pansy => ModContent.GetSingleton<CA_03_Pansy>().Type;
+
+    public static int SunFlower => ModContent.GetSingleton<CA_04_Sunflower>().Type;
+
+    public static int Poppy => ModContent.GetSingleton<CA_05_Poppy>().Type;
+    public static int Rose => Poppy;
+
+    public static int Daisy => ModContent.GetSingleton<CA_06_Daisy>().Type;
+
+    public static int Lavender => ModContent.GetSingleton<CA_07_Lavender>().Type;
+
+    public static int Eryngium => ModContent.GetSingleton<CA_08_Eryngium>().Type;
+    public static int SeaHolly => Eryngium;
+
+    public static int Carnation => ModContent.GetSingleton<CA_09_Carnation>().Type;
+
+    #endregion
+    #region SpecialTanks
+
+    public static int Kudzu => ModContent.GetSingleton<CA_X1_Kudzu>().Type;
+
+    public static int CorpseFlower => ModContent.GetSingleton<CA_X2_CorpseFlower>().Type;
+
+    public static int ForgetMeNot => ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type;
+
+    public static int Allium => ModContent.GetSingleton<CA_X4_Allium>().Type;
+
+    public static int Lily => ModContent.GetSingleton<CA_X5_LilyValley>().Type;
+
+    #endregion
+    #region BossTanks
+    public static int Lotus => ModContent.GetSingleton<CA_Y1_Lotus>().Type;
+
+    public static int NightShade => ModContent.GetSingleton<CA_Y2_NightShade>().Type;
+
+    public static int Peony => ModContent.GetSingleton<CA_Y3_Peony>().Type;
+
+    public static int Orchid => ModContent.GetSingleton<CA_Y4_Orchid>().Type;
+
+    public static int Hydrangea => ModContent.GetSingleton<CA_Z9_Hydrangea>().Type;
+
+    #endregion
+
+    #endregion
+
     public static Color DifficultyColor(ModDifficulty difficulty)
     {
         switch (difficulty)
@@ -162,15 +216,137 @@ public class CA_Main : TanksMod {
         }
     }
 
-
-    public static float Dif_Scalar_1()
+    public static dynamic GetValueByDifficulty<T>(T Easy, T Normal, T Hard, T Lunatic, T Extra, T Phantasm)
     {
-        return  modifier_Difficulty > ModDifficulty.Easy ?
-                modifier_Difficulty > ModDifficulty.Normal ?
-                modifier_Difficulty > ModDifficulty.Hard ?
-                modifier_Difficulty > ModDifficulty.Lunatic ?
-                modifier_Difficulty > ModDifficulty.Extra ?
-                3f : 2.5f : 2f : 1.5f : 1f : 0.5f;
+        switch (modifier_Difficulty)
+        {
+            case ModDifficulty.Easy: default: if (Easy is not null) return Easy; else TankGame.ClientLog.Write("Easy Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
+            case ModDifficulty.Normal: if (Normal is not null) return Normal; else TankGame.ClientLog.Write("Normal Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
+            case ModDifficulty.Hard: if (Hard is not null) return Hard; else TankGame.ClientLog.Write("Hard Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
+            case ModDifficulty.Lunatic: if (Lunatic is not null) return Lunatic; else TankGame.ClientLog.Write("Lunatic Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
+            case ModDifficulty.Extra: if (Extra is not null) return Extra; else TankGame.ClientLog.Write("Extra Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
+            case ModDifficulty.Phantasm: if (Phantasm is not null) return Phantasm; else TankGame.ClientLog.Write("Phantasm Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
+        }
+        return null;
+    }
+
+    public static void SpawnPoisonCloud(Vector3 v, float radius = 60f)
+    {
+        const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
+
+        SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: 0.5f);
+        int length = 23;
+
+        for (int i = 0; i < length; i++)
+        {
+            Vector2 smokey = Vector2.One.Rotate(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, 60f);
+            var smoke = GameHandler.Particles.MakeParticle(v + smokey.ExpandZ(),
+                GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
+            smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
+            smoke.Scale = new(0.8f * Server.ServerRandom.NextFloat(0.1f, 1f));
+            smoke.Color = Color.DarkViolet;
+            smoke.HasAddativeBlending = false;
+            smoke.UniqueBehavior = (part) => {
+
+                GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
+                part.Position += Vector3.UnitY * 0.2f * RuntimeData.DeltaTime;
+                part.Alpha -= 0.04f * RuntimeData.DeltaTime;
+
+                if (part.Alpha <= 0)
+                    part.Destroy();
+
+            };
+        }
+        ref Tank[] tanks = ref GameHandler.AllTanks;
+        for (int i = 0; i < tanks.Length; i++)
+        {
+
+            if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
+
+            var ai = tanks[i] as AITank;
+            if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
+
+            if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
+            bool NotIntoxicated = true;
+            if (PoisonedTanks.Find(x => x == ai) is null)
+            {
+                PoisonedTanks.Add(ai);
+                Tank_OnPoisoned(ai);
+            }
+        }
+
+    }
+    public static int FlowerFromBase(int ID)
+    {
+        switch (ID)
+        {
+            case TankID.Brown: return Dandelion;
+            case TankID.Ash: return Periwinkle;
+            case TankID.Marine: return Pansy;
+            case TankID.Yellow: return SunFlower;
+            case TankID.Pink: return Rose;
+            case TankID.Violet: return Lavender;
+            case TankID.Green: return Daisy;
+            case TankID.White: return Eryngium;
+            case TankID.Black: return Carnation;
+
+            case TankID.Bronze: return Kudzu;
+            case TankID.Silver: return CorpseFlower;
+            case TankID.Sapphire: return ForgetMeNot;
+            case TankID.Ruby: return Allium;
+            case TankID.Citrine: return Lily;
+            case TankID.Amethyst: return Lotus;
+            case TankID.Emerald: return NightShade;
+            case TankID.Gold: return Peony;
+            case TankID.Obsidian: return Hydrangea;
+
+            default: return ID;
+
+        }
+    }
+
+
+    public static void Tank_OnPoisoned(AITank tank)
+    {
+        const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
+        SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: -0.5f);
+
+        switch (tank.AiTankType)
+        {
+            default:
+                tank.Properties.ShootStun /= 2;
+                tank.Properties.ShellCooldown /= 2;
+                tank.AiParams.ShootChance *= 1.5f;
+                tank.AiParams.MeanderAngle /= 2;
+                tank.AiParams.MeanderFrequency /= 2;
+                tank.AiParams.TurretMeanderFrequency /= 2;
+                tank.AiParams.Inaccuracy /= 1.5f;
+                tank.AiParams.TurretSpeed *= 1.75f;
+                tank.AiParams.AimOffset /= 2f;
+                tank.Properties.MaxSpeed *= 1.25f;
+                tank.AiParams.PursuitLevel = MathF.Sign(tank.AiParams.PursuitLevel) * tank.AiParams.PursuitLevel * 1.3f;
+                tank.AiParams.PursuitFrequency /= 2;
+                if (tank.Properties.Invisible)
+                {
+                    tank.Properties.CanLayTread = false;
+                    tank.Properties.TreadVolume = 0f;
+                }
+                if (tank.Properties.Stationary && !tank.Properties.Invisible)
+                {
+                    tank.Properties.Invisible = true;
+                    tank.AiParams.SmartRicochets = true;
+                    tank.AiParams.PredictsPositions = true;
+                    tank.AiParams.ShootChance *= 2;
+                    tank.DoInvisibilityGFXandSFX();
+                }
+                break;
+        }
+        if (tank.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
+        {
+            tank.Properties.Armor = new TankArmor(tank, 1);
+            tank.Properties.Armor.HideArmor = true;
+        }
+
     }
 
     public override void OnLoad() {
@@ -198,9 +374,7 @@ public class CA_Main : TanksMod {
         Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
         Campaign.OnMissionLoad += Campaign_OnMissionLoad;
         Shell.OnDestroy += Shell_OnDestroy;
-        SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;
- 
-       
+        SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;    
         Mine.OnExplode += Mine_OnExplode;
         GameHandler.OnPostRender += GameHandler_OnPostRender;
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
@@ -223,7 +397,6 @@ public class CA_Main : TanksMod {
 
         Hook_UI.Load();
         TankGame.PostDrawEverything += TankGame_OnPostDraw;
-
     }
 
   
@@ -256,33 +429,36 @@ public class CA_Main : TanksMod {
 
     private void GameProperties_OnMissionStart()
     {
-        if (Difficulties.Types["CobaltArmada_TanksOnCrack"])
+        if (LevelEditorUI.Active || LevelEditorUI.IsTestingLevel)
         {
-            const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
-
-            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: 0.5f, gameplaySound: true);
-            ref Tank[] tanks = ref GameHandler.AllTanks;
-            for (int i = 0; i < tanks.Length; i++)
+            if (LevelEditorUI.IsTestingLevel && Difficulties.Types["CobaltArmada_Swap"])
             {
-                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                var ai = tanks[i] as AITank;
-                if (ai is null) continue;
-                if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
-
-              
-                if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is null)
+                ref Tank[] tanks = ref GameHandler.AllTanks;
+                foreach (Tank _template in tanks)
                 {
-                    CA_Y2_NightShade.PoisonedTanks.Add(ai);
-                    CA_Y2_NightShade.Tank_OnPoisoned(ai);
+                    if (_template is AITank template)
+                    {
+                        template.UsesCustomModel = true;
+                        template.Swap(FlowerFromBase(template.AITankId), true);
+                        var t = new AITank(template.AiTankType);
+                        t.Body.Position = template.Position3D.FlattenZ() / Tank.UNITS_PER_METER;
+                        t.Position = template.Position3D.FlattenZ();
+                        t.Dead = false;
+                        t.Team = template.Team;
+                        template.Remove(true);
+
+                    }
                 }
+
+
             }
-            
+            return;
         }
 
         if (Difficulties.Types["CobaltArmada_Mitosis"])
         {
             Tank[] tanks = GameHandler.AllTanks;
-            for (int i = tanks.Length-1; i >= 0 ; i--)
+            for (int i = tanks.Length - 1; i >= 0; i--)
             {
                 if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
@@ -294,15 +470,11 @@ public class CA_Main : TanksMod {
                     t.Swap(ai.AiTankType);
 
                     t.Body.Position = ai.Body.Position;
-                    
+
                     t.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
                     t.Team = ai.Team;
                     t.Properties = ai.Properties;
-                    if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
-                    {
-                        CA_Y2_NightShade.PoisonedTanks.Add(t);
-                        CA_Y2_NightShade.Tank_OnPoisoned(t);
-                    }
+
                 }
             }
 
@@ -317,18 +489,35 @@ public class CA_Main : TanksMod {
             {
                 var ai = tanks2[i] as AITank;
                 if (ai is null || ai.Dead) continue;
-                var t = new AITank(ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type);
+                var t = new AITank(ForgetMeNot);
 
                 t.Body.Position = ai.Body.Position;
                 t.Team = ai.Team;
-                if (CA_Y2_NightShade.PoisonedTanks.Find(x => x == ai) is not null)
-                {
-                    CA_Y2_NightShade.PoisonedTanks.Add(t);
-                    CA_Y2_NightShade.Tank_OnPoisoned(t);
-                }
+                
             }
         }
 
+        if (Difficulties.Types["CobaltArmada_TanksOnCrack"])
+        {
+            const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
+
+            SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: 0.5f);
+            ref Tank[] tanks = ref GameHandler.AllTanks;
+            for (int i = 0; i < tanks.Length; i++)
+            {
+                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
+                var ai = tanks[i] as AITank;
+                if (ai is null) continue;
+                if (ai is null || ai.Dead || ai.AiTankType == NightShade) continue;
+
+                if (PoisonedTanks.Find(x => x == ai) is null)
+                {
+                    PoisonedTanks.Add(ai);
+                    Tank_OnPoisoned(ai);
+                }
+            }
+
+        }
     }
 
   
@@ -353,7 +542,7 @@ public class CA_Main : TanksMod {
                 CA_Y2_NightShade.WhilePoisoned_Update(ai);
 
             }
-            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) CA_Y2_NightShade.SpawnPoisonCloud(!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
+            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) SpawnPoisonCloud(!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
             
             foreach (var IT in CA_Idol_Tether.AllTethers)
                 IT?.Update();
@@ -380,77 +569,6 @@ public class CA_Main : TanksMod {
 
         }
 
-        if(LevelEditorUI.Active)
-        {
-            //To CobaltTanks
-            if (InputUtils.AreKeysJustPressed([Keys.C, Keys.OemPeriod]) && !DebugManager.DebuggingEnabled && Difficulties.Types["CobaltArmada_Swap"])
-            {
-                SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.5f, pitchOverride: -0.25f, gameplaySound: true);
-                ref Tank[] tanks = ref GameHandler.AllTanks;
-                for (int i = 0; i < tanks.Length; i++)
-                {
-                    if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                    var ai = tanks[i] as AITank;
-                    if (ai is null) continue;
-                        switch (ai.AiTankType)
-                        {
-                            case TankID.Brown: ai.Swap(ModContent.GetSingleton<CA_01_Dandelion>().Type, true); break;
-                            case TankID.Ash: ai.Swap(ModContent.GetSingleton<CA_02_Perwinkle>().Type, true); break;
-                            case TankID.Marine: ai.Swap(ModContent.GetSingleton<CA_03_Pansy>().Type, true); break;
-                            case TankID.Yellow: ai.Swap(ModContent.GetSingleton<CA_04_Sunflower>().Type, true); break;
-                            case TankID.Pink: ai.Swap(ModContent.GetSingleton<CA_05_Poppy>().Type, true); break;
-                            case TankID.Violet: ai.Swap(ModContent.GetSingleton<CA_07_Lavender>().Type, true); break;
-                            case TankID.Green: ai.Swap(ModContent.GetSingleton<CA_06_Daisy>().Type, true); break;
-                            case TankID.White: ai.Swap(ModContent.GetSingleton<CA_08_Eryngium>().Type, true); break;
-                            case TankID.Black: ai.Swap(ModContent.GetSingleton<CA_09_Carnation>().Type, true); break;
-                        //For special tanks, use master mod tanks
-                            case TankID.Bronze: ai.Swap(ModContent.GetSingleton<CA_X1_Kudzu>().Type, true); break;
-                            case TankID.Silver: ai.Swap(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type, true); break;
-                            case TankID.Sapphire: ai.Swap(ModContent.GetSingleton<CA_Y3_Peony>().Type, true); break;
-                            case TankID.Obsidian: ai.Swap(ModContent.GetSingleton<CA_Z9_Hydrangea>().Type, true); break;
-
-                        default: break;
-
-                        }   
-                   
-                }
-            }
-            //From CobaltTanks
-            else if (InputUtils.AreKeysJustPressed([Keys.C, Keys.OemComma]) && !DebugManager.DebuggingEnabled && Difficulties.Types["CobaltArmada_Swap"])
-            {
-                SoundPlayer.PlaySoundInstance("Assets/sounds/mine_place.ogg", SoundContext.Effect, 0.5f, pitchOverride: -0.25f, gameplaySound: true);
-                ref Tank[] tanks = ref GameHandler.AllTanks;
-                for (int i = 0; i < tanks.Length; i++)
-                {
-                    if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                    var ai = tanks[i] as AITank;
-                    if (ai is null) continue;
-
-                    if(ModContent.GetSingleton<CA_01_Dandelion>().Type==ai.AiTankType) ai.Swap(TankID.Brown, true);
-                    if(ModContent.GetSingleton<CA_02_Perwinkle>().Type==ai.AiTankType) ai.Swap(TankID.Ash, true);
-                    if(ModContent.GetSingleton<CA_03_Pansy>().Type==ai.AiTankType) ai.Swap(TankID.Marine, true);
-                    if(ModContent.GetSingleton<CA_04_Sunflower>().Type==ai.AiTankType) ai.Swap(TankID.Yellow, true);
-                    if(ModContent.GetSingleton<CA_05_Poppy>().Type==ai.AiTankType) ai.Swap(TankID.Pink, true);
-                    if(ModContent.GetSingleton<CA_06_Daisy>().Type==ai.AiTankType) ai.Swap(TankID.Green, true);
-                    if(ModContent.GetSingleton<CA_07_Lavender>().Type==ai.AiTankType) ai.Swap(TankID.Violet, true);
-                    if(ModContent.GetSingleton<CA_08_Eryngium>().Type==ai.AiTankType) ai.Swap(TankID.White, true);
-                    if(ModContent.GetSingleton<CA_09_Carnation>().Type==ai.AiTankType) ai.Swap(TankID.Black, true);
-
-                    if(ModContent.GetSingleton<CA_X1_Kudzu>().Type==ai.AiTankType) ai.Swap(TankID.Bronze, true);
-                    if(ModContent.GetSingleton<CA_X2_CorpseFlower>().Type==ai.AiTankType) ai.Swap(TankID.Silver, true);
-                    if (ModContent.GetSingleton<CA_Y3_Peony>().Type == ai.AiTankType) ai.Swap(TankID.Sapphire, true);
-                    if (ModContent.GetSingleton<CA_Z9_Hydrangea>().Type==ai.AiTankType) ai.Swap(TankID.Obsidian, true);
-
-            
-                    ai.Scaling = Vector3.One;
-                }
-            }
-
-        }
-      
-       
-
-
     }
 
 
@@ -461,7 +579,6 @@ public class CA_Main : TanksMod {
             fp?.Render();
         boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth-WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight-60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
         MissionDeadline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
-
     }
 
     private void MainMenu_OnMenuClose()
@@ -524,10 +641,43 @@ public class CA_Main : TanksMod {
     public static int[] PreSpawns = Array.Empty<int>();
     //Hijack mission
     private void Campaign_OnPreLoadTank(ref TankTemplate template)
-    {
-       
-        if (LevelEditorUI.Active) return;
-        if (MainMenuUI.Active) return;
+    {   if (MainMenuUI.Active) return;
+        if (LevelEditorUI.Active)
+        {
+            if (LevelEditorUI.IsTestingLevel && Difficulties.Types["CobaltArmada_Swap"])
+            {
+                switch (template.AiTier)
+                {
+                    case TankID.Brown: template.AiTier = ModContent.GetSingleton<CA_01_Dandelion>().Type; break;
+                    case TankID.Ash: template.AiTier = ModContent.GetSingleton<CA_02_Perwinkle>().Type; break;
+                    case TankID.Marine: template.AiTier = ModContent.GetSingleton<CA_03_Pansy>().Type; break;
+                    case TankID.Yellow: template.AiTier = ModContent.GetSingleton<CA_04_Sunflower>().Type; break;
+                    case TankID.Pink: template.AiTier = ModContent.GetSingleton<CA_05_Poppy>().Type; break;
+                    case TankID.Violet: template.AiTier = ModContent.GetSingleton<CA_07_Lavender>().Type; break;
+                    case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
+                    case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
+                    case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
+
+                    case TankID.Bronze: template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type; break;
+                    case TankID.Silver: template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type; break;
+                    case TankID.Sapphire: template.AiTier = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type; break;
+                    case TankID.Ruby: template.AiTier = ModContent.GetSingleton<CA_X4_Allium>().Type; break;
+                    case TankID.Citrine: template.AiTier = ModContent.GetSingleton<CA_X5_LilyValley>().Type; break;
+                    case TankID.Amethyst: template.AiTier = ModContent.GetSingleton<CA_Y1_Lotus>().Type; break;
+                    case TankID.Emerald: template.AiTier = ModContent.GetSingleton<CA_Y2_NightShade>().Type; break;
+                    case TankID.Gold: template.AiTier = ModContent.GetSingleton<CA_Y3_Peony>().Type; break;
+                    case TankID.Obsidian: template.AiTier = ModContent.GetSingleton<CA_Z9_Hydrangea>().Type; break;
+
+
+                    default: break;
+
+                }
+
+            }
+            return;
+        }
+        
+     
        
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
         //Set up the new swap out process
@@ -555,30 +705,9 @@ public class CA_Main : TanksMod {
         if (template.IsPlayer) return;
         TankGame.ClientLog.Write("Invading campaign...", LogType.Info);
         //New system, anytime a specific tank shows up, add to a counter. When the counter reaches a certain point, replace that tank with a special type
-
+        //old code that does nothing for now
         Spawns[template.AiTier] += 1;
-        if (template.AiTier == TankID.Ash)
-        {
-            if (Spawns[template.AiTier] % 25 == 0) { template.AiTier = ModContent.GetSingleton<CA_X4_Allium>().Type; return; }
-            if (Spawns[template.AiTier] % 4 == 0 && CampaignGlobals.LoadedCampaign.CurrentMissionId >= 10) { template.AiTier = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type; return; }
-
-        }
-
-        if (template.AiTier == TankID.Yellow)
-        {
-            if (Spawns[template.AiTier] % 8 == 0) { template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type; return; }
-            if (Spawns[template.AiTier] % 5 == 0 && CampaignGlobals.LoadedCampaign.CurrentMissionId>=50) { template.AiTier = ModContent.GetSingleton<CA_X5_LilyValley>().Type; return; }
-        }
-        if (template.AiTier == TankID.Marine)
-        {
-            if (Spawns[template.AiTier] % 17 == 0) { template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type; return; }
-        }
-        if (template.AiTier == TankID.White)
-        {
-            if (Spawns[template.AiTier] == 1) { template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; return; }
-        }
-
-
+    
 
         switch (template.AiTier)
         {
@@ -591,6 +720,17 @@ public class CA_Main : TanksMod {
             case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
             case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
             case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
+
+            case TankID.Bronze: template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type; break;
+            case TankID.Silver: template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type; break;
+            case TankID.Sapphire: template.AiTier = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type; break;
+            case TankID.Ruby: template.AiTier = ModContent.GetSingleton<CA_X4_Allium>().Type; break;
+            case TankID.Citrine: template.AiTier = ModContent.GetSingleton<CA_X5_LilyValley>().Type; break;
+            case TankID.Amethyst: template.AiTier = ModContent.GetSingleton<CA_Y1_Lotus>().Type; break;
+            case TankID.Emerald: template.AiTier = ModContent.GetSingleton<CA_Y2_NightShade>().Type; break;
+            case TankID.Gold: template.AiTier = ModContent.GetSingleton<CA_Y3_Peony>().Type; break;
+            case TankID.Obsidian: template.AiTier = ModContent.GetSingleton<CA_Z9_Hydrangea>().Type; break;
+
             default: break;
 
         }

@@ -2,6 +2,7 @@
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Localization;
 //Boss AITank
@@ -28,7 +29,7 @@ namespace CobaltsArmada
         {
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.SpecialBehaviors[2].Value = 20;
+            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"]?5:20;
             AITank.Properties.Armor = new TankArmor(AITank, 1);
             CA_Main.boss = new BossBar(AITank, "Lotus", "The Reformer");
             AITank.Properties.Armor.HideArmor = true;

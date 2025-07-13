@@ -35,19 +35,17 @@ namespace CobaltsArmada
             aiParams.AimOffset = 0.03f;
 
             aiParams.Inaccuracy = 0.9f;
-
+            properties.TurningSpeed = 0.1f;
+            properties.MaximalTurn = MathHelper.PiOver4;
             //also maximum agro lmfao
             aiParams.PursuitLevel = 1f;
-            aiParams.PursuitFrequency = 50;
+            aiParams.PursuitFrequency = 180;
 
-            aiParams.ProjectileWarinessRadius_PlayerShot = 70;
+            aiParams.ProjectileWarinessRadius_PlayerShot = 140;
             aiParams.ProjectileWarinessRadius_AIShot = 70;
             //they're immune to mines
             aiParams.MineWarinessRadius_PlayerLaid = 0;
             aiParams.MineWarinessRadius_AILaid = 0;
-
-            properties.TurningSpeed = 0.06f;
-            properties.MaximalTurn = MathHelper.ToRadians(34);
 
             properties.ShootStun = 1;
             properties.ShellCooldown = 40;
@@ -55,14 +53,15 @@ namespace CobaltsArmada
             // properties.ShellSpread =0.4f;
             properties.ShellLimit = 2;
             properties.ShellSpeed = 6f;
-            properties.ShellType = ShellID.Rocket;
+            properties.ShellType = ShellID.TrailedRocket;
 
-            properties.RicochetCount = 0;
+            properties.RicochetCount = 2;
 
             properties.Invisible = false;
             properties.Stationary = false;
             properties.InvulnerableToMines = true;
 
+            aiParams.DeflectsBullets = true;
 
             aiParams.ShootsMinesSmartly = true;
 
@@ -91,8 +90,8 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
-            AITank.Properties.MaxSpeed = 0.8f+MathF.Min(1f, AITank.SpecialBehaviors[0].Value/60f/1.5f)*3.8f + AITank.SpecialBehaviors[2].Value;
-            AITank.Properties.TreadPitch = MathHelper.Lerp(-0.5f,0.6f, MathHelper.Clamp(AITank.Properties.MaxSpeed*0.2f,0f,1f));
+            AITank.Properties.MaxSpeed = 1.4f+MathF.Min(1f, AITank.SpecialBehaviors[0].Value/60f/2f)*3.6f;
+            AITank.Properties.TreadPitch = MathHelper.Lerp(-0.8f,0.9f, MathHelper.Clamp((AITank.Properties.MaxSpeed-1.4f)/3.6f,0f,1f));
 
             //   AITank.Properties.TurningSpeed = 0.06f + MathF.Min(1f, AITank.SpecialBehaviors[0].Value)*0.055f;
             //  AITank.Properties.MaximalTurn = MathHelper.ToRadians(30+ MathF.Min(1f, AITank.SpecialBehaviors[0].Value)*45f);
@@ -108,10 +107,8 @@ namespace CobaltsArmada
             base.DangerDetected(danger);
             if (danger.IsPlayerSourced && danger is Shell && AITank.SpecialBehaviors[1].Value <0.1f)
             {
-                ChatSystem.SendMessage("NOPE", Color.Fuchsia);
-                AITank.SpecialBehaviors[0].Value = 1.5f*60f;
+                AITank.SpecialBehaviors[0].Value = 2.06f*60f;
                 AITank.SpecialBehaviors[1].Value = 2.6f * 60f;
-                AITank.SpecialBehaviors[2].Value +=0.02f;
             }
         }
     }

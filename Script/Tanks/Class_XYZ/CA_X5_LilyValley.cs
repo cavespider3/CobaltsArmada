@@ -75,7 +75,7 @@ namespace CobaltsArmada
         {
             base.TakeDamage(destroy, context);
             if (!destroy) return;
-            CA_Y2_NightShade.SpawnPoisonCloud(AITank.Position3D,180f);
+            CA_Main.SpawnPoisonCloud(AITank.Position3D,180f);
         }
         public override void Shoot(Shell shell)
         {

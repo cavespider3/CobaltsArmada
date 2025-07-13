@@ -2,6 +2,7 @@
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Localization;
 //Boss AITank
@@ -30,10 +31,11 @@ namespace CobaltsArmada
 
             CA_Main.MissionDeadline = new VindicationTimer(AITank);
             base.PostApplyDefaults();
-            AITank.SpecialBehaviors[2].Value = 14;
+            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 5 : 15;
             AITank.Properties.Armor = new TankArmor(AITank, 1);
+            AITank.Properties.Armor.HideArmor = true;
             AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One* 1.1f;
+            AITank.Scaling = Vector3.One* 110f;
 
             AITank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
             AITank.AiParams.MeanderFrequency = 10;
