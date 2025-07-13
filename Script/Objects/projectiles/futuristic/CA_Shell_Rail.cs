@@ -51,9 +51,7 @@ namespace CobaltsArmada
             Shell.LifeTime = 0f;
            
         }
-
-
-
+       
         /// <summary>
         /// Called during a laser raycast
         /// </summary>

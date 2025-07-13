@@ -168,7 +168,7 @@ namespace CobaltsArmada
                     Firing = true;
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f );
-                    ring.Roll = MathHelper.PiOver2;
+                    ring.Pitch = MathHelper.PiOver2;
                     ring.HasAddativeBlending = true;
                     ring.Color = Color.Cyan;
                     
@@ -182,7 +182,7 @@ namespace CobaltsArmada
                     };
                     var ring2 = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring2.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f);
-                    ring2.Roll = MathHelper.PiOver2;
+                    ring2.Pitch = MathHelper.PiOver2;
                     ring2.HasAddativeBlending = true;
                     ring2.Color = Color.Cyan;
                     
@@ -218,7 +218,7 @@ namespace CobaltsArmada
 
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.34f * Radius + WarningForgiveness * 0.035f );
-                    ring.Roll = MathHelper.PiOver2;
+                    ring.Pitch = MathHelper.PiOver2;
                     ring.HasAddativeBlending = true;
                     ring.Color = Color.Red;
                     SoundPlayer.PlaySoundInstance("Assets/sounds/mine_trip.ogg", SoundContext.Effect, 0.2f,pitchOverride:(LifeTime/WarningTime)-0.5f);
@@ -257,7 +257,7 @@ namespace CobaltsArmada
             View = CameraGlobals.GameView;
             Projection = CameraGlobals.GameProjection;
             //DebugManager.DrawDebugString(TankGame.SpriteRenderer, $"DetonationTime: {DetonateTime}/{DetonateTimeMax}\nNearDestructibles: {IsNearDestructibles}\nId: {Id}", MatrixUtils.ConvertWorldToScreen(Vector3.Zero, World, View, Projection) - new Vector2(0, 20), 1, centered: true);
-            TankGame.SpriteRenderer.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+            TankGame.SpriteRenderer.GraphicsDevice.BlendState = BlendState.Additive;
             foreach (ModelMesh mesh in Model.Meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)
