@@ -53,7 +53,7 @@ namespace CobaltsArmada
             properties.ShellLimit = 3;
             properties.ShellSpeed = 4f;
             properties.ShellType = ShellID.Standard;
-            properties.RicochetCount = 1;
+            properties.RicochetCount = 2;
 
             properties.Invisible = false;
             properties.Stationary = false;

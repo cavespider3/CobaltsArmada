@@ -536,10 +536,10 @@ public class CA_Main : TanksMod {
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
-                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                var ai = tanks[i] as AITank;
-                if (ai is null) continue;
-                CA_Y2_NightShade.WhilePoisoned_Update(ai);
+                if (tanks[i] is AITank ai)
+                {
+                    CA_Y2_NightShade.WhilePoisoned_Update(ai);
+                }
 
             }
             if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) SpawnPoisonCloud(!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
@@ -644,36 +644,6 @@ public class CA_Main : TanksMod {
     {   if (MainMenuUI.Active) return;
         if (LevelEditorUI.Active)
         {
-            if (LevelEditorUI.IsTestingLevel && Difficulties.Types["CobaltArmada_Swap"])
-            {
-                switch (template.AiTier)
-                {
-                    case TankID.Brown: template.AiTier = ModContent.GetSingleton<CA_01_Dandelion>().Type; break;
-                    case TankID.Ash: template.AiTier = ModContent.GetSingleton<CA_02_Perwinkle>().Type; break;
-                    case TankID.Marine: template.AiTier = ModContent.GetSingleton<CA_03_Pansy>().Type; break;
-                    case TankID.Yellow: template.AiTier = ModContent.GetSingleton<CA_04_Sunflower>().Type; break;
-                    case TankID.Pink: template.AiTier = ModContent.GetSingleton<CA_05_Poppy>().Type; break;
-                    case TankID.Violet: template.AiTier = ModContent.GetSingleton<CA_07_Lavender>().Type; break;
-                    case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
-                    case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
-                    case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
-
-                    case TankID.Bronze: template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type; break;
-                    case TankID.Silver: template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type; break;
-                    case TankID.Sapphire: template.AiTier = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type; break;
-                    case TankID.Ruby: template.AiTier = ModContent.GetSingleton<CA_X4_Allium>().Type; break;
-                    case TankID.Citrine: template.AiTier = ModContent.GetSingleton<CA_X5_LilyValley>().Type; break;
-                    case TankID.Amethyst: template.AiTier = ModContent.GetSingleton<CA_Y1_Lotus>().Type; break;
-                    case TankID.Emerald: template.AiTier = ModContent.GetSingleton<CA_Y2_NightShade>().Type; break;
-                    case TankID.Gold: template.AiTier = ModContent.GetSingleton<CA_Y3_Peony>().Type; break;
-                    case TankID.Obsidian: template.AiTier = ModContent.GetSingleton<CA_Z9_Hydrangea>().Type; break;
-
-
-                    default: break;
-
-                }
-
-            }
             return;
         }
         
@@ -707,34 +677,8 @@ public class CA_Main : TanksMod {
         //New system, anytime a specific tank shows up, add to a counter. When the counter reaches a certain point, replace that tank with a special type
         //old code that does nothing for now
         Spawns[template.AiTier] += 1;
-    
+        template.AiTier = FlowerFromBase(template.AiTier);
 
-        switch (template.AiTier)
-        {
-            case TankID.Brown: template.AiTier = ModContent.GetSingleton<CA_01_Dandelion>().Type; break;
-            case TankID.Ash: template.AiTier = ModContent.GetSingleton<CA_02_Perwinkle>().Type; break;
-            case TankID.Marine: template.AiTier = ModContent.GetSingleton<CA_03_Pansy>().Type; break;
-            case TankID.Yellow: template.AiTier = ModContent.GetSingleton<CA_04_Sunflower>().Type; break;
-            case TankID.Pink: template.AiTier = ModContent.GetSingleton<CA_05_Poppy>().Type; break;
-            case TankID.Violet: template.AiTier = ModContent.GetSingleton<CA_07_Lavender>().Type; break;
-            case TankID.Green: template.AiTier = ModContent.GetSingleton<CA_06_Daisy>().Type; break;
-            case TankID.White: template.AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type; break;
-            case TankID.Black: template.AiTier = ModContent.GetSingleton<CA_09_Carnation>().Type; break;
-
-            case TankID.Bronze: template.AiTier = ModContent.GetSingleton<CA_X1_Kudzu>().Type; break;
-            case TankID.Silver: template.AiTier = ModContent.GetSingleton<CA_X2_CorpseFlower>().Type; break;
-            case TankID.Sapphire: template.AiTier = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type; break;
-            case TankID.Ruby: template.AiTier = ModContent.GetSingleton<CA_X4_Allium>().Type; break;
-            case TankID.Citrine: template.AiTier = ModContent.GetSingleton<CA_X5_LilyValley>().Type; break;
-            case TankID.Amethyst: template.AiTier = ModContent.GetSingleton<CA_Y1_Lotus>().Type; break;
-            case TankID.Emerald: template.AiTier = ModContent.GetSingleton<CA_Y2_NightShade>().Type; break;
-            case TankID.Gold: template.AiTier = ModContent.GetSingleton<CA_Y3_Peony>().Type; break;
-            case TankID.Obsidian: template.AiTier = ModContent.GetSingleton<CA_Z9_Hydrangea>().Type; break;
-
-            default: break;
-
-        }
-        
     }
 
 
@@ -744,8 +688,7 @@ public class CA_Main : TanksMod {
     {
         if (mine.Owner is PlayerTank||mine.Owner is null) return;
         AITank ai = (AITank)mine.Owner;
-        var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
-        if (ai.AiTankType == Sunny.Type)
+        if (ai.AiTankType == SunFlower)
             Fire_AbstractShell_Mine(mine, 8, 1, 0, 4f);
     }
 
@@ -758,19 +701,8 @@ public class CA_Main : TanksMod {
         if (shell.Owner is PlayerTank) return;
 
         AITank ai = (AITank)shell.Owner;
-        var Dandelion = ModContent.GetSingleton<CA_01_Dandelion>();
-        var Peri = ModContent.GetSingleton<CA_02_Perwinkle>();
-        var Pansy = ModContent.GetSingleton<CA_03_Pansy>();
-        var Sunny = ModContent.GetSingleton<CA_04_Sunflower>();
-        var Poppy = ModContent.GetSingleton<CA_05_Poppy>();
-        var Daisy = ModContent.GetSingleton<CA_06_Daisy>();
-        var Lavi = ModContent.GetSingleton<CA_07_Lavender>();
-        var Eryn = ModContent.GetSingleton<CA_08_Eryngium>();
-        var Carnation = ModContent.GetSingleton<CA_09_Carnation>();
-        var Kudzu = ModContent.GetSingleton<CA_X1_Kudzu>();
-        var Corpse = ModContent.GetSingleton<CA_X2_CorpseFlower>();
 
-        if ((ai.AiTankType == Sunny.Type && shell.Type == ShellID.Rocket))
+        if ((ai.AiTankType == SunFlower && shell.Type == ShellID.Rocket))
            new Mine(shell.Owner, shell.Position - new Vector2(0f, 10f).Rotate(shell.Rotation), 900f, 0.1f);
     }
 

@@ -64,7 +64,7 @@ namespace CobaltsArmada
             //RAIL CANNON!
             properties.ShootStun = 20;
             properties.ShellCooldown = 100;
-            properties.ShellLimit = 0;
+            properties.ShellLimit = 1;
             properties.ShellSpeed = 5f;
             properties.ShellType = ShellID.TrailedRocket;
             properties.RicochetCount = 0;
@@ -84,7 +84,7 @@ namespace CobaltsArmada
             tank.Model = CA_Main.Neo_Mobile;
             tank.InitModelSemantics();
             properties.MineCooldown = 700;
-            properties.MineLimit = 2;
+            properties.MineLimit = 0;
             properties.MineStun = 10;
 
             aiParams.MinePlacementChance = 0.05f;

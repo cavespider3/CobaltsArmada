@@ -69,6 +69,7 @@ namespace CobaltsArmada
             aiParams.TurretSpeed = 0.03f;
             aiParams.AimOffset = 0.18f;
 
+            //coward
             aiParams.PursuitLevel = -0.9f;
             aiParams.PursuitFrequency = 40;
 
@@ -85,6 +86,7 @@ namespace CobaltsArmada
             properties.ShellType = ShellID.Standard;
             properties.RicochetCount = 1;
             aiParams.ShootChance = 0.1f;
+            aiParams.DeflectsBullets = true;
 
             properties.Invisible = false;
             properties.Stationary = false;

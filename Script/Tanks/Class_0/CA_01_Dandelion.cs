@@ -74,7 +74,7 @@ namespace CobaltsArmada
              CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
              CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
              CA_Main.modifier_Difficulty >= ModDifficulty.Extra ?
-             4 : 3u : 2u : 1u : 1u;
+             5u : 4u : 3u : 2u : 2u;
 
             AITank.AiParams.ShootChance = CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
             CA_Main.modifier_Difficulty > ModDifficulty.Hard ?

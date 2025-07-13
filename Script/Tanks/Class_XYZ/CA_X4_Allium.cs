@@ -155,7 +155,7 @@ namespace CobaltsArmada
                 AITank.SpecialBehaviors[3].Value -= RuntimeData.DeltaTime*5f;
             }
             AITank.SpecialBehaviors[3].Value = MathHelper.Clamp(AITank.SpecialBehaviors[3].Value,0,300f);
-            AITank.Team = Tethered && AITank.SpecialBehaviors[3].Value>600f ? TeamID.Magenta : (int)AITank.SpecialBehaviors[2].Value;
+            AITank.Team = Tethered && AITank.SpecialBehaviors[3].Value>300f ? TeamID.Magenta : (int)AITank.SpecialBehaviors[2].Value;
 
         }
 
