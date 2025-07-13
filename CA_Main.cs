@@ -129,50 +129,169 @@ public class CA_Main : TanksMod {
 
     #region TankIds
     #region NormalTanks
-    public static int Dandelion => ModContent.GetSingleton<CA_01_Dandelion>().Type;
+    public static int Dandelion { get { return ModContent.GetSingleton<CA_01_Dandelion>().Type; } }
 
-    public static int Periwinkle => ModContent.GetSingleton<CA_02_Perwinkle>().Type;
+    public static int Periwinkle
+    {
+        get
+        {
+           return ModContent.GetSingleton<CA_02_Perwinkle>().Type;
+        }
+    }
 
-    public static int Pansy => ModContent.GetSingleton<CA_03_Pansy>().Type;
+    public static int Pansy
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_03_Pansy>().Type;
+        }
+    }
 
-    public static int SunFlower => ModContent.GetSingleton<CA_04_Sunflower>().Type;
+    public static int SunFlower
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_04_Sunflower>().Type;
+        }
+    }
 
-    public static int Poppy => ModContent.GetSingleton<CA_05_Poppy>().Type;
-    public static int Rose => Poppy;
+    public static int Poppy
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_05_Poppy>().Type;
+        }
+    }
+    public static int Rose
+    {
+        get
+        {
+            return Poppy;
+        }
+    }
 
-    public static int Daisy => ModContent.GetSingleton<CA_06_Daisy>().Type;
+    public static int Daisy
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_06_Daisy>().Type;
+        }
+    }
 
-    public static int Lavender => ModContent.GetSingleton<CA_07_Lavender>().Type;
+    public static int Lavender
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_07_Lavender>().Type;
+} }
 
-    public static int Eryngium => ModContent.GetSingleton<CA_08_Eryngium>().Type;
-    public static int SeaHolly => Eryngium;
+    public static int Eryngium
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_08_Eryngium>().Type;
+    }
+}
+public static int SeaHolly
+    {
+        get
+        {
+            return Eryngium;
+    }
+}
 
-    public static int Carnation => ModContent.GetSingleton<CA_09_Carnation>().Type;
+public static int Carnation
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_09_Carnation>().Type;
+    }
+}
 
-    #endregion
-    #region SpecialTanks
+#endregion
+#region SpecialTanks
 
-    public static int Kudzu => ModContent.GetSingleton<CA_X1_Kudzu>().Type;
+public static int Kudzu
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_X1_Kudzu>().Type;
+        }
+    }
 
-    public static int CorpseFlower => ModContent.GetSingleton<CA_X2_CorpseFlower>().Type;
+    public static int CorpseFlower
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_X2_CorpseFlower>().Type;
+        }
+    }
 
-    public static int ForgetMeNot => ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type;
+    public static int ForgetMeNot
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type;
+        }
+    }
 
-    public static int Allium => ModContent.GetSingleton<CA_X4_Allium>().Type;
+    public static int Allium
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_X4_Allium>().Type;
+        }
+    }
 
-    public static int Lily => ModContent.GetSingleton<CA_X5_LilyValley>().Type;
+    public static int Lily
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_X5_LilyValley>().Type;
+        }
+    }
 
     #endregion
     #region BossTanks
-    public static int Lotus => ModContent.GetSingleton<CA_Y1_Lotus>().Type;
+    public static int Lotus
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_Y1_Lotus>().Type;
+        }
+    }
 
-    public static int NightShade => ModContent.GetSingleton<CA_Y2_NightShade>().Type;
+    public static int NightShade
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_Y2_NightShade>().Type;
+        }
+    }
 
-    public static int Peony => ModContent.GetSingleton<CA_Y3_Peony>().Type;
+    public static int Peony
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_Y3_Peony>().Type;
+        }
+    }
 
-    public static int Orchid => ModContent.GetSingleton<CA_Y4_Orchid>().Type;
+    public static int Orchid
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_Y4_Orchid>().Type;
+        }
+    }
 
-    public static int Hydrangea => ModContent.GetSingleton<CA_Z9_Hydrangea>().Type;
+    public static int Hydrangea
+    {
+        get
+        {
+            return ModContent.GetSingleton<CA_Z9_Hydrangea>().Type;
+        }
+    }
 
     #endregion
 
