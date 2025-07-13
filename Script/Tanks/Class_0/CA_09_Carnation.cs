@@ -42,15 +42,13 @@ namespace CobaltsArmada
             aiParams.PursuitFrequency = 180;
 
             aiParams.ProjectileWarinessRadius_PlayerShot = 140;
-            aiParams.ProjectileWarinessRadius_AIShot = 70;
+            aiParams.ProjectileWarinessRadius_AIShot = 160;
             //they're immune to mines
-            aiParams.MineWarinessRadius_PlayerLaid = -1;
-            aiParams.MineWarinessRadius_AILaid = -1;
+            aiParams.MineWarinessRadius_PlayerLaid = 160;
+            aiParams.MineWarinessRadius_AILaid = 160;
 
             properties.ShootStun = 1;
             properties.ShellCooldown = 40;
-            // properties.ShellShootCount = 5;
-            // properties.ShellSpread =0.4f;
             properties.ShellLimit = 2;
             properties.ShellSpeed = 6f;
             properties.ShellType = ShellID.TrailedRocket;
@@ -60,8 +58,6 @@ namespace CobaltsArmada
             properties.Invisible = false;
             properties.Stationary = false;
             properties.InvulnerableToMines = true;
-
-            aiParams.DeflectsBullets = true;
 
             properties.TreadPitch = -0.26f;
             properties.Acceleration = 0.4f;
