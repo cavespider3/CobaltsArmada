@@ -130,7 +130,7 @@ namespace CobaltsArmada
                         ring.Destroy();
                 };
                
-                CA_OrbitalStrike orbitalStrike = new CA_OrbitalStrike(AITank.ShotPathTankCollPoints[0], AITank, rad, 2f, 0.1f, CA_Main.modifier_Difficulty >= ModDifficulty.Extra ? 2.5f:1f, CA_OrbitalStrike.TeamkillContext.All);
+                CA_OrbitalStrike orbitalStrike = new CA_OrbitalStrike(AITank.TargetTank!.Position, AITank, rad, 2f, 0.1f, CA_Main.modifier_Difficulty >= ModDifficulty.Extra ? 2.5f:1f, CA_OrbitalStrike.TeamkillContext.All);
                 orbitalStrike._LaserTexture = CA_Main.Beam_Dan;
             shell.Remove();
 
