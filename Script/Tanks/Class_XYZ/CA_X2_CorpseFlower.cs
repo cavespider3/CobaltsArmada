@@ -1,8 +1,16 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Objects.projectiles.futuristic;
+using Microsoft.Xna.Framework;
+using System.Threading.Tasks;
 using TanksRebirth.GameContent;
+using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.UI.LevelEditor;
+using TanksRebirth.Graphics;
+using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
+using TanksRebirth.Net;
+using static CobaltsArmada.CA_Main;
 
 namespace CobaltsArmada
 {
@@ -73,13 +81,42 @@ namespace CobaltsArmada
         {
             base.TakeDamage(destroy, context);
             if (!destroy) return;
-            new Mine(AITank, AITank.Position, 200f, 2.1f);
+            new Explosion(AITank.Position, 20.5f, AITank);
         }
         public override void Shoot(Shell shell)
         {
-
             base.Shoot(shell);
              shell.Properties.FlameColor = AssociatedColor;
         }
+        public override void PostUpdate()
+        {
+            base.PostUpdate();
+            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (CA_Main.modifier_Difficulty > CA_Main.ModDifficulty.Extra)
+            {
+                ref Tank[] tanks = ref GameHandler.AllTanks;
+                float bloat = 0f;
+                for (int i = 0; i < tanks.Length; i++)
+                {
+                    if (tanks[i] is Tank ai)
+                    {
+                        //Kill Tethers Chain on Phantasm
+                        if (ai == AITank || ai.Dead || AITank.Team != TeamID.NoTeam && ai.Team == AITank.Team) continue;
+                        bloat =MathHelper.Clamp(1f-MathF.Max(0f,Vector2.Distance(ai.Position, AITank.Position)-75)/75,0f,1f);
+                        if (bloat >= 1)
+                        {
+                            AITank.Properties.Armor?.Remove();
+                            AITank.Damage(new TankHurtContextOther(AITank, TankHurtContextOther.HurtContext.FromIngame, "SUICIDE"), true, AssociatedColor);
+                        }
+                        else
+                        {
+                            AITank.Scaling = Vector3.One * 100.0f * (1.1f+(Server.ServerRandom.NextFloat(0.7f,1f)*bloat*0.25f));
+                        }
+                       
+                    }
+                }
+            }
+        }
+
     }
 }
