@@ -81,10 +81,11 @@ namespace CobaltsArmada
             base.PreUpdate();
             if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             var properties = AITank.Properties;
-            if (AITank.TargetTank is Tank target && AITank.SeesTarget)
+            if (AITank.TargetTank is not null && AITank.SeesTarget)
             {
+                var isInShotgunRange = Vector2.Distance(AITank.Position, AITank.TargetTank.Position) <= 200f;
                 //Ruby
-                if(Vector2.Distance(AITank.Position, target.Position) >= 200f)
+                if (!isInShotgunRange)
                 {
                     properties.ShootStun = 1;
                     properties.ShellCooldown = 10;

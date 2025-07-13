@@ -179,8 +179,7 @@ namespace CobaltsArmada
             if (Shell.Owner is PlayerTank) return;
             AITank ai = (AITank)Shell.Owner;
             if (ai.ShotPathRicochetPoints.Length<1) return;
-            if (Server.NetManager != null || !Client.IsConnected())
-            {
+         
                 float Laser_length = Vector2.Distance(Shell.Position, ai.ShotPathRicochetPoints[0]);
                 float BEW = Shell.LifeTime / 60 * MathF.PI * 2f;
                 float dur = 1.5f;
@@ -197,7 +196,7 @@ namespace CobaltsArmada
                 {
                     Shell.Remove();
                 }
-            }
+            
         }
 
     }

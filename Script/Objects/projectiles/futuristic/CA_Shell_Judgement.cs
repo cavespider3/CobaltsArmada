@@ -158,8 +158,7 @@ namespace CobaltsArmada
           
 
             //SERVER SIDED BS
-            if (Server.NetManager != null || !Client.IsConnected())
-            {
+          
                 Hitbox.Radius =scaletimer * Radius * MathF.PI;
                 LifeTime += RuntimeData.DeltaTime;
                 if(!Firing && Ani_ObliterateScale>0f)
@@ -233,7 +232,7 @@ namespace CobaltsArmada
                 }
                
 
-            }
+            
 
 
 
@@ -247,7 +246,6 @@ namespace CobaltsArmada
         public void Remove()
         {
             AITank.Dangers.Remove(this);
-
             AllLasers[Id] = null;
         }
 

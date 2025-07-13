@@ -117,7 +117,7 @@ namespace CobaltsArmada
                  4.5f : 3.75f : 3f : 2.25f : 1.5f;
                 var ring = GameHandler.Particles.MakeParticle(AITank.TargetTank!.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                 ring.Scale = new(0.6f);
-                ring.Roll = MathHelper.PiOver2;
+                ring.Pitch = MathHelper.PiOver2;
                 ring.HasAddativeBlending = true;
                 ring.Color = Color.Cyan;
 
