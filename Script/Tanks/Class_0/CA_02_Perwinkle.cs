@@ -53,7 +53,7 @@ namespace CobaltsArmada
             properties.ShellLimit = 3;
             properties.ShellSpeed = 4f;
             properties.ShellType = ShellID.Standard;
-            properties.RicochetCount = 2;
+            properties.RicochetCount = 1;
 
             properties.Invisible = false;
             properties.Stationary = false;
@@ -68,6 +68,7 @@ namespace CobaltsArmada
             properties.MineLimit = 1;
             properties.MineStun = 10;
             aiParams.SmartRicochets = true;
+            aiParams.PredictsPositions = true;
             aiParams.MinePlacementChance = 0.05f;
         }
     }

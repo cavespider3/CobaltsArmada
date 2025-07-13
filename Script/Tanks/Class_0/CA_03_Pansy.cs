@@ -1,8 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using TanksRebirth.GameContent;
+using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.UI;
+using TanksRebirth.GameContent.UI.LevelEditor;
+using TanksRebirth.Graphics;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -33,7 +36,7 @@ namespace CobaltsArmada
             aiParams.MeanderFrequency = 15;
             aiParams.TurretMeanderFrequency = 20;
             aiParams.TurretSpeed = 0.025f;
-            aiParams.AimOffset = 0.6f;
+            aiParams.AimOffset = 0.2f;
 
             aiParams.Inaccuracy = 0.1f;
 
@@ -73,6 +76,38 @@ namespace CobaltsArmada
             AITank.BaseExpValue = 0.1f;
         }
 
- 
+        public override void PreUpdate()
+        {
+            base.PreUpdate();
+            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            var properties = AITank.Properties;
+            if (AITank.TargetTank is Tank target && AITank.SeesTarget)
+            {
+                //Ruby
+                if(Vector2.Distance(AITank.Position, target.Position) >= 200f)
+                {
+                    properties.ShootStun = 1;
+                    properties.ShellCooldown = 10;
+                    properties.ShellLimit = 8;
+                    properties.ShellSpeed = 5.6f;
+                    properties.ShellType = ShellID.Rocket;
+                    properties.ShellShootCount = 1;
+                    properties.Recoil = 0f;
+                }
+                else //SHOTGUN
+                {
+                    properties.ShootStun = 40;
+                    properties.ShellCooldown = 60;
+                    properties.ShellLimit = 15;
+                    properties.ShellSpeed = 3f;
+                    properties.ShellShootCount = 5;
+                    properties.ShellSpread = 0.41f;
+                    properties.ShellType = ShellID.Standard;
+                    properties.Recoil = 4.1f;
+                }
+
+            }
+
+        }
     }
 }
