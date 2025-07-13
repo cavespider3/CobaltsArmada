@@ -109,15 +109,13 @@ namespace CobaltsArmada
 
         public override void Shoot(Shell shell)
         {
-            if (AITank.ShotPathTankCollPoints.Length > 0)
-            {
                 float rad =
                     CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
                CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
                CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
                CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
                  4.5f : 3.75f : 3f : 2.25f : 1.5f;
-                var ring = GameHandler.Particles.MakeParticle(AITank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
+                var ring = GameHandler.Particles.MakeParticle(AITank.TargetTank!.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                 ring.Scale = new(0.6f);
                 ring.Roll = MathHelper.PiOver2;
                 ring.HasAddativeBlending = true;
@@ -132,10 +130,8 @@ namespace CobaltsArmada
                         ring.Destroy();
                 };
                
-
                 CA_OrbitalStrike orbitalStrike = new CA_OrbitalStrike(AITank.ShotPathTankCollPoints[0], AITank, rad, 2f, 0.1f, CA_Main.modifier_Difficulty >= ModDifficulty.Extra ? 2.5f:1f, CA_OrbitalStrike.TeamkillContext.All);
                 orbitalStrike._LaserTexture = CA_Main.Beam_Dan;
-            }
             shell.Remove();
 
         }
