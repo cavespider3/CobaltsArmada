@@ -123,7 +123,7 @@ public class CA_Main : TanksMod {
     {
         Single=1,Double,Triple,Quad
     }
-
+   
     public static Tanktosis modifier_Tanktosis = Tanktosis.Single;
     public static ModDifficulty modifier_Difficulty = ModDifficulty.Normal;
 
