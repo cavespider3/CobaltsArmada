@@ -2,6 +2,7 @@
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.GameMechanics;
+using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems.Coordinates;
@@ -71,7 +72,7 @@ namespace CobaltsArmada
             AITank.Properties.MaxSpeed = 2.3f;
 
             AITank.Properties.Acceleration = 0.1f;
-
+            AITank.SpecialBehaviors[0].Value = 300f;
             AITank.AiParams.BlockWarinessDistance = 69;
         }
         public override void Shoot(Shell shell)
@@ -82,24 +83,26 @@ namespace CobaltsArmada
         }
         public override void PreUpdate()
         {
-            base.PreUpdate();//STOP SPAWNING SHIT
+            base.PreUpdate();
+
+            //STOP SPAWNING SHIT
             if (LevelEditorUI.Active) return;
             if (AITank.Dead || !GameScene.ShouldRenderAll) return;
-                if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
+            if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
             {
-                AITank.SpecialBehaviors[1].Value = 0f;
-                AITank.SpecialBehaviors[0].Value = 0f;
+                AITank.SpecialBehaviors[0].Value = 300f;
                 return;
             }
-            AITank.SpecialBehaviors[0].Value += RuntimeData.DeltaTime;
-            if (AITank.SpecialBehaviors[1].Value == 0)
-                AITank.SpecialBehaviors[1].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f,Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1);
 
-            if (AITank.SpecialBehaviors[0].Value > AITank.SpecialBehaviors[1].Value)
+            AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
+
+            if (AITank.SpecialBehaviors[0].Value <= 0)
             {
+                AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1);
+
                 AITank.SpecialBehaviors[1].Value = 0f;
                 AITank.SpecialBehaviors[0].Value = 0f;
-              
+
                 //Check to see if within bounds
                 if (AITank.Position.X != Math.Clamp(AITank.Position.X, GameScene.MIN_X, GameScene.MAX_X) && AITank.Position.Y != Math.Clamp(AITank.Position.Y, GameScene.MIN_Z, GameScene.MAX_Z)) return;
 

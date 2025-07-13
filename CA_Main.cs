@@ -239,11 +239,11 @@ public class CA_Main : TanksMod {
 
         for (int i = 0; i < length; i++)
         {
-            Vector2 smokey = Vector2.One.Rotate(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, 60f);
+            Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, 60f);
             var smoke = GameHandler.Particles.MakeParticle(v + smokey.ExpandZ(),
                 GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
             smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
-            smoke.Scale = new(0.8f * Server.ServerRandom.NextFloat(0.1f, 1f));
+            smoke.Scale = new(0.8f * Client.ClientRandom.NextFloat(0.1f, 1f));
             smoke.Color = Color.DarkViolet;
             smoke.HasAddativeBlending = false;
             smoke.UniqueBehavior = (part) => {

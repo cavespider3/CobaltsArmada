@@ -107,7 +107,7 @@ namespace CobaltsArmada
             aiParams.AimOffset = MathHelper.ToRadians(23);
             aiParams.Inaccuracy = 6;
 
-            aiParams.AimOffset = 0.4f;
+            aiParams.AimOffset = 0.1f;
 
             aiParams.PursuitLevel = 1f;
             aiParams.PursuitFrequency = 12;

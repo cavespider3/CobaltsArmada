@@ -135,11 +135,11 @@ namespace CobaltsArmada
             base.PostUpdate();
             if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             bool Enraged = AITank.SpecialBehaviors[6].Value/2f>= AITank.SpecialBehaviors[2].Value;
-            Vector2 smokey = Vector2.One.Rotate(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI)) * Server.ServerRandom.NextFloat(0.1f, AITank.SpecialBehaviors[3].Value);
+            Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, AITank.SpecialBehaviors[3].Value);
             var smoke = GameHandler.Particles.MakeParticle(AITank.Position3D + smokey.ExpandZ(),
                 GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
-            smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
-            smoke.Scale = new(0.8f * Server.ServerRandom.NextFloat(0.1f, 1f));
+            smoke.Pitch = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
+            smoke.Scale = new(0.8f * Client.ClientRandom.NextFloat(0.1f, 1f));
             smoke.Color = Color.DarkViolet;
             smoke.HasAddativeBlending = false;
             smoke.UniqueBehavior = (part) => {
@@ -217,43 +217,7 @@ namespace CobaltsArmada
         }
         
 
-        
-
-    
-
-        public static void WhilePoisoned_Update(AITank tank)
-        {
-           if( PoisonedTanks.Find(x => x == tank) is not null && Server.ServerRandom.NextFloat(0.1f, 1f)<0.7f && !tank.Dead)
-            {
-                Vector2 smokey = Vector2.One.Rotate(Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI))* Server.ServerRandom.NextFloat(0.1f, 1f)*tank.CollisionCircle.Radius*1.1f;
-
-                var smoke = GameHandler.Particles.MakeParticle(tank.Position3D+ smokey.ExpandZ(),
-                    GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
-
-               
-                smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
-
-                smoke.Scale = new(0.5f);
-
-                smoke.Alpha = tank.Properties.Invisible ? 0.1f:0.7f;
-
-                smoke.Color = Color.DarkViolet;
-
-                smoke.HasAddativeBlending = false;
-            
-                smoke.UniqueBehavior = (part) => {
-
-                    GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
-                    part.Position += Vector3.UnitY * 0.7f * RuntimeData.DeltaTime *(part.LifeTime/100f+1f);
-                    part.Alpha -= 0.04f * RuntimeData.DeltaTime;
-
-                        if (part.Alpha <= 0)
-                            part.Destroy();
-             
-                };
-            }
-
-        }
+     
 
 
     }

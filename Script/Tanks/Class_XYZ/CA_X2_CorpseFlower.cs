@@ -81,7 +81,7 @@ namespace CobaltsArmada
         {
             base.TakeDamage(destroy, context);
             if (!destroy) return;
-            new Explosion(AITank.Position, 20.5f, AITank);
+            new Explosion(AITank.Position, 12.5f, AITank);
         }
         public override void Shoot(Shell shell)
         {
@@ -92,7 +92,7 @@ namespace CobaltsArmada
         {
             base.PostUpdate();
             if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
-            if (CA_Main.modifier_Difficulty > CA_Main.ModDifficulty.Extra)
+            if (CA_Main.modifier_Difficulty > CA_Main.ModDifficulty.Lunatic)
             {
                 ref Tank[] tanks = ref GameHandler.AllTanks;
                 float bloat = 0f;
@@ -110,7 +110,7 @@ namespace CobaltsArmada
                         }
                         else
                         {
-                            AITank.Scaling = Vector3.One * 100.0f * (1.1f+(Server.ServerRandom.NextFloat(0.7f,1f)*bloat*0.25f));
+                            AITank.Scaling = Vector3.One * 100.0f * (1.1f+(Client.ClientRandom.NextFloat(0.7f,1f)*bloat*0.25f));
                         }
                        
                     }
