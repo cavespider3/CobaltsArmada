@@ -67,9 +67,10 @@ namespace CobaltsArmada
 
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            base.TakeDamage(destroy, context); 
+            if (context.Source == AITank) return;
+            base.TakeDamage(destroy, context);
             if (!destroy) return;
-            new Mine(AITank, AITank.Position, 50f,1f);
+            new Mine(AITank, AITank.Position, 50f, 1f);
         }
 
         public override void Shoot(Shell shell)

@@ -57,8 +57,8 @@ namespace CobaltsArmada
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21);
 
             AITank.Properties.ShootStun = 12;
-            AITank.Properties.ShellCooldown = 100;
-            AITank.Properties.ShellLimit = 3;
+            AITank.Properties.ShellCooldown = 240;
+            AITank.Properties.ShellLimit = 2;
             AITank.Properties.ShellSpeed = 4f;
             AITank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Glaive>().Type;
             AITank.Properties.RicochetCount = 7;
