@@ -99,9 +99,7 @@ namespace CobaltsArmada
             if (AITank.SpecialBehaviors[0].Value <= 0)
             {
                 AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1);
-
-                AITank.SpecialBehaviors[1].Value = 0f;
-                AITank.SpecialBehaviors[0].Value = 0f;
+ 
 
                 //Check to see if within bounds
                 if (AITank.Position.X != Math.Clamp(AITank.Position.X, GameScene.MIN_X, GameScene.MAX_X) && AITank.Position.Y != Math.Clamp(AITank.Position.Y, GameScene.MIN_Z, GameScene.MAX_Z)) return;

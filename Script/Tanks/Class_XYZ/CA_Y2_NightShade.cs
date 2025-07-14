@@ -12,6 +12,7 @@ using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
 using TanksRebirth.Internals;
+using TanksRebirth.Internals.Common.Framework;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Internals.Common.Utilities;
@@ -168,20 +169,19 @@ namespace CobaltsArmada
                 ref Tank[] tanks = ref GameHandler.AllTanks;
                 for (int i = 0; i < tanks.Length; i++)
                 {
-
-                    if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                    
-                    var ai = tanks[i] as AITank;
-                    if (ai is null || ai.Dead || ai.AiTankType == Type) continue;
-
-                    if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[3].Value) continue;
-                   
-                    if (PoisonedTanks.Find(x => x == ai) is null)
+                    if (tanks[i] is Tank ai)
                     {
-                        PoisonedTanks.Add(ai);
-                        Tank_OnPoisoned(ai);
-                        if (AITank.Team != TeamID.NoTeam)
-                            ai.Team = AITank.Team;
+
+                        if (ai.Dead || AITank == ai || ai.Team != AITank.Team && AITank.Team != TeamID.NoTeam ||
+                            ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
+
+                        if (Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) > AITank.SpecialBehaviors[3].Value) continue;
+                        bool NotIntoxicated = true;
+                        if (PoisonedTanks.Find(x => x == ai) is null)
+                        {
+                            PoisonedTanks.Add(ai);
+                            Tank_OnPoisoned(ai);
+                        }
                     }
                 }
             }

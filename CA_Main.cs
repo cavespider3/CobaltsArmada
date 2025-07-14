@@ -229,8 +229,41 @@ public class CA_Main : TanksMod {
         }
         return null;
     }
+    public static void WhilePoisoned_Update(Tank tank)
+    {
+        if (PoisonedTanks.Find(x => x == tank) is not null && Client.ClientRandom.NextFloat(0.1f, 1f) < 0.7f && !tank.Dead)
+        {
+            Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, 1f) * tank.CollisionCircle.Radius * 1.1f;
 
-    public static void SpawnPoisonCloud(Vector3 v, float radius = 60f)
+            var smoke = GameHandler.Particles.MakeParticle(tank.Position3D + smokey.ExpandZ(),
+                GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
+
+
+            smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
+
+            smoke.Scale = new(0.5f);
+
+            smoke.Alpha = tank.Properties.Invisible ? 0.1f : 0.7f;
+
+            smoke.Color = Color.DarkViolet;
+
+            smoke.HasAddativeBlending = false;
+
+            smoke.UniqueBehavior = (part) => {
+
+                GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
+                part.Position += Vector3.UnitY * 0.7f * RuntimeData.DeltaTime * (part.LifeTime / 100f + 1f);
+                part.Alpha -= 0.04f * RuntimeData.DeltaTime;
+
+                if (part.Alpha <= 0)
+                    part.Destroy();
+
+            };
+        }
+
+    }
+
+    public static void SpawnPoisonCloud(Tank? emitter,Vector3 v, float radius = 60f)
     {
         const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 
@@ -261,17 +294,19 @@ public class CA_Main : TanksMod {
         for (int i = 0; i < tanks.Length; i++)
         {
 
-            if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-
-            var ai = tanks[i] as AITank;
-            if (ai is null || ai.Dead || ai.AiTankType == ModContent.GetSingleton<CA_Y2_NightShade>().Type) continue;
-
-            if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
-            bool NotIntoxicated = true;
-            if (PoisonedTanks.Find(x => x == ai) is null)
+            if (tanks[i] is Tank ai)
             {
-                PoisonedTanks.Add(ai);
-                Tank_OnPoisoned(ai);
+
+                if (ai.Dead || emitter == ai || emitter is not null && ai.Team != emitter.Team && emitter.Team != TeamID.NoTeam || 
+                    ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
+
+                if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
+                bool NotIntoxicated = true;
+                if (PoisonedTanks.Find(x => x == ai) is null)
+                {
+                    PoisonedTanks.Add(ai);
+                    Tank_OnPoisoned(ai);
+                }
             }
         }
 
@@ -306,46 +341,59 @@ public class CA_Main : TanksMod {
     }
 
 
-    public static void Tank_OnPoisoned(AITank tank)
+    public static void Tank_OnPoisoned(Tank _tank)
     {
         const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
         SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: -0.5f);
 
-        switch (tank.AiTankType)
+        _tank.Properties.ShootStun /= 2;
+        _tank.Properties.ShellCooldown /= 2;
+       
+        _tank.Properties.MaxSpeed *= 1.25f;
+       
+        if (_tank.Properties.Invisible)
         {
-            default:
-                tank.Properties.ShootStun /= 2;
-                tank.Properties.ShellCooldown /= 2;
-                tank.AiParams.ShootChance *= 1.5f;
-                tank.AiParams.MeanderAngle /= 2;
-                tank.AiParams.MeanderFrequency /= 2;
-                tank.AiParams.TurretMeanderFrequency /= 2;
-                tank.AiParams.Inaccuracy /= 1.5f;
-                tank.AiParams.TurretSpeed *= 1.75f;
-                tank.AiParams.AimOffset /= 2f;
-                tank.Properties.MaxSpeed *= 1.25f;
-                tank.AiParams.PursuitLevel = MathF.Sign(tank.AiParams.PursuitLevel) * tank.AiParams.PursuitLevel * 1.3f;
-                tank.AiParams.PursuitFrequency /= 2;
-                if (tank.Properties.Invisible)
-                {
-                    tank.Properties.CanLayTread = false;
-                    tank.Properties.TreadVolume = 0f;
-                }
-                if (tank.Properties.Stationary && !tank.Properties.Invisible)
-                {
-                    tank.Properties.Invisible = true;
-                    tank.AiParams.SmartRicochets = true;
-                    tank.AiParams.PredictsPositions = true;
-                    tank.AiParams.ShootChance *= 2;
-                    tank.DoInvisibilityGFXandSFX();
-                }
-                break;
+            _tank.Properties.CanLayTread = false;
+            _tank.Properties.TreadVolume = 0f;
         }
-        if (tank.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
+        if (_tank.Properties.Stationary && !_tank.Properties.Invisible)
         {
-            tank.Properties.Armor = new TankArmor(tank, 1);
-            tank.Properties.Armor.HideArmor = true;
+            _tank.Properties.Invisible = true;
+            _tank.DoInvisibilityGFXandSFX();
         }
+
+        if (_tank is AITank tank)
+        {
+            switch (tank.AiTankType)
+            {
+                default:
+                 
+                    tank.AiParams.ShootChance *= 1.5f;
+                    tank.AiParams.MeanderAngle /= 2;
+                    tank.AiParams.MeanderFrequency /= 2;
+                    tank.AiParams.TurretMeanderFrequency /= 2;
+                    tank.AiParams.Inaccuracy /= 1.5f;
+                    tank.AiParams.TurretSpeed *= 1.75f;
+                    tank.AiParams.AimOffset /= 2f;
+                  
+                    tank.AiParams.PursuitLevel = MathF.Sign(tank.AiParams.PursuitLevel) * tank.AiParams.PursuitLevel * 1.3f;
+                    tank.AiParams.PursuitFrequency /= 2;
+                  
+                    if (tank.Properties.Stationary && !tank.Properties.Invisible)
+                    {              
+                        tank.AiParams.SmartRicochets = true;
+                        tank.AiParams.PredictsPositions = true;
+                        tank.AiParams.ShootChance *= 2;
+                    }
+                    break;
+            }
+            if (tank.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
+            {
+                tank.Properties.Armor = new TankArmor(tank, 1);
+                tank.Properties.Armor.HideArmor = true;
+            }
+        }
+       
 
     }
 
@@ -415,6 +463,7 @@ public class CA_Main : TanksMod {
    
     private void SceneManager_OnMissionCleanup()
     {
+        if (boss is not null) boss.Owner = null;
         foreach (var pu in CA_OrbitalStrike.AllLasers)
             pu?.Remove();
         foreach (var pu in CA_Idol_Tether.AllTethers)
@@ -536,13 +585,13 @@ public class CA_Main : TanksMod {
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
-                if (tanks[i] is AITank ai)
+                if (tanks[i] is Tank ai)
                 {
-                    CA_Y2_NightShade.WhilePoisoned_Update(ai);
+                    CA_Main.WhilePoisoned_Update(ai);
                 }
 
             }
-            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) SpawnPoisonCloud(!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
+            if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) SpawnPoisonCloud(null,!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
             
             foreach (var IT in CA_Idol_Tether.AllTethers)
                 IT?.Update();
