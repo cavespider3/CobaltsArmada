@@ -52,7 +52,7 @@ namespace CobaltsArmada.Hooks
                 OnLeftClick = (elem) =>
                 {
                     Difficulties.Types["CobaltArmada_Swap"] = !Difficulties.Types["CobaltArmada_Swap"];
-                    Invasion.Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red;
+                    
                 },
                 Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red
 
@@ -69,15 +69,13 @@ namespace CobaltsArmada.Hooks
                     else modifier_Difficulty += 1;
                     Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
 
-                    Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
+                   
                 },
                 OnRightClick = (elem) =>
                 {
                     if (modifier_Difficulty - 1 < ModDifficulty.Easy) modifier_Difficulty = ModDifficulty.Phantasm;
                     else modifier_Difficulty -= 1;
                     Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
-
-                    Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
                 },
 
                 Color = DifficultyColor(modifier_Difficulty)
@@ -91,7 +89,7 @@ namespace CobaltsArmada.Hooks
                 OnLeftClick = (elem) =>
                 {
                     Difficulties.Types["CobaltArmada_TanksOnCrack"] = !Difficulties.Types["CobaltArmada_TanksOnCrack"];
-                    Tankbonic_Plague.Color = Difficulties.Types["CobaltArmada_TanksOnCrack"] ? Color.Lime : Color.Red;
+                    
                 },
                 Color = Difficulties.Types["CobaltArmada_TanksOnCrack"] ? Color.Lime : Color.Red
 
@@ -108,7 +106,7 @@ namespace CobaltsArmada.Hooks
                     else modifier_Tanktosis += 1;
                     Difficulties.Types["CobaltArmada_Mitosis"] = modifier_Tanktosis != CA_Main.Tanktosis.Single;
 
-                    Tanktosis.Color = DifficultyColor(modifier_Tanktosis);
+                    
                 },
                 OnRightClick = (elem) =>
                 {
@@ -116,7 +114,7 @@ namespace CobaltsArmada.Hooks
                     else modifier_Tanktosis -= 1;
                     Difficulties.Types["CobaltArmada_Mitosis"] = modifier_Tanktosis != CA_Main.Tanktosis.Single;
 
-                    Tanktosis.Color = DifficultyColor(modifier_Tanktosis);
+                   
                 },
 
                 Color = DifficultyColor(modifier_Difficulty)
@@ -130,7 +128,7 @@ namespace CobaltsArmada.Hooks
                 OnLeftClick = (elem) =>
                 {
                     Difficulties.Types["CobaltArmada_P2"] = !Difficulties.Types["CobaltArmada_P2"];
-                    oopsAllIdol.Color = Difficulties.Types["CobaltArmada_P2"] ? Color.Lime : Color.Red;
+                   
                 },
                 Color = Difficulties.Types["CobaltArmada_P2"] ? Color.Lime : Color.Red
 
@@ -175,6 +173,12 @@ namespace CobaltsArmada.Hooks
                     modifier_Tanktosis == CA_Main.Tanktosis.Double ? "Double Trouble" :
                      modifier_Tanktosis == CA_Main.Tanktosis.Triple ? "Triple Threat" :
                      "Quad Squad";
+
+                Tankbonic_Plague.Color = Difficulties.Types["CobaltArmada_TanksOnCrack"] ? Color.Lime : Color.Red;
+                Tanktosis.Color = DifficultyColor(modifier_Tanktosis);
+                oopsAllIdol.Color = Difficulties.Types["CobaltArmada_P2"] ? Color.Lime : Color.Red;
+                Touhoumode_2.Color = DifficultyColor(modifier_Difficulty);
+                Invasion.Color = Difficulties.Types["CobaltArmada_Swap"] ? Color.Lime : Color.Red;
             }
             else
             {
@@ -184,6 +188,7 @@ namespace CobaltsArmada.Hooks
                 Tanktosis.IsVisible = false;
                 oopsAllIdol.IsVisible = false;
             }
+           
             //Gameplay
             boss?.Update();
             MissionDeadline?.Update();

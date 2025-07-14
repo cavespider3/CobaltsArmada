@@ -23,10 +23,7 @@ using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.LevelEditor;
 
 using TanksRebirth.Enums;
-using TanksRebirth.GameContent.Globals.Assets;
-using TanksRebirth.Graphics;
-using Octokit;
-using System.Threading.Tasks;
+using LiteNetLib.Utils;
 
 
 namespace CobaltsArmada;
@@ -70,6 +67,8 @@ public class CA_Main : TanksMod {
 
 
      */
+
+
     public override string Name => "Cobalt's Armada";
     /// <summary>
     /// Lilac Tank Color
@@ -265,6 +264,7 @@ public class CA_Main : TanksMod {
 
     public static void SpawnPoisonCloud(Tank? emitter,Vector3 v, float radius = 60f)
     {
+
         const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 
         SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f, pitchOverride: 0.5f);
@@ -301,16 +301,12 @@ public class CA_Main : TanksMod {
                     ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
 
                 if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
-                bool NotIntoxicated = true;
-                if (PoisonedTanks.Find(x => x == ai) is null)
-                {
-                    PoisonedTanks.Add(ai);
-                    Tank_OnPoisoned(ai);
-                }
+                PoisonTank(ai);
             }
         }
 
     }
+    
     public static int FlowerFromBase(int ID)
     {
         switch (ID)
@@ -339,7 +335,6 @@ public class CA_Main : TanksMod {
 
         }
     }
-
 
     public static void Tank_OnPoisoned(Tank _tank)
     {
@@ -445,6 +440,8 @@ public class CA_Main : TanksMod {
 
         Hook_UI.Load();
         TankGame.PostDrawEverything += TankGame_OnPostDraw;
+
+        CA_NetPlay.Load();
     }
 
   
@@ -463,6 +460,7 @@ public class CA_Main : TanksMod {
    
     private void SceneManager_OnMissionCleanup()
     {
+        PoisonedTanks.Clear();
         if (boss is not null) boss.Owner = null;
         foreach (var pu in CA_OrbitalStrike.AllLasers)
             pu?.Remove();
@@ -473,6 +471,7 @@ public class CA_Main : TanksMod {
         {
             item?.Remove();
         }
+       
     }
 
 
@@ -559,14 +558,24 @@ public class CA_Main : TanksMod {
                 if (ai is null) continue;
                 if (ai is null || ai.Dead || ai.AiTankType == NightShade) continue;
 
-                if (PoisonedTanks.Find(x => x == ai) is null)
-                {
-                    PoisonedTanks.Add(ai);
-                    Tank_OnPoisoned(ai);
-                }
+                PoisonTank(ai);
             }
 
         }
+    }
+
+    public static void PoisonTank(Tank ai)
+    {
+        if ((Client.IsHost() && Client.IsConnected()) || (!Client.IsConnected() && !ai.Dead) || MainMenuUI.Active)
+        {
+            if (PoisonedTanks.Find(x => x == ai) is null)
+            {
+                PoisonedTanks.Add(ai);
+                Tank_OnPoisoned(ai);
+                CA_NetPlay.RequestNightshadeTank(ai);
+            }
+        }
+
     }
 
   
@@ -850,5 +859,6 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Remove("CobaltArmada_P2");
 
         MainMenuUI.AllDifficultyButtons.RemoveRange(Hook_UI.startIndex, MainMenuUI.AllDifficultyButtons.Count - Hook_UI.startIndex - 1);
+        CA_NetPlay.Unload();
     }
 }

@@ -176,12 +176,7 @@ namespace CobaltsArmada
                             ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
 
                         if (Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) > AITank.SpecialBehaviors[3].Value) continue;
-                        bool NotIntoxicated = true;
-                        if (PoisonedTanks.Find(x => x == ai) is null)
-                        {
-                            PoisonedTanks.Add(ai);
-                            Tank_OnPoisoned(ai);
-                        }
+                        PoisonTank(ai);
                     }
                 }
             }

@@ -167,8 +167,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                 {
                     if (bindTarget is AITank _AITank && CA_Main.PoisonedTanks.Find(x => x == bindTarget) is null && CA_Main.PoisonedTanks.Find(x => x == ai) is not null)
                     {
-                        CA_Main.PoisonedTanks.Add(_AITank);
-                        CA_Main.Tank_OnPoisoned(_AITank);
+                       CA_Main.PoisonTank(ai);
                     }
                 }
 
