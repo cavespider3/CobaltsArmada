@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Script.Tanks.Class_T;
+using Microsoft.Xna.Framework;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
@@ -73,6 +74,7 @@ namespace CobaltsArmada
             aiParams.BlockReadTime = 10;
 
             AITank.BaseExpValue = 0.175f;
+            
         }
 
         public override void Shoot(Shell shell)
@@ -81,6 +83,7 @@ namespace CobaltsArmada
             base.Shoot(shell);
              shell.Properties.FlameColor = AssociatedColor;
         }
+      
         public override void PreUpdate()
         {
             base.PreUpdate();

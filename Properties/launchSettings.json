@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\caves\\Games\\tanks_rebirth\\TanksRebirth.exe",
+      "workingDirectory": "C:\\Users\\caves\\Games\\tanks_rebirth"
+    }
+  }
+}

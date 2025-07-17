@@ -24,9 +24,17 @@ using TanksRebirth.GameContent.UI.LevelEditor;
 
 using TanksRebirth.Enums;
 using LiteNetLib.Utils;
+using CobaltsArmada.Script.Tanks.Class_T;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using TanksRebirth.IO;
+using TanksRebirth.Graphics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using tainicom.Aether.Physics2D.Dynamics;
 
 
 namespace CobaltsArmada;
+
 
 public class CA_Main : TanksMod {
     //Asset loading handled by this
@@ -100,9 +108,12 @@ public class CA_Main : TanksMod {
     public static Model? Shell_Beam;
     public static Model? Shell_Glaive;
 
+    public static Model? Drone;
+
     public static Texture2D? Beam;
     public static Texture2D? Beam_Dan;
     public static Texture2D? Tank_Y1;
+    public static Texture2D? Tank_CustomPaint;
 
     public static BossBar? boss;
     public static VindicationTimer? MissionDeadline;
@@ -396,7 +407,10 @@ public class CA_Main : TanksMod {
 
         Difficulties.Types.Add("CobaltArmada_Swap", false);
         Difficulties.Types.Add("CobaltArmada_GetGud", false);
+
         Difficulties.Types.Add("CobaltArmada_YouAndWhatArmy", false);
+        Difficulties.Types.Add("CobaltArmada_YouAndMyArmy", false);
+
         Difficulties.Types.Add("CobaltArmada_MasterSpark", false);
         Difficulties.Types.Add("CobaltArmada_TanksOnCrack", false);
         Difficulties.Types.Add("CobaltArmada_Mitosis", false);
@@ -407,11 +421,14 @@ public class CA_Main : TanksMod {
         Neo_Boss = ImportAsset<Model>("assets/models/tank_elite_a");
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
         Shell_Glaive = ImportAsset<Model>("assets/models/bullet_glave");
+        Drone = ImportAsset<Model>("assets/models/tank_drone");
+
 
         Tank_Y1 = ImportAsset<Texture2D>("assets/textures/tank_lotus");
         Beam = ImportAsset<Texture2D>("assets/textures/tank_zenith");
         Beam_Dan = ImportAsset<Texture2D>("assets/textures/tank_dandy");
-        
+        Tank_CustomPaint = ImportAsset<Texture2D>("assets/textures/tank_custompaint");
+
         MainMenuUI.OnMenuOpen += Open;
         MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
         Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
@@ -424,7 +441,7 @@ public class CA_Main : TanksMod {
 
         CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
         CampaignGlobals.OnMissionEnd += CampaignGlobals_OnMissionEnd;
-
+        Block.OnDestroy += Block_OnDestroy;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
@@ -444,7 +461,13 @@ public class CA_Main : TanksMod {
         CA_NetPlay.Load();
     }
 
-  
+    private void Block_OnDestroy(Block block)
+    {
+        if (CA_Drone.DroneCollisions.BodyList.Contains(block.Body))
+        {
+            CA_Drone.DroneCollisions.Remove(block.Body);
+        }
+    }
 
     private void TankGame_OnPostDraw(GameTime obj)
     {
@@ -453,6 +476,9 @@ public class CA_Main : TanksMod {
         {
             Modifieralert.AllModifiers[i]?.Render(TankGame.SpriteRenderer, i, Vector2.One, Anchor.LeftCenter);
         }
+        foreach (var pu in CA_Drone.AllDrones)
+            pu?.DebugRender();
+
         TankGame.SpriteRenderer.End();
     }
 
@@ -466,12 +492,16 @@ public class CA_Main : TanksMod {
             pu?.Remove();
         foreach (var pu in CA_Idol_Tether.AllTethers)
             pu?.Remove();
-       
+        foreach (var pu in CA_Drone.AllDrones)
+            pu?.Remove();
         foreach (var item in Modifieralert.AllModifiers)
         {
             item?.Remove();
         }
-       
+        //make sure there isn't anything in the list
+        foreach (var pu in CA_Drone.DroneCollisions.BodyList)
+            if (pu is Body body) CA_Drone.DroneCollisions.Remove(body);
+
     }
 
 
@@ -562,6 +592,20 @@ public class CA_Main : TanksMod {
             }
 
         }
+        if(Difficulties.Types["CobaltArmada_YouAndWhatArmy"] || Difficulties.Types["CobaltArmada_YouAndMyArmy"])
+            GiveDrone();
+
+    }
+
+    private void GiveDrone()
+    {
+        ref Tank[] tanks = ref GameHandler.AllTanks;
+        for (int i = 0; i < tanks.Length; i++)
+        {
+            if (tanks[i] is Tank ai  && (ai is PlayerTank && Difficulties.Types["CobaltArmada_YouAndMyArmy"] || ai is AITank && Difficulties.Types["CobaltArmada_YouAndWhatArmy"])){
+                new CA_Drone(ai, ai.Position / 8f);
+                                    }
+        }
     }
 
     public static void PoisonTank(Tank ai)
@@ -588,6 +632,9 @@ public class CA_Main : TanksMod {
 
         if (!IntermissionSystem.IsAwaitingNewMission)
         {
+            foreach (var IT in CA_Drone.AllDrones)
+                IT?.Update();
+
             foreach (var fp in CA_OrbitalStrike.AllLasers)
                 fp?.Update();
 
@@ -600,11 +647,18 @@ public class CA_Main : TanksMod {
                 }
 
             }
+            if (InputUtils.KeyJustPressed(Keys.B) && DebugManager.DebuggingEnabled && tanks.Length > 0)
+            {
+                CA_Drone testdrone = new CA_Drone(null, (!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position).FlattenZ()/8f);
+            } 
             if (InputUtils.KeyJustPressed(Keys.Y) && DebugManager.DebuggingEnabled) SpawnPoisonCloud(null,!CameraGlobals.OverheadView ? MatrixUtils.GetWorldPosition(MouseUtils.MousePosition) : PlacementSquare.CurrentlyHovered.Position);
             
             foreach (var IT in CA_Idol_Tether.AllTethers)
                 IT?.Update();
 
+
+
+        
         }
         else
         {
@@ -626,15 +680,39 @@ public class CA_Main : TanksMod {
             
 
         }
-
+        ref Crate[] crates = ref Crate.crates;
+        for (int i = 0; i < crates.Length; i++)
+        {
+            if (crates[i] is Crate crate)
+            {
+                if (!crate.IsOpening)
+                {
+                    crate.ContainsTank = crate.position.FlattenZ() == Vector2.Clamp(crate.position.FlattenZ(), new Vector2(GameScene.MIN_X, GameScene.MIN_Z), new Vector2(GameScene.MAX_X, GameScene.MAX_Z));
+                }
+                //bounding area
+                Vector2 nextmove = crate.position.FlattenZ() + crate.velocity.FlattenZ() * RuntimeData.DeltaTime;
+                if (crate.ContainsTank && nextmove != Vector2.Clamp(nextmove, new Vector2(GameScene.MIN_X, GameScene.MIN_Z), new Vector2(GameScene.MAX_X, GameScene.MAX_Z))){
+                    if (nextmove.X < GameScene.MIN_X || nextmove.X > GameScene.MAX_X)
+                    {
+                        crate.velocity.X *= -0.9f;
+                    }
+                    if (nextmove.Y < GameScene.MIN_Z || nextmove.Y > GameScene.MAX_Z)
+                    {
+                        crate.velocity.Z *= -0.9f;
+                    }
+                }
+            }
+        }
+        CA_Drone.CollisionUpdate();
+        CA_Drone.DroneCollisions.Step(RuntimeData.DeltaTime);
     }
-
-
-
     private void GameHandler_OnPostRender()
     {
         foreach (var fp in CA_OrbitalStrike.AllLasers)
             fp?.Render();
+        foreach (var fp in CA_Drone.AllDrones)
+            fp?.Render();
+
         boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth-WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight-60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
         MissionDeadline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
     }
@@ -853,6 +931,7 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Remove("CobaltArmada_Swap");
         Difficulties.Types.Remove("CobaltArmada_GetGud");
         Difficulties.Types.Remove("CobaltArmada_YouAndWhatArmy");
+        Difficulties.Types.Remove("CobaltArmada_YouAndMyArmy");
         Difficulties.Types.Remove("CobaltArmada_MasterSpark");
         Difficulties.Types.Remove("CobaltArmada_TanksOnCrack");
         Difficulties.Types.Remove("CobaltArmada_Mitosis");
