@@ -1,37 +1,21 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using TanksRebirth.GameContent;
-using TanksRebirth.GameContent.GameMechanics;
-using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Internals;
-using TanksRebirth.Localization;
 using TanksRebirth;
 using static TanksRebirth.GameContent.Shell;
 using static TanksRebirth.GameContent.Mine;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using TanksRebirth.GameContent.ID;
-
-using TanksRebirth.Internals.Common.Framework;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using TanksRebirth.GameContent.RebirthUtils;
-using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.Internals.Common.Framework.Audio;
-using static StbVorbisSharp.StbVorbis;
 using TanksRebirth.Graphics;
-using TanksRebirth.GameContent.UI;
-using TanksRebirth.Net;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.MainMenu;
+using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.Internals.Common.Framework.Collisions;
+
 
 namespace CobaltsArmada
 {/// <summary>
@@ -95,6 +79,8 @@ namespace CobaltsArmada
         }
         public TeamkillContext context { get; private set; }
         public int Id { get; private set; }
+
+        public int Team => throw new NotImplementedException();
 
         /// <summary>
         /// 

@@ -44,6 +44,8 @@ namespace CobaltsArmada.Hooks
         public static UITextButton? SkynetModeB;
 
         public static UITextButton? oopsAllIdol;
+
+        public static UITextButton? TankSiblings;
         public static List<UITextButton> buttons = new();
 
         public static int startIndex;
@@ -62,6 +64,20 @@ namespace CobaltsArmada.Hooks
 
             };
 
+            TankSiblings = new("Matryoshka Tanks", FontGlobals.RebirthFont, Color.White)
+            {
+                IsVisible = false,
+                Tooltip = "Enemy tanks will change into a lower tier when destroyed.",
+                OnLeftClick = (elem) =>
+                {
+                    Difficulties.Types["CobaltArmada_RussianDollTanks"] = !Difficulties.Types["CobaltArmada_RussianDollTanks"];
+
+                },
+                Color = Difficulties.Types["CobaltArmada_RussianDollTanks"] ? Color.Lime : Color.Red
+
+            };
+
+
             SkynetModeA = new("Players have drones", FontGlobals.RebirthFont, Color.White)
             {
                 IsVisible = false,
@@ -78,7 +94,7 @@ namespace CobaltsArmada.Hooks
             SkynetModeB = new("Enemies have drones", FontGlobals.RebirthFont, Color.White)
             {
                 IsVisible = false,
-                Tooltip = "All ai tanks are given a drone.",
+                Tooltip = "All enemy tanks are given a drone.",
                 OnLeftClick = (elem) =>
                 {
                     Difficulties.Types["CobaltArmada_YouAndWhatArmy"] = !Difficulties.Types["CobaltArmada_YouAndWhatArmy"];
@@ -167,7 +183,7 @@ namespace CobaltsArmada.Hooks
             //Hooks
 
             buttons.AddRange([
-               Invasion, Touhoumode_2, Tankbonic_Plague, Tanktosis, oopsAllIdol,SkynetModeA,SkynetModeB
+               Invasion, Touhoumode_2, Tankbonic_Plague, Tanktosis, oopsAllIdol,SkynetModeA,SkynetModeB,TankSiblings
            ]);
             startIndex = MainMenuUI.AllDifficultyButtons.Count - 1;
             MainMenuUI.AllDifficultyButtons.AddRange(buttons);
@@ -176,6 +192,7 @@ namespace CobaltsArmada.Hooks
         }
         public static void Hook_UpdateUI()
         {
+            if (Invasion is null) return;
             try
             {
                 if (!MainMenuUI.Active) return;
@@ -189,6 +206,7 @@ namespace CobaltsArmada.Hooks
 
                     SkynetModeA!.IsVisible = true;
                     SkynetModeB!.IsVisible = true;
+                    TankSiblings!.IsVisible = true;
 
                     Touhoumode_2.Text = "Difficulty: " + modifier_Difficulty.ToString();
                     Touhoumode_2.Tooltip = "Modifies Armada tanks to be easier or harder.\n\"" + (modifier_Difficulty == ModDifficulty.Easy ? "for people who need to stop and smell the roses" :
@@ -217,6 +235,7 @@ namespace CobaltsArmada.Hooks
                     SkynetModeA!.Color = Difficulties.Types["CobaltArmada_YouAndMyArmy"] ? Color.Lime : Color.Red;
 
                     SkynetModeB!.Color = Difficulties.Types["CobaltArmada_YouAndWhatArmy"] ? Color.Lime : Color.Red;
+                    TankSiblings!.Color = Difficulties.Types["CobaltArmada_RussianDollTanks"] ? Color.Lime : Color.Red;
                 }
                 else
                 {
@@ -227,6 +246,7 @@ namespace CobaltsArmada.Hooks
                     oopsAllIdol!.IsVisible = false;
                     SkynetModeA!.IsVisible = false;
                     SkynetModeB!.IsVisible = false;
+                    TankSiblings!.IsVisible = false;
                 }
             }
             catch

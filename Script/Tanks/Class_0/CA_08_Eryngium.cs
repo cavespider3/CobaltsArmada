@@ -14,10 +14,13 @@ using TanksRebirth.Localization;
 using System.Threading.Tasks;
 using System.Diagnostics.Tracing;
 using TanksRebirth.Net;
+using TanksRebirth.GameContent.Systems.AI;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_08_Eryngium : ModTank 
+
+    public class CA_08_Eryngium : CA_ArmadaTank
     {
       //Sea Holly
         public override bool HasSong => true;
@@ -34,29 +37,25 @@ namespace CobaltsArmada
             base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f * 1.1f;
+            AITank.Scaling = Vector3.One * 1.1f;
             Properties_Visible(AITank);
         }
         static AITank? _Tank;
         static void Properties_Visible(AITank tank)
         {
-            var aiParams = tank.AiParams;
+            var Parameters = tank.Parameters;
             var properties = tank.Properties;
-            aiParams.MeanderFrequency = 40;
-            aiParams.MeanderAngle = MathHelper.ToRadians(25);
-            aiParams.TurretMeanderFrequency = 30;
-            aiParams.TurretSpeed = 0.02f;
-            aiParams.AimOffset = MathHelper.ToRadians(80);
-            aiParams.Inaccuracy = MathHelper.ToRadians(25);
+            Parameters.RandomTimerMinMove = 40;
+            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(25);
+            Parameters.TurretMovementTimer = 30;
+            Parameters.TurretSpeed = 0.02f;
+            Parameters.AimOffset = MathHelper.ToRadians(80);
 
-            aiParams.TurretSpeed = 0.03f;
-            aiParams.AimOffset = 0.18f;
 
-            aiParams.PursuitLevel = -0.05f;
-            aiParams.PursuitFrequency = 80;
+            Parameters.AggressivenessBias = -0.05f;
 
-            aiParams.ProjectileWarinessRadius_PlayerShot = 60;
-            aiParams.MineWarinessRadius_PlayerLaid = 160;
+            Parameters.AwarenessHostileShell = 60;
+            Parameters.AwarenessHostileMine = 160;
 
             properties.TurningSpeed = 0.06f;
             properties.MaximalTurn = MathHelper.ToRadians(30);
@@ -73,9 +72,9 @@ namespace CobaltsArmada
             properties.Stationary = false;
             properties.ShellHoming = new();
             tank.Properties.CanLayTread = true;
-            aiParams.SmartRicochets = false;
+            Parameters.SmartRicochets = false;
             properties.InvulnerableToMines = false;
-            aiParams.PredictsPositions = true;
+            Parameters.PredictsPositions = true;
             tank.Properties.TrackType = TrackID.Thick;
             properties.TreadPitch = -0.2f;
             properties.MaxSpeed = 1.3f;
@@ -87,33 +86,29 @@ namespace CobaltsArmada
             properties.MineLimit = 0;
             properties.MineStun = 10;
 
-            aiParams.MinePlacementChance = 0.05f;
+            Parameters.ChanceMineLay = 0.05f;
 
-            aiParams.BlockWarinessDistance = 90;
-            aiParams.BlockReadTime = 10;
-
-            tank.BaseExpValue = 0.1f;
+            Parameters.ObstacleAwarenessMovement = 90;
+            Parameters.ObstacleAwarenessMovement = 10;
            
         }
 
         static void Properties_Invisible(AITank tank)
         {
-            var aiParams = tank.AiParams;
+            var Parameters = tank.Parameters;
             var properties = tank.Properties;
-            aiParams.MeanderFrequency = 15;
-            aiParams.MeanderAngle = MathHelper.ToRadians(25);
-            aiParams.TurretSpeed = 0.03f;
-            aiParams.TurretMeanderFrequency = 40;
-            aiParams.AimOffset = MathHelper.ToRadians(23);
-            aiParams.Inaccuracy = 6;
+            Parameters.RandomTimerMinMove = 15;
+            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(25);
+            Parameters.TurretSpeed = 0.03f;
+            Parameters.TurretMovementTimer = 40;
+            Parameters.AimOffset = MathHelper.ToRadians(23);
 
-            aiParams.AimOffset = 0.1f;
+            Parameters.AimOffset = 0.1f;
 
-            aiParams.PursuitLevel = 1f;
-            aiParams.PursuitFrequency = 12;
+            Parameters.AggressivenessBias = 1f;
 
-            aiParams.ProjectileWarinessRadius_PlayerShot = 60;
-            aiParams.MineWarinessRadius_PlayerLaid = 160;
+            Parameters.AwarenessHostileShell = 60;
+            Parameters.AwarenessHostileMine = 160;
 
             properties.TurningSpeed = 0.06f;
             properties.MaximalTurn = MathHelper.ToRadians(30);
@@ -135,7 +130,7 @@ namespace CobaltsArmada
             properties.ShellHoming = new();
             properties.InvulnerableToMines = true;
             tank.Properties.CanLayTread = false;
-            aiParams.PredictsPositions = true;
+            Parameters.PredictsPositions = true;
             tank.Speed = 0f;
 
             properties.TreadPitch = -0.2f;
@@ -147,15 +142,14 @@ namespace CobaltsArmada
             properties.MineLimit = 0;
             properties.MineStun = 10;
 
-            aiParams.MinePlacementChance = 0.00f;
+            Parameters.ChanceMineLay = 0.00f;
 
-            aiParams.BlockWarinessDistance = 90;
-            aiParams.BlockReadTime = 10;
+            Parameters.ObstacleAwarenessMovement = 90;
+            Parameters.ObstacleAwarenessMovement = 10;
 
-            tank.BaseExpValue = 0.1f;
         }
 
-      
+
 
 
         public override void PostUpdate()
@@ -163,7 +157,7 @@ namespace CobaltsArmada
 
             AITank.Speed *= AITank.Properties.Stationary ? 0f : 1f;
             AITank.Velocity *= AITank.Properties.Stationary ? 0f : 1f;
-            AITank.AiParams.TurretSpeed = AITank.CurShootStun > 0 ? 0f : 0.05f;
+            AITank.Parameters.TurretSpeed = AITank.CurShootStun > 0 ? 0f : 0.05f;
 
             AITank.SpecialBehaviors[0].Value += RuntimeData.DeltaTime;
 
@@ -202,6 +196,8 @@ namespace CobaltsArmada
                 }
                 CA_08_Eryngium.swap(_Tank);
             }
+            base.PostUpdate();
+          
         }
 
        static void swap(AITank tank)

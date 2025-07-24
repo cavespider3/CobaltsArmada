@@ -15,6 +15,8 @@ using System.Reflection;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Systems.AI;
 
 namespace CobaltsArmada
 {

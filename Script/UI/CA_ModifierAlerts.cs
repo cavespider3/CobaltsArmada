@@ -15,26 +15,16 @@ using TanksRebirth.Internals.Common.GameUI;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
 using TanksRebirth.GameContent.Globals;
+using CobaltsArmada.Script.UI;
 
 namespace CobaltsArmada
 {
     /// <summary>
     /// Cause we need one
     /// </summary>
-    public class Modifieralert
-    {
-
-        private Texture2D banner;
+    public class Modifieralert : CA_Popup
+    {  
         private string Name;
-        private Color banner_color;
-        private float Anim_Rising;
-        private float Anim_Up;
-        private float _offset;
-        const float Anim_Slide = 0.5f*60f;
-        const float Anim_Life = 3f*60f;
-
-        public static Modifieralert[] AllModifiers = new Modifieralert[80];
-        public int Id { get; private set; }
         public static Dictionary<string, string> TranslationTable = new()
         {
             ["TanksAreCalculators"] = "Tanks Are Calculators",
@@ -70,42 +60,33 @@ namespace CobaltsArmada
         };
 
 
-        public Modifieralert(string text,Color color,float offset)
+        public Modifieralert(string text,Color color,float offset) : base(color,offset:offset)
         {
-            banner = GameResources.GetGameResource<Texture2D>("Assets/textures/ui/mission_info");
-            banner_color = TranslationTable.ContainsKey(text) ? TranslationTable[text] == "$Difficulty$" ? CA_Main.DifficultyColor(CA_Main.modifier_Difficulty) * 1.2f : color * 1.5f : text == "$START$" ? new Color(0.3f, 0.3f, 0.3f) * 1.5f : color * 1.5f;
-            if (text == "CobaltArmada_TanksOnCrack") banner_color = Color.Violet;
+            BannerColor = TranslationTable.ContainsKey(text) ? TranslationTable[text] == "$Difficulty$" ? CA_Main.DifficultyColor(CA_Main.modifier_Difficulty) * 1.2f : color * 1.5f : text == "$START$" ? new Color(0.3f, 0.3f, 0.3f) * 1.5f : color * 1.5f;
+            if (text == "CobaltArmada_TanksOnCrack") BannerColor = Color.Violet;
             Name = TranslationTable.ContainsKey(text) ? TranslationTable[text] == "$Difficulty$" ? CA_Main.modifier_Difficulty.ToString() : TranslationTable[text] :
                 text=="$START$" ? "Active Modifiers:"
   
                 : "???";
-   
-
-                _offset = offset * 60f;
-            int index = Array.IndexOf(AllModifiers, null);
-            Id = index;
-            AllModifiers[index] = this;
+            OnBeginExit += Modifieralert_OnBeginExit;
         }
 
-        public void Render(SpriteBatch sb, int interval, Vector2 scale, Anchor aligning)
+        private void Modifieralert_OnBeginExit()
         {
-            Anim_Up += RuntimeData.DeltaTime * (( (Anim_Rising - _offset) >(Anim_Life - Anim_Slide - _offset)) ? -1 : 1f)/60f * (Anim_Rising - _offset > 0 ? 1 : 0f);
-            Anim_Rising += RuntimeData.DeltaTime;
-            Anim_Up = Math.Clamp(Anim_Up, 0f, 1f);
-            float scale_shrink = 1.3f;
-            float Anim_Up2 = Math.Clamp(Anim_Up / (Anim_Slide / 60f), 0, 1f);
-            var barPos = new Vector2(WindowUtils.WindowWidth-(banner.Width*1.2f/ scale_shrink * Easings.OutCubic(Anim_Up2))+ banner.Width/ scale_shrink, (banner.Height/ scale_shrink + 4)*interval+ banner.Height/ scale_shrink);
-            DrawUtils.DrawTextureWithShadow(sb,banner, barPos.ToResolution(),
-                Vector2.UnitY, banner_color , Vector2.One.ToResolution()/ scale_shrink, 1f,Anchor.Center, shadowDistScale: 0.5f);
-            
-            DrawUtils.DrawStringWithShadow(sb,FontGlobals.RebirthFont, (barPos+Vector2.UnitX*3f).ToResolution(), Vector2.UnitY, Name, Color.White, Vector2.One.ToResolution() / scale_shrink, 1f,Anchor.Center, shadowDistScale: 0.5f);
-            if (Anim_Rising - _offset > Anim_Life && Anim_Up == 0) Remove();
+            if (Name != "Active Modifiers:")
+            {
+                PopupAnimation.Seek(4);
+            }
         }
-
-        public void Remove()
+        public override void Remove()
         {
-
-            AllModifiers[Id] = null;
+            OnBeginExit -= Modifieralert_OnBeginExit;
+            base.Remove();
+        }
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            base.Draw(spriteBatch);
+            DrawUtils.DrawStringWithShadow(spriteBatch, FontGlobals.RebirthFont, (barPos+Vector2.UnitX*3f).ToResolution(), Vector2.UnitY, Name, Color.White, Vector2.One.ToResolution() / scale_shrink, 1f,Anchor.LeftCenter, shadowDistScale: 0.5f);
         }
     }
 }

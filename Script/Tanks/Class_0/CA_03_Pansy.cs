@@ -9,10 +9,14 @@ using TanksRebirth.Graphics;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {   
-    public class CA_03_Pansy : ModTank 
+    /// <summary> Pansys will alternate between a spray of fast missles at long range, and a shotgun burst with insane recoil at close ranges
+    /// 
+    /// </summary>
+    public class CA_03_Pansy : CA_ArmadaTank
     {
         
         public override bool HasSong => true;
@@ -29,22 +33,20 @@ namespace CobaltsArmada
             base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f;
-            var aiParams = AITank.AiParams;
+            AITank.Scaling = Vector3.One;
+            var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
-            aiParams.MeanderAngle = MathHelper.ToRadians(30);
-            aiParams.MeanderFrequency = 15;
-            aiParams.TurretMeanderFrequency = 20;
-            aiParams.TurretSpeed = 0.025f;
-            aiParams.AimOffset = 0.2f;
+            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            Parameters.RandomTimerMaxMove = 26;
+            Parameters.RandomTimerMaxMove = 10;
+            Parameters.TurretMovementTimer = 20;
+            Parameters.TurretSpeed = 0.025f;
+            Parameters.AimOffset = 0.2f;
 
-            aiParams.Inaccuracy = 0.1f;
+            Parameters.AggressivenessBias = -0.3f;
 
-            aiParams.PursuitLevel = -0.3f;
-            aiParams.PursuitFrequency = 240;
-
-            aiParams.ProjectileWarinessRadius_PlayerShot = 40;
-            aiParams.MineWarinessRadius_PlayerLaid = 70;
+            Parameters.AwarenessHostileShell = 40;
+            Parameters.AwarenessHostileMine = 70;
 
             properties.TurningSpeed = 0.15f;
             properties.MaximalTurn = MathHelper.PiOver2;
@@ -72,8 +74,8 @@ namespace CobaltsArmada
             properties.MineLimit = 1;
             properties.MineStun = 0;
 
-            aiParams.MinePlacementChance = 0.05f;
-            AITank.BaseExpValue = 0.1f;
+            Parameters.ChanceMineLay = 0.05f;
+   
         }
 
         public override void PreUpdate()
@@ -110,5 +112,6 @@ namespace CobaltsArmada
             }
 
         }
+     
     }
 }

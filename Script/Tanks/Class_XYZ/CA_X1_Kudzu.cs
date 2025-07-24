@@ -5,6 +5,7 @@ using TanksRebirth.GameContent.GameMechanics;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.Coordinates;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
@@ -12,12 +13,14 @@ using TanksRebirth.Graphics;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_X1_Kudzu: ModTank 
+    /// <summary> A small, fast, aggresive but very aloof tank that constantly calls for renforcements of itself. Comes equipped with a drone.</summary>
+    public class CA_X1_Kudzu : CA_ArmadaTank
     {
-      
+ 
         public override bool HasSong => true;
         public override LocalizedString Name => new(new()
         {
@@ -30,26 +33,24 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.Olive;
         public override void PostApplyDefaults()
         {
-            base.PostApplyDefaults();
+           
            
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f * 0.81f;
-            AITank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            AITank.AiParams.MeanderFrequency = 20;
-            AITank.AiParams.TurretMeanderFrequency = 20;
-            AITank.AiParams.TurretSpeed = 0.03f;
-            AITank.AiParams.AimOffset = MathHelper.ToRadians(9);
+            AITank.Scaling = Vector3.One * 0.81f;
+            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            AITank.Parameters.RandomTimerMinMove = 20;
+            AITank.Parameters.TurretMovementTimer = 20;
+            AITank.Parameters.TurretSpeed = 0.03f;
+            AITank.Parameters.AimOffset = MathHelper.ToRadians(9);
 
-            AITank.AiParams.Inaccuracy = 0.6f;
-
-            AITank.AiParams.PursuitLevel = 1f;
-            AITank.AiParams.PursuitFrequency = 40;
+            AITank.Parameters.AggressivenessBias = 1.2f;
+     
 
             //Clueless
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
-            AITank.AiParams.ProjectileWarinessRadius_AIShot = 0;
-            AITank.AiParams.MineWarinessRadius_PlayerLaid = 0;
-            AITank.AiParams.MineWarinessRadius_AILaid = 0;
+            AITank.Parameters.AwarenessFriendlyShell = 0;
+            AITank.Parameters.AwarenessFriendlyMine = 0;
+            AITank.Parameters.AwarenessHostileMine = 0;
+            AITank.Parameters.AwarenessHostileShell = 0;
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(80);
@@ -61,7 +62,6 @@ namespace CobaltsArmada
             AITank.Properties.ShellType = ShellID.Standard;
             AITank.Properties.RicochetCount = 0;
 
-            AITank.AiParams.ShootChance = 0.3f;
 
             AITank.Properties.Invisible = false;
             AITank.Properties.Stationary = false;
@@ -73,7 +73,8 @@ namespace CobaltsArmada
 
             AITank.Properties.Acceleration = 0.1f;
             AITank.SpecialBehaviors[0].Value = 300f;
-            AITank.AiParams.BlockWarinessDistance = 69;
+            AITank.Parameters.ObstacleAwarenessMovement = 69;
+            base.PostApplyDefaults();
         }
         public override void Shoot(Shell shell)
         {
@@ -113,5 +114,6 @@ namespace CobaltsArmada
                 };
             }
         }
+    
     }
 }

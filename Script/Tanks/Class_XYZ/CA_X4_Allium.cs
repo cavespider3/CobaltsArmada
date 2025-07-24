@@ -7,14 +7,16 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
 using TanksRebirth.Localization;
 using static CobaltsArmada.CA_Main;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_X4_Allium: ModTank 
+    public class CA_X4_Allium: CA_ArmadaTank
     {
       
 
@@ -40,24 +42,23 @@ namespace CobaltsArmada
         2f : 1f : 1f;
 
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f * 0.95f;
-
+            AITank.Scaling = Vector3.One * 0.95f;
+           
             AITank.SpecialBehaviors[2].Value = -1;
-            AITank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            AITank.AiParams.MeanderFrequency = 10;
-            AITank.AiParams.TurretMeanderFrequency = 120;
-            AITank.AiParams.TurretSpeed = 0.06f;
-            AITank.AiParams.AimOffset = MathHelper.ToRadians(3);
+            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.TurretMovementTimer = 120;
+            AITank.Parameters.TurretSpeed = 0.06f;
+            AITank.Parameters.AimOffset = MathHelper.ToRadians(33);
 
-            AITank.AiParams.Inaccuracy = 0.6f;
 
-            AITank.AiParams.PursuitLevel = 0.5f;
-            AITank.AiParams.PursuitFrequency = 20;
 
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
-            AITank.AiParams.ProjectileWarinessRadius_AIShot = 0;
-            AITank.AiParams.MineWarinessRadius_PlayerLaid = 0;
-            AITank.AiParams.MineWarinessRadius_AILaid = 0;
+            AITank.Parameters.AggressivenessBias = 0.5f;
+
+            AITank.Parameters.AwarenessHostileShell = 0;
+            AITank.Parameters.AwarenessFriendlyShell = 0;
+            AITank.Parameters.AwarenessHostileMine = 0;
+            AITank.Parameters.AwarenessFriendlyMine = 0;
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21);
@@ -68,8 +69,6 @@ namespace CobaltsArmada
             AITank.Properties.ShellSpeed = 4f;
             AITank.Properties.ShellType = ShellID.Standard;
             AITank.Properties.RicochetCount = 0;
-
-            AITank.AiParams.ShootChance = 0.01f;
 
             AITank.Properties.Invisible = false;
             AITank.Properties.Stationary = false;
@@ -84,7 +83,7 @@ namespace CobaltsArmada
             AITank.Properties.MineLimit = 0;
             AITank.Properties.MineStun = 0;
 
-            AITank.AiParams.BlockWarinessDistance = 44;
+            AITank.Parameters.ObstacleAwarenessMovement = 44;
         }
         public override void Shoot(Shell shell)
         {
@@ -130,14 +129,12 @@ namespace CobaltsArmada
                 }
             }
             bool Tethered = Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank).Length > 0;
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = Tethered ? 0 : 60;
-            AITank.AiParams.ProjectileWarinessRadius_AIShot = Tethered ? 0 : 60;
-            AITank.AiParams.MineWarinessRadius_PlayerLaid = Tethered ? 0 : 150;
-            AITank.AiParams.MineWarinessRadius_AILaid = Tethered ? 0 : 150;
-            AITank.AiParams.PursuitLevel = Tethered ? 0.9f : 0.1f;
-            AITank.AiParams.PursuitFrequency = Tethered ? 3 : 75;
+            AITank.Parameters.AwarenessHostileShell = Tethered ? 0 : 60;
+            AITank.Parameters.AwarenessFriendlyShell = Tethered ? 0 : 60;
+            AITank.Parameters.AwarenessHostileMine = Tethered ? 0 : 150;
+            AITank.Parameters.AwarenessFriendlyMine = Tethered ? 0 : 150;
+            AITank.Parameters.AggressivenessBias = Tethered ? 0.9f : 0.1f;
             AITank.Properties.MaxSpeed = Tethered ? 1.2f : 1.9f;
-            AITank.AiParams.ShootChance = Tethered ? 0.00f : 0.01f;
             AITank.Properties.ShellLimit = Tethered ? 0 : 1;
             if (Tethered)
             {
@@ -156,7 +153,7 @@ namespace CobaltsArmada
             }
             AITank.SpecialBehaviors[3].Value = MathHelper.Clamp(AITank.SpecialBehaviors[3].Value,0,300f);
             AITank.Team = Tethered && AITank.SpecialBehaviors[3].Value>300f ? TeamID.Magenta : (int)AITank.SpecialBehaviors[2].Value;
-
+           
         }
 
        

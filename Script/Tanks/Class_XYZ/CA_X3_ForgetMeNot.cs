@@ -15,13 +15,16 @@ using static CobaltsArmada.CA_Main;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Systems.AI;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {   
     /// <summary>
-    /// A support role AITank that protects nearby allies 
+    /// A support tank that protects nearby allies 
     /// </summary>
-    public class CA_X3_ForgetMeNot: ModTank 
+    public class CA_X3_ForgetMeNot: CA_ArmadaTank
     {
       
    
@@ -57,24 +60,23 @@ namespace CobaltsArmada
             }
 
                 AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f * 0.95f;
-            var aiParams = AITank.AiParams;
+            AITank.Scaling = Vector3.One * 0.95f;
+            var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
-            aiParams.MeanderAngle = MathHelper.ToRadians(40);
-            aiParams.MeanderFrequency = 10;
-            aiParams.TurretMeanderFrequency = 25;
+            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(40);
+            Parameters.RandomTimerMinMove = 10;
+            Parameters.TurretMovementTimer = 25;
 
-            aiParams.Inaccuracy = 0.8f;
 
-            aiParams.TurretSpeed = 0.03f;
-            aiParams.AimOffset = 0.18f;
+            Parameters.TurretSpeed = 0.03f;
+            Parameters.AimOffset = 0.18f;
 
             //coward
-            aiParams.PursuitLevel = -0.9f;
-            aiParams.PursuitFrequency = 40;
+            Parameters.AggressivenessBias = -0.9f;
 
-            aiParams.ProjectileWarinessRadius_PlayerShot = 60;
-            aiParams.MineWarinessRadius_PlayerLaid = 160;
+
+            Parameters.AwarenessHostileShell = 60;
+            Parameters.AwarenessHostileMine = 160;
 
             properties.TurningSpeed = 0.06f;
             properties.MaximalTurn = MathHelper.ToRadians(10);
@@ -85,8 +87,10 @@ namespace CobaltsArmada
             properties.ShellSpeed = 3f;
             properties.ShellType = ShellID.Standard;
             properties.RicochetCount = 1;
-            aiParams.ShootChance = 0.1f;
-            aiParams.DeflectsBullets = true;
+            Parameters.RandomTimerMinShoot = 30;
+            Parameters.RandomTimerMaxShoot = 120;
+
+            Parameters.DeflectsBullets = true;
 
             properties.Invisible = false;
             properties.Stationary = false;
@@ -96,11 +100,8 @@ namespace CobaltsArmada
             properties.MaxSpeed = 1.1f;
             properties.Acceleration = 0.3f;
 
-            aiParams.MinePlacementChance = 0.05f;
+            Parameters.ObstacleAwarenessMovement = 45;
 
-            aiParams.BlockWarinessDistance = 45;
-
-            AITank.BaseExpValue = 0.1f;
         }
 
         public override void PostUpdate()
@@ -135,7 +136,7 @@ namespace CobaltsArmada
 
                 }
             }
-           
+          
         }
    
 

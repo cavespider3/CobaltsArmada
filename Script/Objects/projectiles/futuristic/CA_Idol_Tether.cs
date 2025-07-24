@@ -7,6 +7,7 @@ using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.ParticleSystem;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.Graphics;

@@ -3,13 +3,14 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.Localization;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    /// <summary>
-    /// The periwinkle and Pansy are usuall
+    /// <summary> Periwinkles
+    /// 
     /// </summary>
-    public class CA_02_Perwinkle: ModTank 
+    public class CA_02_Perwinkle: CA_ArmadaTank
     {
     
         public override bool HasSong => true;
@@ -28,22 +29,21 @@ namespace CobaltsArmada
             base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f;
-            var aiParams = AITank.AiParams;
+            AITank.Scaling = Vector3.One;
+            var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
-            aiParams.MeanderAngle = MathHelper.ToRadians(7);
-            aiParams.MeanderFrequency = 20;
-            aiParams.TurretMeanderFrequency = 60;
-            aiParams.TurretSpeed = 0.045f;
-            aiParams.AimOffset = 0.9f;
+            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(7);
+            Parameters.RandomTimerMinMove = 20;
+            Parameters.TurretMovementTimer = 60;
+            Parameters.TurretSpeed = 0.045f;
+            Parameters.AimOffset = 0.9f;
 
-            aiParams.Inaccuracy = 0.4f;
 
-            aiParams.PursuitLevel = 1f;
-            aiParams.PursuitFrequency = 40;
 
-            aiParams.ProjectileWarinessRadius_PlayerShot = 70;
-            aiParams.MineWarinessRadius_PlayerLaid = 140;
+            Parameters.AggressivenessBias = 1f;
+        
+            Parameters.AwarenessHostileShell = 70;
+            Parameters.AwarenessHostileMine = 140;
 
             properties.TurningSpeed = 0.13f;
             properties.MaximalTurn = MathHelper.PiOver4/2;
@@ -67,9 +67,10 @@ namespace CobaltsArmada
             properties.MineCooldown = 60 * 20;
             properties.MineLimit = 1;
             properties.MineStun = 10;
-            aiParams.SmartRicochets = true;
-            aiParams.PredictsPositions = true;
-            aiParams.MinePlacementChance = 0.05f;
+            Parameters.SmartRicochets = true;
+            Parameters.PredictsPositions = true;
+            Parameters.ChanceMineLay = 0.05f;
         }
+    
     }
 }

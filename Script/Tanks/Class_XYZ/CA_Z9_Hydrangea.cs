@@ -12,7 +12,9 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
+using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.Coordinates;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
@@ -21,10 +23,11 @@ using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_Z9_Hydrangea: ModTank 
+    public class CA_Z9_Hydrangea: CA_ArmadaTank
     {
         public override bool HasSong => false;
         public override LocalizedString Name => new(new()
@@ -45,23 +48,23 @@ namespace CobaltsArmada
             base.PostApplyDefaults();
            
             AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 100.0f * 1.4f;
+            AITank.Scaling = Vector3.One * 1.4f;
 
-            AITank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            AITank.AiParams.MeanderFrequency = 10;
-            AITank.AiParams.TurretMeanderFrequency = 20;
-            AITank.AiParams.TurretSpeed = 0.06f;
-            AITank.AiParams.AimOffset = MathHelper.ToRadians(3);
+            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.TurretMovementTimer = 20;
+            AITank.Parameters.TurretSpeed = 0.06f;
+            AITank.Parameters.AimOffset = MathHelper.ToRadians(3);
             
-            AITank.AiParams.Inaccuracy = 0.6f;
 
-            AITank.AiParams.PursuitLevel = 0.3f;
-            AITank.AiParams.PursuitFrequency = 40;
 
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = 30;
-            AITank.AiParams.ProjectileWarinessRadius_AIShot = 40;
-            AITank.AiParams.MineWarinessRadius_PlayerLaid = 0;
-            AITank.AiParams.MineWarinessRadius_AILaid = 50;
+            AITank.Parameters.AggressivenessBias = 0.3f;
+          
+
+            AITank.Parameters.AwarenessHostileShell = 30;
+            AITank.Parameters.AwarenessFriendlyShell = 40;
+            AITank.Parameters.AwarenessHostileMine = 0;
+            AITank.Parameters.AwarenessFriendlyMine = 50;
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21); 
@@ -79,7 +82,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellType = ShellID.Standard;
             AITank.Properties.RicochetCount = 0;
 
-            AITank.AiParams.ShootChance = 0.25f;
+   
 
             AITank.Properties.Invisible = false;
             AITank.Properties.Stationary = false;
@@ -95,8 +98,8 @@ namespace CobaltsArmada
             AITank.Properties.MineLimit = 0;
             AITank.Properties.MineStun = 0;
 
-            AITank.AiParams.BlockWarinessDistance = 74;
-            AITank.AiParams.BlockReadTime = 15;
+            AITank.Parameters.ObstacleAwarenessMovement = 74;
+            AITank.Parameters.ObstacleAwarenessMine = 15;
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
@@ -116,6 +119,8 @@ namespace CobaltsArmada
            
 
             base.PostUpdate();
+
+            AITank.Model.Root.Transform = Matrix.CreateScale(100f) * AITank.Model.Root.Transform;
             if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
             //if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)

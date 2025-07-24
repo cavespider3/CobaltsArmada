@@ -31,6 +31,9 @@ using TanksRebirth.IO;
 using TanksRebirth.Graphics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using tainicom.Aether.Physics2D.Dynamics;
+using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Systems.AI;
+using CobaltsArmada.Script.UI;
 
 
 namespace CobaltsArmada;
@@ -104,6 +107,7 @@ public class CA_Main : TanksMod {
 
     public static Model? Neo_Stationary;
     public static Model? Neo_Mobile;
+    public static Model? Neo_Remote;
     public static Model? Neo_Boss;
     public static Model? Shell_Beam;
     public static Model? Shell_Glaive;
@@ -354,7 +358,10 @@ public class CA_Main : TanksMod {
 
         _tank.Properties.ShootStun /= 2;
         _tank.Properties.ShellCooldown /= 2;
-       
+
+        //Fucking saphs overloading the sound system, man...
+        _tank.Properties.ShellCooldown = Math.Max(5, _tank.Properties.ShellCooldown);
+
         _tank.Properties.MaxSpeed *= 1.25f;
        
         if (_tank.Properties.Invisible)
@@ -373,23 +380,26 @@ public class CA_Main : TanksMod {
             switch (tank.AiTankType)
             {
                 default:
-                 
-                    tank.AiParams.ShootChance *= 1.5f;
-                    tank.AiParams.MeanderAngle /= 2;
-                    tank.AiParams.MeanderFrequency /= 2;
-                    tank.AiParams.TurretMeanderFrequency /= 2;
-                    tank.AiParams.Inaccuracy /= 1.5f;
-                    tank.AiParams.TurretSpeed *= 1.75f;
-                    tank.AiParams.AimOffset /= 2f;
+
+                    tank.Parameters.RandomTimerMinShoot /= 2;
+                    tank.Parameters.RandomTimerMaxShoot /= 2;
+                    tank.Parameters.MaxAngleRandomTurn /= 2;
+                    tank.Parameters.MaxQueuedMovements /= 2;
+                    tank.Parameters.TurretMovementTimer /= 2;
+                    tank.Parameters.AimOffset /= 1.5f;
+                    tank.Parameters.TurretSpeed *= 1.75f;
+                    tank.Parameters.AimOffset /= 2f;
                   
-                    tank.AiParams.PursuitLevel = MathF.Sign(tank.AiParams.PursuitLevel) * tank.AiParams.PursuitLevel * 1.3f;
-                    tank.AiParams.PursuitFrequency /= 2;
-                  
+                    tank.Parameters.AggressivenessBias = MathF.Sign(tank.Parameters.AggressivenessBias) * tank.Parameters.AggressivenessBias * 1.3f;
+                    tank.Parameters.RandomTimerMinMove /= 2;
+                    tank.Parameters.RandomTimerMaxMove /= 2;
+
                     if (tank.Properties.Stationary && !tank.Properties.Invisible)
                     {              
-                        tank.AiParams.SmartRicochets = true;
-                        tank.AiParams.PredictsPositions = true;
-                        tank.AiParams.ShootChance *= 2;
+                        tank.Parameters.SmartRicochets = true;
+                        tank.Parameters.PredictsPositions = true;
+                        tank.Parameters.RandomTimerMinShoot /= 2;
+                        tank.Parameters.RandomTimerMaxShoot /= 2;
                     }
                     break;
             }
@@ -402,7 +412,7 @@ public class CA_Main : TanksMod {
        
 
     }
-
+    //Matryoshka
     public override void OnLoad() {
 
         Difficulties.Types.Add("CobaltArmada_Swap", false);
@@ -416,9 +426,12 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Add("CobaltArmada_Mitosis", false);
         Difficulties.Types.Add("CobaltArmada_P2", false);
 
+        Difficulties.Types.Add("CobaltArmada_RussianDollTanks", false);
+
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
         Neo_Mobile = ImportAsset<Model>("assets/models/tank_moving");
         Neo_Boss = ImportAsset<Model>("assets/models/tank_elite_a");
+        Neo_Remote = ImportAsset<Model>("assets/models/tank_radio");
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
         Shell_Glaive = ImportAsset<Model>("assets/models/bullet_glave");
         Drone = ImportAsset<Model>("assets/models/tank_drone");
@@ -442,6 +455,7 @@ public class CA_Main : TanksMod {
         CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
         CampaignGlobals.OnMissionEnd += CampaignGlobals_OnMissionEnd;
         Block.OnDestroy += Block_OnDestroy;
+
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
         DifficultyAlgorithm.TankDiffs[ModContent.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
@@ -459,22 +473,62 @@ public class CA_Main : TanksMod {
         TankGame.PostDrawEverything += TankGame_OnPostDraw;
 
         CA_NetPlay.Load();
+
+
+        AITank.OnDamage += AITank_OnDamage;
+        IntermissionSystem.IntermissionAnimator.OnKeyFrameFinish += IntermissionAnimator_OnKeyFrameFinish;
+    }
+
+    private void IntermissionAnimator_OnKeyFrameFinish(TanksRebirth.Internals.Common.Framework.Animation.KeyFrame frame)
+    {
+        if (IntermissionSystem.ShouldDrawBanner){
+            if (Difficulties.Types.Count(diff => diff.Value) != Modifiers_currentlyactive && Difficulties.Types.Count(diff => diff.Value)!=0 && !LevelEditorUI.Active)
+            {
+                Modifiers_currentlyactive = Difficulties.Types.Count(diff => diff.Value);
+                // TankGame.ClientLog.Write(Modifiers_currentlyactive + "Modifiers were active",LogType.Info);
+                List<string> bops = new() { "$START$" };
+                foreach (var item in Difficulties.Types)
+                {
+                    if (item.Value) bops.Add(item.Key);
+                }
+
+                for (int i = 0; i < bops.Count; i++)
+                {
+                    new Modifieralert(bops[i], Color.DarkRed, i == 0 ? 0f : 0.1f + i * 0.05f);
+                }
+            }
+        } }
+
+    private void AITank_OnDamage(Tank victim, bool destroy, ITankHurtContext context)
+    {
+        if (Difficulties.Types["CobaltArmada_RussianDollTanks"] && victim is AITank tank && tank.AiTankType != TankID.Brown && destroy)
+        {
+            var t = new AITank(tank.AiTankType-1);
+            t.Physics.Position = tank.Physics.Position;
+
+            t.Scaling *= 0.95f;
+            t.Team = tank.Team;
+            int I = tank.AITankId;
+            tank.Remove(true);
+            t.ReassignId(I);
+
+        }
     }
 
     private void Block_OnDestroy(Block block)
     {
-        if (CA_Drone.DroneCollisions.BodyList.Contains(block.Body))
+        if (CA_Drone.DroneCollisions.BodyList.Contains(block.Physics))
         {
-            CA_Drone.DroneCollisions.Remove(block.Body);
+            CA_Drone.DroneCollisions.Remove(block.Physics);
         }
     }
 
     private void TankGame_OnPostDraw(GameTime obj)
     {
         TankGame.SpriteRenderer.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, rasterizerState: RenderGlobals.DefaultRasterizer);
-        for (int i = 0; i < Modifieralert.AllModifiers.Length; i++)
+        for (int i = 0; i < CA_Popup.AllPopups.Length; i++)
         {
-            Modifieralert.AllModifiers[i]?.Render(TankGame.SpriteRenderer, i, Vector2.One, Anchor.LeftCenter);
+            CA_Popup.AllPopups[i]?.Draw(TankGame.SpriteRenderer);
         }
         foreach (var pu in CA_Drone.AllDrones)
             pu?.DebugRender();
@@ -494,7 +548,7 @@ public class CA_Main : TanksMod {
             pu?.Remove();
         foreach (var pu in CA_Drone.AllDrones)
             pu?.Remove();
-        foreach (var item in Modifieralert.AllModifiers)
+        foreach (var item in CA_Popup.AllPopups)
         {
             item?.Remove();
         }
@@ -519,7 +573,7 @@ public class CA_Main : TanksMod {
                         template.UsesCustomModel = true;
                         template.Swap(FlowerFromBase(template.AiTankType), true);
                         var t = new AITank(template.AiTankType);
-                        t.Body.Position = template.Position3D.FlattenZ() / Tank.UNITS_PER_METER;
+                        t.Physics.Position = template.Position3D.FlattenZ() / Tank.UNITS_PER_METER;
                         t.Position = template.Position3D.FlattenZ();
                         t.Dead = false;
                         t.Team = template.Team;
@@ -544,10 +598,8 @@ public class CA_Main : TanksMod {
                 ai.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
                 for (int j = 1; j < (int)modifier_Tanktosis; j++)
                 {
-                    var t = new AITank(2);
-                    t.Swap(ai.AiTankType);
-
-                    t.Body.Position = ai.Body.Position;
+                    var t = new AITank(ai.AiTankType);
+                    t.Physics.Position = ai.Physics.Position;
 
                     t.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
                     t.Team = ai.Team;
@@ -569,7 +621,7 @@ public class CA_Main : TanksMod {
                 if (ai is null || ai.Dead) continue;
                 var t = new AITank(ForgetMeNot);
 
-                t.Body.Position = ai.Body.Position;
+                t.Physics.Position = ai.Physics.Position;
                 t.Team = ai.Team;
                 
             }
@@ -660,26 +712,6 @@ public class CA_Main : TanksMod {
 
         
         }
-        else
-        {
-            if(IntermissionSystem.Alpha>=0.8 && Difficulties.Types.Count(diff => diff.Value)!= Modifiers_currentlyactive && !LevelEditorUI.Active)
-            {
-                Modifiers_currentlyactive = Difficulties.Types.Count(diff => diff.Value);
-               // TankGame.ClientLog.Write(Modifiers_currentlyactive + "Modifiers were active",LogType.Info);
-                List<string> bops = new() { "$START$" };
-                foreach (var item in Difficulties.Types)
-                {
-                    if (item.Value) bops.Add(item.Key);
-                }  
-                   
-                for (int i = 0;  i < bops.Count; i++)
-                {
-                    new Modifieralert(bops[i], Color.DarkRed,i == 0?0f:0.1f+i*0.1f);
-                }
-            }
-            
-
-        }
         ref Crate[] crates = ref Crate.crates;
         for (int i = 0; i < crates.Length; i++)
         {
@@ -745,6 +777,7 @@ public class CA_Main : TanksMod {
         }
 
     }
+    
     private void CampaignGlobals_OnMissionEnd(int delay, MissionEndContext context, bool result1up)
     {
         if (LevelEditorUI.Active) return;
@@ -782,9 +815,13 @@ public class CA_Main : TanksMod {
         {
             return;
         }
-        
-     
-       
+        if (Difficulties.Types["CobaltArmada_RussianDollTanks"] && !template.IsPlayer)
+        {
+            var TrackedSpawnPoints = CampaignGlobals.LoadedCampaign.TrackedSpawnPoints;
+            var P = template.Position;
+            var TSP = TrackedSpawnPoints[Array.IndexOf(TrackedSpawnPoints, TrackedSpawnPoints.First(pos => pos.Position == P))].Alive = true;
+        }
+
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
         //Set up the new swap out process
         if (Spawns.Length == 0)
@@ -936,8 +973,9 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Remove("CobaltArmada_TanksOnCrack");
         Difficulties.Types.Remove("CobaltArmada_Mitosis");
         Difficulties.Types.Remove("CobaltArmada_P2");
-
+        Difficulties.Types.Remove("CobaltArmada_RussianDollTanks");
         MainMenuUI.AllDifficultyButtons.RemoveRange(Hook_UI.startIndex, MainMenuUI.AllDifficultyButtons.Count - Hook_UI.startIndex - 1);
         CA_NetPlay.Unload();
+        AITank.OnDamage -= AITank_OnDamage;
     }
 }

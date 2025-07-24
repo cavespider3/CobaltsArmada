@@ -1,4 +1,6 @@
 ﻿
+using CobaltsArmada.Script.Tanks;
+using CobaltsArmada.Script.Tanks.Class_T;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using TanksRebirth;
@@ -13,17 +15,9 @@ using static CobaltsArmada.CA_Main;
 
 namespace CobaltsArmada
 {
-    /// <summary>A stationary, slow firing AITank that uses orbital 
-    /// strikes instead of shells.<br/>
-    /// 
-    /// 
-    ///<remarks><br/><br/><c>Technical Info:</c><br/>
-    ///The spawning of oribital strikes is dependent on the path of the bullet and what it collides with
-    /// </remarks>
+    /// <summary>A stationary, slow firing sentry that launches orbital strikes instead of firing bullets.
     ///</summary>
-    
-
-    public class CA_01_Dandelion : ModTank 
+    public class CA_01_Dandelion : CA_ArmadaTank 
     {
         public override bool HasSong => true;
         public override LocalizedString Name => new(new()
@@ -32,26 +26,15 @@ namespace CobaltsArmada
         });
        
         public override string Texture => "assets/textures/tank_dandy";
-        public override int Songs => 2;
+        public override int Songs => 1;
         public override Color AssociatedColor => CA_Main.Dandy;
-
         public override void PostApplyDefaults()
         {
-           
-
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Stationary;
-            
-            AITank.Scaling = Vector3.One * 100f;
-            AITank.AiParams.MeanderAngle = MathHelper.ToRadians(40);
-            AITank.AiParams.MeanderFrequency = 10;
-            AITank.AiParams.TurretMeanderFrequency = 40;
-            AITank.AiParams.TurretSpeed = 0.03f;
-            AITank.AiParams.AimOffset = 0.2f;
-
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = 140;
-
-            AITank.AiParams.Inaccuracy = 0.7f;
+            AITank.Scaling = Vector3.One;
+            AITank.Parameters.TurretMovementTimer = 40;
+            AITank.Parameters.TurretSpeed = 0.03f;
+            AITank.Parameters.AimOffset = 0.2f;
 
             AITank.Properties.DestructionColor = CA_Main.Dandy;
             uint cooler =
@@ -76,22 +59,26 @@ namespace CobaltsArmada
              CA_Main.modifier_Difficulty >= ModDifficulty.Extra ?
              5u : 4u : 3u : 2u : 2u;
 
-            AITank.AiParams.ShootChance = CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
+            AITank.Parameters.RandomTimerMinShoot = CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
             CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-            0.75f : 0.5f : 0.25f;
+            30 : 60 : 120;
+            AITank.Parameters.RandomTimerMaxShoot = (CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
+         CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
+         30 : 60 : 120 ) + AITank.Parameters.RandomTimerMinShoot;
 
+           
             AITank.Properties.Invisible = false;
 
-            AITank.AiParams.SmartRicochets = true;
+            AITank.Parameters.SmartRicochets = true;
 
             AITank.Properties.Stationary = true;
 
             AITank.Properties.ShellHoming = new();
 
-            AITank.BaseExpValue = 0.025f;
-
             base.PostApplyDefaults();
+            AITank.Model = CA_Main.Neo_Remote!;
         }
+
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
             int count = 

@@ -2,11 +2,13 @@
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.Localization;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_07_Lavender: ModTank 
+    public class CA_07_Lavender: CA_ArmadaTank
     {
       
         public override bool HasSong => true;
@@ -22,22 +24,20 @@ namespace CobaltsArmada
         {
             base.PostApplyDefaults();
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f * 1.1f;
-            AITank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            AITank.AiParams.MeanderFrequency = 10;
-            AITank.AiParams.TurretMeanderFrequency = 20;
-            AITank.AiParams.TurretSpeed = 0.06f;
-            AITank.AiParams.AimOffset = MathHelper.ToRadians(3);
+            AITank.Scaling = Vector3.One * 1.1f;
+            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.TurretMovementTimer = 20;
+            AITank.Parameters.TurretSpeed = 0.06f;
+            AITank.Parameters.AimOffset = MathHelper.ToRadians(3);
 
-            AITank.AiParams.Inaccuracy = 0.6f;
+            AITank.Parameters.AggressivenessBias = 0.9f;
 
-            AITank.AiParams.PursuitLevel = 0.9f;
-            AITank.AiParams.PursuitFrequency = 500;
 
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = 70;
-            AITank.AiParams.ProjectileWarinessRadius_AIShot = 70;
-            AITank.AiParams.MineWarinessRadius_PlayerLaid = 14;
-            AITank.AiParams.MineWarinessRadius_AILaid = 70;
+            AITank.Parameters.AwarenessHostileShell = 70;
+            AITank.Parameters.AwarenessFriendlyShell = 70;
+            AITank.Parameters.AwarenessHostileMine = 14;
+            AITank.Parameters.AwarenessFriendlyMine = 70;
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21);
@@ -62,7 +62,7 @@ namespace CobaltsArmada
             AITank.Properties.MineLimit = 0;
             AITank.Properties.MineStun = 0;
 
-            AITank.AiParams.BlockWarinessDistance = 44;
+            AITank.Parameters.ObstacleAwarenessMovement = 44;
         }
 
         public override void Shoot(Shell shell)
@@ -86,6 +86,7 @@ namespace CobaltsArmada
             CA_Main.Fire_AbstractShell_Tank(AITank, 8, context, 1, 0, 5f);
             }
         }
+    
 
     }
 }

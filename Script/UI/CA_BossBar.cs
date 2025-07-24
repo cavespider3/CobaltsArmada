@@ -11,6 +11,7 @@ using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.Systems.AI;
 
 namespace CobaltsArmada
 {

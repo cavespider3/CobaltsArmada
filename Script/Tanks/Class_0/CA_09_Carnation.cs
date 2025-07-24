@@ -7,10 +7,14 @@ using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.Localization;
+using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_09_Carnation: ModTank 
+    /// <summary>Carnations are the big bois. Immune to explosions, move fast, dodge well, and come with a drone capable of calling in back up.
+    /// 
+    /// </summary>
+    public class CA_09_Carnation: CA_ArmadaTank
     {
       
         public override bool HasSong => true;
@@ -26,27 +30,25 @@ namespace CobaltsArmada
         {
             base.PostApplyDefaults();
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 100.0f * 1.25f;
-            var aiParams = AITank.AiParams;
+            AITank.Scaling = Vector3.One * 1.25f;
+            var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
-            aiParams.MeanderAngle = MathHelper.ToRadians(30);
-            aiParams.MeanderFrequency = 20;
-            aiParams.TurretMeanderFrequency = 60;
-            aiParams.TurretSpeed = 0.2f;
-            aiParams.AimOffset = 0.03f;
+            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            Parameters.RandomTimerMinMove = 20;
+            Parameters.TurretMovementTimer = 60;
+            Parameters.TurretSpeed = 0.2f;
+            Parameters.AimOffset = 0.03f;
 
-            aiParams.Inaccuracy = 0.2f;
             properties.TurningSpeed = 0.1f;
             properties.MaximalTurn = MathHelper.PiOver4;
             //also maximum agro lmfao
-            aiParams.PursuitLevel = 0.7f;
-            aiParams.PursuitFrequency = 180;
+            Parameters.AggressivenessBias = 0.7f;
 
-            aiParams.ProjectileWarinessRadius_PlayerShot = 140;
-            aiParams.ProjectileWarinessRadius_AIShot = 160;
+            Parameters.AwarenessHostileShell = 140;
+            Parameters.AwarenessFriendlyShell = 160;
             //they're immune to mines
-            aiParams.MineWarinessRadius_PlayerLaid = 160;
-            aiParams.MineWarinessRadius_AILaid = 160;
+            Parameters.AwarenessHostileMine = 160;
+            Parameters.AwarenessFriendlyMine = 160;
 
             properties.ShootStun = 1;
             properties.ShellCooldown = 40;
@@ -68,12 +70,11 @@ namespace CobaltsArmada
             properties.MineLimit = 1;
             properties.MineStun = 0;
 
-            aiParams.MinePlacementChance = 0.1f;
+            Parameters.ChanceMineLay = 0.1f;
 
-            aiParams.BlockWarinessDistance = 80;
-            aiParams.BlockReadTime = 10;
+            Parameters.ObstacleAwarenessMovement = 80;
+            Parameters.ObstacleAwarenessMovement = 10;
 
-            AITank.BaseExpValue = 0.175f;
             
         }
 
@@ -102,7 +103,7 @@ namespace CobaltsArmada
         public override void DangerDetected(IAITankDanger danger)
         {
             base.DangerDetected(danger);
-            if (danger.IsPlayerSourced && danger is Shell && AITank.SpecialBehaviors[1].Value <0.1f)
+            if (danger.Team != AITank.Team && danger is Shell && AITank.SpecialBehaviors[1].Value <0.1f)
             {
                 AITank.SpecialBehaviors[0].Value = 2.06f*60f;
                 AITank.SpecialBehaviors[1].Value = 2.6f * 60f;
@@ -113,5 +114,6 @@ namespace CobaltsArmada
             if (context.Source == AITank) return;
             base.TakeDamage(destroy, context);
         }
+      
     }
 }

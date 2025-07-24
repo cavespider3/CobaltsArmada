@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Script.Tanks;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Threading.Tasks;
 using TanksRebirth;
@@ -8,6 +9,8 @@ using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
+using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
@@ -22,7 +25,7 @@ using static CobaltsArmada.CA_Main;
 //Boss AITank
 namespace CobaltsArmada
 {
-    public class CA_Y2_NightShade : ModTank
+    public class CA_Y2_NightShade : CA_ArmadaTank
     {
         /// <summary>
         /// The 2nd boss AITank you fight, fought and rematched at mission's 40 and 97(only on extra and above).
@@ -73,21 +76,20 @@ namespace CobaltsArmada
             AITank.Model = CA_Main.Neo_Boss;
             AITank.Scaling = Vector3.One * 100f * 1.03f;
 
-            AITank.AiParams.MeanderAngle = MathHelper.ToRadians(30);
-            AITank.AiParams.MeanderFrequency = 10;
-            AITank.AiParams.TurretMeanderFrequency = 20;
-            AITank.AiParams.TurretSpeed = 0.06f;
-            AITank.AiParams.AimOffset = MathHelper.ToRadians(3);
+            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.TurretMovementTimer = 20;
+            AITank.Parameters.TurretSpeed = 0.06f;
+            AITank.Parameters.AimOffset = MathHelper.ToRadians(20);
 
-            AITank.AiParams.Inaccuracy = 0.6f;
 
-            AITank.AiParams.PursuitLevel = 1f;
-            AITank.AiParams.PursuitFrequency = 20;
 
-            AITank.AiParams.ProjectileWarinessRadius_PlayerShot = 0;
-            AITank.AiParams.ProjectileWarinessRadius_AIShot = 40;
-            AITank.AiParams.MineWarinessRadius_PlayerLaid = 0;
-            AITank.AiParams.MineWarinessRadius_AILaid = 50;
+            AITank.Parameters.AggressivenessBias = 1f;
+
+            AITank.Parameters.AwarenessHostileShell = 0;
+            AITank.Parameters.AwarenessFriendlyShell = 40;
+            AITank.Parameters.AwarenessHostileMine = 0;
+            AITank.Parameters.AwarenessFriendlyMine = 50;
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21);
@@ -99,7 +101,6 @@ namespace CobaltsArmada
             AITank.Properties.ShellType = ShellID.Standard;
             AITank.Properties.RicochetCount = 0;
 
-            AITank.AiParams.ShootChance = 0.8f;
 
             AITank.Properties.Invisible = false;
             AITank.Properties.Stationary = false;
@@ -114,7 +115,7 @@ namespace CobaltsArmada
             AITank.Properties.MineLimit = 0;
             AITank.Properties.MineStun = 0;
 
-            AITank.AiParams.BlockWarinessDistance = 44;
+            AITank.Parameters.ObstacleAwarenessMovement = 44;
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
@@ -208,8 +209,10 @@ namespace CobaltsArmada
                 };
             }
 
-
-        }
+    
+          
+        
+    }
         
 
      

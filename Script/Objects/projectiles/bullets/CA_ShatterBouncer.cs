@@ -23,6 +23,7 @@ using TanksRebirth.Internals.Common.Framework;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.Internals.Common.Framework.Audio;
+using TanksRebirth.GameContent.Systems.AI;
 
 namespace CobaltsArmada
 {

@@ -1,4 +1,5 @@
-﻿using LiteNetLib;
+﻿using CobaltsArmada.Script.Tanks.Class_T;
+using LiteNetLib;
 using LiteNetLib.Utils;
 using Microsoft.Xna.Framework;
 using System;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Systems;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.Net;
 using static TanksRebirth.Net.Client;
@@ -22,18 +24,21 @@ namespace CobaltsArmada
         /// The packet id for nightshade
         /// </summary>
         public static int SyncNightShade;
+        public static int SyncEntityDrone;
 
         #endregion
 
         public static void Load()
         {
             SyncNightShade = PacketID.AddPacketId(nameof(SyncNightShade));
+            SyncEntityDrone = PacketID.AddPacketId(nameof(SyncEntityDrone));
             NetPlay.OnReceiveClientPacket += NetPlay_OnReceiveClientPacket;
             NetPlay.OnReceiveServerPacket += NetPlay_OnReceiveServerPacket;
         }
 
         public static void Unload()
         {
+            PacketID.Collection.TryRemove(SyncEntityDrone);
             PacketID.Collection.TryRemove(SyncNightShade);
             NetPlay.OnReceiveClientPacket -= NetPlay_OnReceiveClientPacket;
             NetPlay.OnReceiveServerPacket -= NetPlay_OnReceiveServerPacket;
@@ -80,6 +85,33 @@ namespace CobaltsArmada
             message.Put(SyncNightShade);
             //a -1 means no tank called to spawn a nightshade cloud
             message.Put(target.WorldId);
+            // This is how our data is sent to the server. We end up handling the data again within the scope of the server.
+            // Delivery methods will be covered after the next couple of code blocks.
+            NetClient.Send(message, LiteNetLib.DeliveryMethod.ReliableOrdered);
+        }
+
+        //Sends a packet to sync a tank's drone
+        public static void SyncDrone(CA_Drone target)
+        {
+            // If the game client is not connected to a server, we don't bother running the future lines.
+            if (!IsConnected() || MainMenuUI.Active)
+                return;
+
+            // Constructs a NetDataWriter, which will be our packet.
+            NetDataWriter message = new();
+
+            // Here we put the data that goes into our packet of data. We send the packet type first, and not by choice.
+            // Tanks Rebirth automatically reads an integer as the first piece of data in the packet's data stream, which becomes the 'int packet' above.
+            message.Put(SyncNightShade);
+           
+            message.Put(target.Id); //Drone id in array
+            message.Put(target.Position3D);  //Drone position in array
+            message.Put(target.Velocity3D); //Drone velocity in array
+
+            message.Put(target.droneOwner!.WorldId);
+
+
+
             // This is how our data is sent to the server. We end up handling the data again within the scope of the server.
             // Delivery methods will be covered after the next couple of code blocks.
             NetClient.Send(message, LiteNetLib.DeliveryMethod.ReliableOrdered);
