@@ -32,7 +32,10 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
             Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
-
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
+            }
             base.PostApplyDefaults();
             AITank.SpecialBehaviors[3] = new() { Label = "Mutany", Value = 0 };
             AITank.SpecialBehaviors[0].Value = 75f;
@@ -47,6 +50,7 @@ namespace CobaltsArmada
             AITank.SpecialBehaviors[2].Value = -1;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.RandomTimerMaxMove = 10;
             AITank.Parameters.TurretMovementTimer = 120;
             AITank.Parameters.TurretSpeed = 0.06f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(33);

@@ -39,11 +39,12 @@ namespace CobaltsArmada
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One * 1.1f;
 
-            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
-            AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(12);
+            AITank.Parameters.RandomTimerMinMove = 40;
+            AITank.Parameters.RandomTimerMaxMove = 90;
             AITank.Parameters.TurretMovementTimer = 20;
             AITank.Parameters.TurretSpeed = 0.06f;
-            AITank.Parameters.AimOffset = MathHelper.ToRadians(30);
+            AITank.Parameters.AimOffset = MathHelper.ToRadians(5);
 
 
             AITank.Parameters.AggressivenessBias = 1f;
@@ -78,6 +79,7 @@ namespace CobaltsArmada
             AITank.Properties.MineStun = 0;
 
             AITank.Parameters.ObstacleAwarenessMovement = 44;
+           
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {

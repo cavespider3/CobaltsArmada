@@ -34,6 +34,7 @@ namespace CobaltsArmada
             var properties = AITank.Properties;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(7);
             Parameters.RandomTimerMinMove = 20;
+            Parameters.RandomTimerMaxMove = 60;
             Parameters.TurretMovementTimer = 60;
             Parameters.TurretSpeed = 0.045f;
             Parameters.AimOffset = 0.9f;

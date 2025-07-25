@@ -76,7 +76,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellHoming = new();
 
             base.PostApplyDefaults();
-            AITank.Model = CA_Main.Neo_Remote!;
+           
         }
 
         public override void TakeDamage(bool destroy, ITankHurtContext context)

@@ -42,6 +42,11 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.AliceBlue;
         public override void PostApplyDefaults()
         {
+            Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
+            }
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
             AITank.SpecialBehaviors[0].Value = (
@@ -65,6 +70,7 @@ namespace CobaltsArmada
             var properties = AITank.Properties;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(40);
             Parameters.RandomTimerMinMove = 10;
+            Parameters.RandomTimerMaxMove = 10;
             Parameters.TurretMovementTimer = 25;
 
 

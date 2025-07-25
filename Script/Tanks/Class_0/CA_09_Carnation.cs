@@ -29,12 +29,17 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
             base.PostApplyDefaults();
-            AITank.Model = CA_Main.Neo_Mobile;
+            Array.Resize(ref AITank.SpecialBehaviors, 3);
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
+            }
             AITank.Scaling = Vector3.One * 1.25f;
             var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             Parameters.RandomTimerMinMove = 20;
+            Parameters.RandomTimerMaxMove = 60;
             Parameters.TurretMovementTimer = 60;
             Parameters.TurretSpeed = 0.2f;
             Parameters.AimOffset = 0.03f;
@@ -73,7 +78,7 @@ namespace CobaltsArmada
             Parameters.ChanceMineLay = 0.1f;
 
             Parameters.ObstacleAwarenessMovement = 80;
-            Parameters.ObstacleAwarenessMovement = 10;
+         
 
             
         }
@@ -88,6 +93,7 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
+            if (AITank.SpecialBehaviors.Length < 0) return;
             AITank.Properties.MaxSpeed = 2f+MathF.Min(1f, AITank.SpecialBehaviors[0].Value/60f/2f)*2.6f;
             AITank.Properties.TreadPitch = MathHelper.Lerp(-0.8f,0.9f, MathHelper.Clamp((AITank.Properties.MaxSpeed-2f)/2.6f,0f,1f));
 

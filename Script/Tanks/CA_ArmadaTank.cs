@@ -15,10 +15,11 @@ namespace CobaltsArmada.Script.Tanks
     {
         
         public bool BossTank;
+       
         public override void PostApplyDefaults()
         {
             AITank.UsesCustomModel = true;
-            AITank.Model = AITank.Properties.Stationary ? CA_Main.Neo_Stationary! : BossTank ? CA_Main.Neo_Boss! : CA_Main.Neo_Mobile!;
+            AITank.Model = AITank.Properties.Stationary ? AITank.AiTankType == CA_Main.Dandelion ? CA_Main.Neo_Remote! : CA_Main.Neo_Stationary! : BossTank ? CA_Main.Neo_Boss! : CA_Main.Neo_Mobile!;
             base.PostApplyDefaults();
         }
 

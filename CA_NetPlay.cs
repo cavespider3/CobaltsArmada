@@ -91,7 +91,8 @@ namespace CobaltsArmada
         }
 
         //Sends a packet to sync a tank's drone
-        public static void SyncDrone(CA_Drone target)
+        //During multiplayer
+        public static void SyncDrone(CA_Drone target,bool Spawn)
         {
             // If the game client is not connected to a server, we don't bother running the future lines.
             if (!IsConnected() || MainMenuUI.Active)
@@ -102,19 +103,22 @@ namespace CobaltsArmada
 
             // Here we put the data that goes into our packet of data. We send the packet type first, and not by choice.
             // Tanks Rebirth automatically reads an integer as the first piece of data in the packet's data stream, which becomes the 'int packet' above.
-            message.Put(SyncNightShade);
+            message.Put(SyncEntityDrone);
            
             message.Put(target.Id); //Drone id in array
             message.Put(target.Position3D);  //Drone position in array
             message.Put(target.Velocity3D); //Drone velocity in array
 
-            message.Put(target.droneOwner!.WorldId);
+            message.Put(target.DroneRotation); //Drone's body rotation
+            message.Put(target.TurretRotation);
 
+            message.Put((int)target.Task); //for mostly animation stuff
+            message.Put((int)target.CurrentState); //for mostly animation stuff
 
 
             // This is how our data is sent to the server. We end up handling the data again within the scope of the server.
             // Delivery methods will be covered after the next couple of code blocks.
-            NetClient.Send(message, LiteNetLib.DeliveryMethod.ReliableOrdered);
+            NetClient.Send(message, LiteNetLib.DeliveryMethod.Unreliable);
         }
 
 

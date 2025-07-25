@@ -427,11 +427,11 @@ public class CA_Main : TanksMod {
         Difficulties.Types.Add("CobaltArmada_P2", false);
 
         Difficulties.Types.Add("CobaltArmada_RussianDollTanks", false);
-
+       
+        Neo_Remote = ImportAsset<Model>("assets/models/tank_radio");
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
         Neo_Mobile = ImportAsset<Model>("assets/models/tank_moving");
         Neo_Boss = ImportAsset<Model>("assets/models/tank_elite_a");
-        Neo_Remote = ImportAsset<Model>("assets/models/tank_radio");
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
         Shell_Glaive = ImportAsset<Model>("assets/models/bullet_glave");
         Drone = ImportAsset<Model>("assets/models/tank_drone");

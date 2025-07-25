@@ -38,7 +38,13 @@ namespace CobaltsArmada
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One * 1.1f;
+            Array.Resize(ref AITank.SpecialBehaviors, 3);
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
+            }
             Properties_Visible(AITank);
+            
         }
         static AITank? _Tank;
         static void Properties_Visible(AITank tank)
@@ -46,6 +52,7 @@ namespace CobaltsArmada
             var Parameters = tank.Parameters;
             var properties = tank.Properties;
             Parameters.RandomTimerMinMove = 40;
+            Parameters.RandomTimerMaxMove = 80;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(25);
             Parameters.TurretMovementTimer = 30;
             Parameters.TurretSpeed = 0.02f;
@@ -85,7 +92,7 @@ namespace CobaltsArmada
             properties.MineCooldown = 700;
             properties.MineLimit = 0;
             properties.MineStun = 10;
-
+            
             Parameters.ChanceMineLay = 0.05f;
 
             Parameters.ObstacleAwarenessMovement = 90;
@@ -97,7 +104,6 @@ namespace CobaltsArmada
         {
             var Parameters = tank.Parameters;
             var properties = tank.Properties;
-            Parameters.RandomTimerMinMove = 15;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(25);
             Parameters.TurretSpeed = 0.03f;
             Parameters.TurretMovementTimer = 40;

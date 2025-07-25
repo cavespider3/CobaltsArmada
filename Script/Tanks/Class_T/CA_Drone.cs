@@ -40,10 +40,14 @@ using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.Internals.Common.Framework.Collisions;
 using TanksRebirth.Enums;
+using TanksRebirth.GameContent.UI.LevelEditor;
 
 
 namespace CobaltsArmada.Script.Tanks.Class_T
 {
+    /// <summary>
+    /// A little helper with a lot of depth
+    /// </summary>
     public class CA_Drone
     {
         /// <summary>
@@ -269,8 +273,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         #endregion
 
-
-
         public CA_Drone(Tank? owner, Vector2 position = default)
         {
             
@@ -359,7 +361,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 t.SetData(colors);
                 _droneTexture = t;
 
-
             }
 
 
@@ -376,8 +377,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             //assign model and texture data
             if (droneOwner is Tank tnk)
                 Parameters = CA_DroneLicenseManager.ApplyDefaultLicense(tnk);
-
         }
+
+       
 
         public void InitModelSemantics()
         {
@@ -407,8 +409,10 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 }
                 foreach (var Drone in AllDrones)
                 {
+                    
                     if (Drone is null || Drone.droneOwner is null || Drone.droneOwner.Dead) continue;
-                    float distance = (Vector2.Distance(Block.Position, Drone.Position) - Block.SIDE_LENGTH*1.2f);
+                    Vector2 Lookahead = Vector2.Normalize(Drone.Velocity).IsValid() ? Vector2.Normalize(Drone.Velocity) * MathF.PI : Vector2.Zero;
+                    float distance = (Vector2.Distance(Block.Position, Drone.Position + (Lookahead * Block.SIDE_LENGTH / 2)) - Block.SIDE_LENGTH*1.2f);
                     var dummy = Drone.Position;
                     Collision.HandleCollisionSimple_ForBlocks(Drone.CollisionBox, Drone.Velocity, ref dummy, out var dir, out var block,
             out bool corner, true, (c) => c.Properties.IsSolid && Drone.Position3D.Y + 1.5f <= c.HeightFromGround);
@@ -430,14 +434,18 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         }
 
 
+
+
         internal void Update()
         {
-            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.Active))
+            if (!GameScene.ShouldRenderAll)
                 return;
             if (Recruit is Crate crate && (Crate.crates[crate.id] is null || Crate.crates[crate.id].IsOpening))
             {
                 Recruit = null;
             }
+
+            #region ModelAnimationAndVisuals
 
             Vector2 forward = Vector2.Normalize(Velocity).Rotate(-DroneRotation);
             if (!forward.IsValid()) forward = Vector2.Zero;
@@ -465,9 +473,12 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Model!.Root.Transform = World;
             Model!.CopyAbsoluteBoneTransformsTo(_boneTransforms);
 
+            #endregion
+
+            //in the case of a drone doesn't spawn in with an owner
             if (droneOwner is null)
             {
-                ChatSystem.SendMessage("Attempting adoption", Color.Indigo);
+                //ChatSystem.SendMessage("Attempting adoption", Color.Indigo);
                 ref Tank[] tanks = ref GameHandler.AllTanks;
 
                 Tank? target = null;
@@ -487,13 +498,17 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 droneOwner = target;
                 return;
             }
+
+
             if (droneOwner.Dead)
             {
-                if (Task != DroneTask.Die && Recruit is Crate crate2)
+                if (Recruit is Crate crate2)
                 {
                     crate2.velocity = Velocity.ExpandZ() * 0.5f;
                     crate2.gravity = 4f;
+                    Recruit = null;
                 }
+
                 Task = DroneTask.Die;
                 FallSpeed += 0.03f * RuntimeData.DeltaTime;
                 Gravity += FallSpeed * RuntimeData.DeltaTime;
@@ -503,11 +518,33 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     new Explosion(Position, 4, droneOwner, soundPitch: 0.6f);
                     Remove();
                 }
+
                 return;
             }
 
+
             HoverAbove = DRN_BASEHOVER;
-            DroneAI();
+
+            //like the ai tanks, only the host should do the ai
+            if (Client.IsHost() || !Client.IsConnected() && !Dead || MainMenuUI.Active)
+            {
+               // timeSinceLastAction++;
+
+                if (!MainMenuUI.Active)
+                    if (!CampaignGlobals.InMission || IntermissionSystem.IsAwaitingNewMission || LevelEditorUI.Active)
+                        Velocity = Vector2.Zero;
+                DroneAI();
+
+               // if (IsIngame)
+                 //   Client.SyncAITank(this);
+            }
+            //if (!Client.IsHost() && Client.IsConnected())
+            //{
+            //    HandleTankMetaData();
+            //}
+
+            
+
             float newHeight = HoverAbove;
 
             float hurryrise = 1f;
@@ -515,8 +552,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             foreach (var Block in Block.AllBlocks)
             {
                 if (Block is null) continue;
-
-                float dist = MathF.Max(0f, (Vector2.Distance(Block.Position, Position) - Block.SIDE_LENGTH * (Velocity.Length() * 0.25f)) / (Block.SIDE_LENGTH * (1f + Velocity.Length())));
+                Vector2 Lookahead = Vector2.Normalize(Velocity).IsValid() ? Vector2.Normalize(Velocity) * Block.SIDE_LENGTH / 2f : Vector2.Zero;
+                float dist = MathF.Max(0f, (MathF.Min(Vector2.Distance(Block.Position, Position + Lookahead), Vector2.Distance(Block.Position, Position)) - Block.SIDE_LENGTH * (Velocity.Length() * 0.25f)) / (Block.SIDE_LENGTH * (1f + Velocity.Length())));
                 float distance = MathHelper.Clamp(dist, 0f, 1f);
                 newHeight = MathF.Max(newHeight, Block.HeightFromGround * (1f - distance));
 
@@ -554,14 +591,12 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Body.LinearVelocity = Velocity / UNITS_TO_METERS;
             if (!Body.LinearVelocity.IsValid()) Body.LinearVelocity = Vector2.Zero;
             if (Vector2.Distance(TargetPosition, Position) > 1f)
-                DroneRotation = Position.DirectionTo(TargetPosition).ToRotation();
+                DroneRotation = DroneRotation.AngleLerp(Position.DirectionTo(TargetPosition).ToRotation(), 0.3f * (1f-RuntimeData.DeltaTime) );
 
             testtimer += RuntimeData.DeltaTime / 60f;
 
             for (int i = 0; i < OwnedShells.Length; i++)
                 if (OwnedShells[i] is Shell s && Shell.AllShells[s.Id] is null) OwnedShells[i] = null;
-
-
         }
 
         // public Tank? TryOverrideTarget()

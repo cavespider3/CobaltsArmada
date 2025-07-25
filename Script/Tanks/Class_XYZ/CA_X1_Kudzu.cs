@@ -33,12 +33,18 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.Olive;
         public override void PostApplyDefaults()
         {
-           
-           
+
+            Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new AiBehavior();
+            }
+
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One * 0.81f;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
-            AITank.Parameters.RandomTimerMinMove = 20;
+            AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.RandomTimerMaxMove = 30;
             AITank.Parameters.TurretMovementTimer = 20;
             AITank.Parameters.TurretSpeed = 0.03f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(9);

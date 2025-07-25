@@ -84,7 +84,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         /// <summary>Is the drone capable of patroling </summary>
         public Skill PatrolingGeneral = new();
 
-
+        public int Armor;
 
     }
 }

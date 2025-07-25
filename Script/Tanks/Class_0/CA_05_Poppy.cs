@@ -27,6 +27,7 @@ namespace CobaltsArmada
             AITank.Scaling = Vector3.One * 1.05f;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
+            AITank.Parameters.RandomTimerMaxMove = 30;
             AITank.Parameters.TurretMovementTimer = 20;
             AITank.Parameters.TurretSpeed = 0.06f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(3);

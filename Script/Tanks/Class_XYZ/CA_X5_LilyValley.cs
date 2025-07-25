@@ -27,9 +27,10 @@ namespace CobaltsArmada
             base.PostApplyDefaults();
 
             AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One* 100f ;
+            AITank.Scaling = Vector3.One;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
+            AITank.Parameters.RandomTimerMaxMove = 10;
             AITank.Parameters.RandomTimerMinMove = 10;
             AITank.Parameters.TurretMovementTimer = 20;
             AITank.Parameters.TurretSpeed = 0.06f;

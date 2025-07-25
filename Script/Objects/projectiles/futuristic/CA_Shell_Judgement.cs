@@ -15,6 +15,7 @@ using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Internals.Common.Framework.Collisions;
+using TanksRebirth.GameContent.ID;
 
 
 namespace CobaltsArmada
@@ -80,7 +81,7 @@ namespace CobaltsArmada
         public TeamkillContext context { get; private set; }
         public int Id { get; private set; }
 
-        public int Team => throw new NotImplementedException();
+        public int Team => Owner is not null ? Owner.Team : TeamID.NoTeam;
 
         /// <summary>
         /// 

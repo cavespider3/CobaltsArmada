@@ -99,6 +99,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             Traps.ChanceToActivate = 0.1f;
                             break;
 
+                        case TankID.Citrine:
+                            Traps.Enabled = true;
+                            Traps.Cooldown = 0;
+                            Traps.Inaccuracy = 20f;
+                            Traps.ChanceToActivate = 0.01f;
+                            break;
+
                         case TankID.Emerald:
                             Traps.EnabledViaRelay = true;
                             Traps.Cooldown = 1200;
@@ -106,11 +113,50 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             Traps.ChanceToActivate = 0.1f;
                             break;
 
+                        case TankID.Sapphire:
+                        case TankID.Silver:
+                            Patrol.Enabled = true;
+                            Patrol.Cooldown = 360;
+                            Patrol.ChanceToActivate = 0.4f;
+                            Patrol.Minimum = 200;
+                            break;
+
+                        case TankID.Green:
+                        case TankID.Ruby:
+                            Patrol.Enabled = true;
+                            Patrol.Cooldown = 360;
+                            Patrol.ChanceToActivate = 0.7f;
+                            Patrol.Maximum = 900;
+                        break;
 
                         case TankID.Pink:
                             Recruit.Enabled = true;
                             Recruit.Cooldown = 600;
                             Recruit.ChanceToActivate = 0.1f;
+                            break;
+                        
+
+
+                        case TankID.Gold:
+                        case TankID.White:
+                            Recruit.Enabled = true;
+                            Recruit.GlobalSkill = true;
+                            if (tankType == TankID.Gold)
+                            {
+                                Recruit.Cooldown = 1800;
+                                Recruit.ChanceToActivate = 0.04f;
+                                Recruit.Maximum = 300;
+                                Traps.RelayTaskToOthers = true;
+                                Traps.Cooldown = 400;
+                                Traps.ChanceToActivate = 0.04f;
+                            }
+                            else
+                            {    
+                                Recruit.Cooldown = 3600;
+                                Recruit.ChanceToActivate = 0.01f;                             
+                            }
+
+
                             break;
 
                         case TankID.Marine:
@@ -121,27 +167,23 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             Recruit.GlobalSkill = true;
                             Recruit.Minimum = 100;
                             Recruit.Maximum = 400;
+
+                            Patrol.Enabled = true;
+                            Patrol.Cooldown = 360;
+                            Patrol.ChanceToActivate = 0.03f;
+                            Patrol.Maximum = 400;
                             break;
 
                         case TankID.Brown:
-                            Recruit.RelayTaskToOthers = true;
-                            Recruit.RelayTaskRange = 1500;
-                            Recruit.RelayTaskRangeDecay = 0.03f;
-
-                            Recruit.Cooldown = 3600;
-                            Recruit.ChanceToActivate = 0.5f;
+                            Recruit.Cooldown = 900;
+                            Recruit.ChanceToActivate = 0.01f;
                             Recruit.GlobalSkill = true;
                             Recruit.Minimum = 0;
                             Recruit.Maximum = 300;
                             break;
 
-                        case TankID.Bronze:
-                            Traps.RelayTaskToOthers = true;
-                            Traps.RelayTaskRange = 300;
-                            Traps.Cooldown = 500;
-                            Traps.ChanceToActivate = 0.08f;
-                            Traps.GlobalSkill = true;
 
+                        case TankID.Bronze:
                             Recruit.RelayTaskToOthers = true;
                             Recruit.RelayTaskRange = 600;
                             Recruit.Cooldown = 500;
@@ -153,7 +195,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             Patrol.Cooldown = 500;
                             Patrol.ChanceToActivate = 0.12f;
                             Patrol.GlobalSkill = true;
-
                             break;
 
                         
