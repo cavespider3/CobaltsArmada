@@ -136,7 +136,7 @@ namespace CobaltsArmada
 
         internal void Update()
         {
-            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.Active))
+            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.IsActive))
                 return;
 
             float Ani_ObliterateScale = MathF.Max(0, (LifeTime - WarningTime) / 60 * MathF.PI * 2f);
@@ -155,7 +155,7 @@ namespace CobaltsArmada
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f );
                     ring.Pitch = MathHelper.PiOver2;
-                    ring.HasAddativeBlending = true;
+                    ring.HasAdditiveBlending = true;
                     ring.Color = Color.Cyan;
                     
                     ring.UniqueBehavior = (a) =>
@@ -169,7 +169,7 @@ namespace CobaltsArmada
                     var ring2 = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring2.Scale = new(0.2f * Radius + WarningForgiveness * 0.035f);
                     ring2.Pitch = MathHelper.PiOver2;
-                    ring2.HasAddativeBlending = true;
+                    ring2.HasAdditiveBlending = true;
                     ring2.Color = Color.Cyan;
                     
                     ring2.UniqueBehavior = (a) =>
@@ -190,7 +190,7 @@ namespace CobaltsArmada
                     var EasierWarning = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     EasierWarning.Scale = new(0.34f * Radius + WarningForgiveness * 0.035f);
                     EasierWarning.Roll = MathHelper.PiOver2;
-                    EasierWarning.HasAddativeBlending = true;
+                    EasierWarning.HasAdditiveBlending = true;
                     EasierWarning.Color = Color.Cyan;
 
                     EasierWarning.UniqueBehavior = (a) =>
@@ -205,7 +205,7 @@ namespace CobaltsArmada
                     var ring = GameHandler.Particles.MakeParticle(Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.34f * Radius + WarningForgiveness * 0.035f );
                     ring.Pitch = MathHelper.PiOver2;
-                    ring.HasAddativeBlending = true;
+                    ring.HasAdditiveBlending = true;
                     ring.Color = Color.Red;
                     SoundPlayer.PlaySoundInstance("Assets/sounds/mine_trip.ogg", SoundContext.Effect, 0.2f,pitchOverride:(LifeTime/WarningTime)-0.5f);
                     ring.UniqueBehavior = (a) =>
@@ -285,7 +285,7 @@ namespace CobaltsArmada
             for (var i = 0; i < GameHandler.AllTanks.Length; i++)
             {
                 var tank = Unsafe.Add(ref tankSSpace, i);
-                if (tank == null || tank.Dead) continue;
+                if (tank == null || tank.IsDestroyed) continue;
                 if (context == TeamkillContext.NotTeam && tank.Team == Owner?.Team) continue;
                 if (context == TeamkillContext.OnlyTeam && tank.Team != Owner?.Team) continue;
                 if (context == TeamkillContext.NotMyself && tank == Owner) continue;
@@ -400,7 +400,7 @@ namespace CobaltsArmada
                 var ring = GameHandler.Particles.MakeParticle(shell.Position3D + Vector3.UnitY*0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                 ring.Scale = new(0.6f);
                 ring.Roll = MathHelper.PiOver2;
-                ring.HasAddativeBlending = true;
+                ring.HasAdditiveBlending = true;
                 ring.Color = Color.Red;
 
                 ring.UniqueBehavior = (a) => {

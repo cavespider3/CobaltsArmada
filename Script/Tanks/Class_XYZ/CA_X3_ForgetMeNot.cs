@@ -114,15 +114,15 @@ namespace CobaltsArmada
         {
             base.PostUpdate();
 
-            if (LevelEditorUI.Active || !CampaignGlobals.InMission) return;
-            if (AITank.Dead || !GameScene.ShouldRenderAll) return;
+            if (LevelEditorUI.IsActive || !CampaignGlobals.InMission) return;
+            if (AITank.IsDestroyed || !GameScene.ShouldRenderAll) return;
 
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
                 if (tanks[i] is Tank ai)
                 {
-                    if (ai.Dead || ai is AITank ai2 && ai2.AiTankType == Type || ai == AITank) continue;
+                    if (ai.IsDestroyed || ai is AITank ai2 && ai2.AiTankType == Type || ai == AITank) continue;
 
                     //removing the tether limit for FMN tanks
 

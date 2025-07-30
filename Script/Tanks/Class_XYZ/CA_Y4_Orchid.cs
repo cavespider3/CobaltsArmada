@@ -32,7 +32,7 @@ namespace CobaltsArmada
         {
             //TANK NO BACK DOWN
 
-            CA_Main.MissionDeadline = new VindicationTimer(AITank);
+            CA_Main.MissionIsDestroyedline = new VindicationTimer(AITank);
             base.PostApplyDefaults();
             AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 5 : 15;
             AITank.Properties.Armor = new TankArmor(AITank, 1);

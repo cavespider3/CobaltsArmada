@@ -26,7 +26,6 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
            //Periwinkles are probably the most generic AITank of the mod
-            base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One;
@@ -38,7 +37,6 @@ namespace CobaltsArmada
             Parameters.TurretMovementTimer = 60;
             Parameters.TurretSpeed = 0.045f;
             Parameters.AimOffset = 0.9f;
-
 
 
             Parameters.AggressivenessBias = 1f;
@@ -71,6 +69,7 @@ namespace CobaltsArmada
             Parameters.SmartRicochets = true;
             Parameters.PredictsPositions = true;
             Parameters.ChanceMineLay = 0.05f;
+            base.PostApplyDefaults();
         }
     
     }

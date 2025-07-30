@@ -4,6 +4,7 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
+using CobaltsArmada.Script.Tanks.Class_T;
 
 namespace CobaltsArmada
 {
@@ -23,6 +24,8 @@ namespace CobaltsArmada
         public override string Texture => "assets/textures/tank_sunflower";
         public override int Songs => 2;
         public override Color AssociatedColor => Color.Yellow;
+
+
         public override void PostApplyDefaults()
         {
             AITank.UsesCustomModel = true;
@@ -35,7 +38,10 @@ namespace CobaltsArmada
             AITank.Parameters.AimOffset = MathHelper.ToRadians(3);
 
             AITank.Parameters.AggressivenessBias = -0.2f;
-        
+
+            AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5); // 31 
+            AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20); // 32 
+            AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20); // 33
 
             AITank.Parameters.AwarenessHostileMine = 120;
             AITank.Parameters.AwarenessHostileShell = 100;

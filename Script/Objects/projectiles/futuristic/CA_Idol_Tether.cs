@@ -56,7 +56,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                 p.Scale = new(3f);
                 p.Yaw = MathHelper.PiOver4+ a;
                 p.Roll = MathHelper.PiOver4;
-                p.HasAddativeBlending = !Inverse;
+                p.HasAdditiveBlending = !Inverse;
                 p.Alpha = 0.8f;
                 p.UniqueBehavior = (a) => {
 
@@ -68,7 +68,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
         }
         public bool Valid(Tank tank)
         {
-            return tank is not null && !tank.Dead;
+            return tank is not null && !tank.IsDestroyed;
         }
         public float distance()
         {
@@ -79,12 +79,12 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
         }
         internal void Update()
         {
-            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.Active))
+            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.IsActive))
                 return;
             if (bindHost is null || bindTarget is null) { Remove(); return; }
             if (!(Valid(bindHost) && Valid(bindTarget))) { Remove(); return; }
 
-            bindTarget.Properties.Immortal = !(bindTarget.Dead || Inverse);
+            bindTarget.Properties.Immortal = !(bindTarget.IsDestroyed || Inverse);
 
             Ticker += RuntimeData.DeltaTime;
             int bits = (int)Math.Floor(distance() / 8f);
@@ -104,7 +104,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                     Vector3 path = Vector2.Lerp(bindHost.Position, bindTarget.Position, (float)i / bits).ExpandZ() + Vector3.UnitY * h;
                     var p = GameHandler.Particles.MakeParticle(path, TextureGlobals.Pixels[Inverse ? Color.Red : Color.Cyan]);
                     p.FaceTowardsMe = true;
-                    p.HasAddativeBlending = !Inverse;
+                    p.HasAdditiveBlending = !Inverse;
                     p.Scale = new(1.5f);
                     p.Pitch = MathHelper.PiOver4;
                     p.Alpha = 0.5f;
@@ -154,7 +154,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                 item?.Destroy();
             }
             //Evil sick and twisted
-            if (bindHost is not null && bindHost.Dead && bindTarget is not null && Inverse)
+            if (bindHost is not null && bindHost.IsDestroyed && bindTarget is not null && Inverse)
             {
                 ChatSystem.SendMessage("YOU'RE COMING WITH ME",Color.Crimson);
                     bindTarget.Properties.Immortal = false;
@@ -162,7 +162,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
                     bindTarget.Damage(new TankHurtContextOther(null, TankHurtContextOther.HurtContext.FromIngame, "Destiny Bonded"), true, Color.Crimson);
             }else if (bindTarget is not null) bindTarget.Properties.Immortal = false;
 
-            if (bindHost is not null && bindHost.Dead && bindTarget is not null && !Inverse)
+            if (bindHost is not null && bindHost.IsDestroyed && bindTarget is not null && !Inverse)
             {
                 if (bindHost is AITank ai && ai.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
                 {

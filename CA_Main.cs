@@ -120,7 +120,7 @@ public class CA_Main : TanksMod {
     public static Texture2D? Tank_CustomPaint;
 
     public static BossBar? boss;
-    public static VindicationTimer? MissionDeadline;
+    public static VindicationTimer? MissionIsDestroyedline;
 
     public static float KudzuRegen=0f;
     /// <summary>
@@ -245,7 +245,7 @@ public class CA_Main : TanksMod {
     }
     public static void WhilePoisoned_Update(Tank tank)
     {
-        if (PoisonedTanks.Find(x => x == tank) is not null && Client.ClientRandom.NextFloat(0.1f, 1f) < 0.7f && !tank.Dead)
+        if (PoisonedTanks.Find(x => x == tank) is not null && Client.ClientRandom.NextFloat(0.1f, 1f) < 0.7f && !tank.IsDestroyed)
         {
             Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, 1f) * tank.CollisionCircle.Radius * 1.1f;
 
@@ -261,7 +261,7 @@ public class CA_Main : TanksMod {
 
             smoke.Color = Color.DarkViolet;
 
-            smoke.HasAddativeBlending = false;
+            smoke.HasAdditiveBlending = false;
 
             smoke.UniqueBehavior = (part) => {
 
@@ -293,7 +293,7 @@ public class CA_Main : TanksMod {
             smoke.Roll = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
             smoke.Scale = new(0.8f * Client.ClientRandom.NextFloat(0.1f, 1f));
             smoke.Color = Color.DarkViolet;
-            smoke.HasAddativeBlending = false;
+            smoke.HasAdditiveBlending = false;
             smoke.UniqueBehavior = (part) => {
 
                 GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
@@ -312,7 +312,7 @@ public class CA_Main : TanksMod {
             if (tanks[i] is Tank ai)
             {
 
-                if (ai.Dead || emitter == ai || emitter is not null && ai.Team != emitter.Team && emitter.Team != TeamID.NoTeam || 
+                if (ai.IsDestroyed || emitter == ai || emitter is not null && ai.Team != emitter.Team && emitter.Team != TeamID.NoTeam || 
                     ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
 
                 if (Vector2.Distance(ai.Position, v.FlattenZ()) > radius) continue;
@@ -477,12 +477,30 @@ public class CA_Main : TanksMod {
 
         AITank.OnDamage += AITank_OnDamage;
         IntermissionSystem.IntermissionAnimator.OnKeyFrameFinish += IntermissionAnimator_OnKeyFrameFinish;
+
+        CA_DroneLicenseManager.OnApplyLicense += CA_DroneLicenseManager_OnApplyLicense;
+    }
+    private void CA_DroneLicenseManager_OnApplyLicense(TanksRebirth.GameContent.Systems.AI.AITank tank, ref DroneParameters parameters)
+    {
+        if (tank.AiTankType == SunFlower)
+        {
+            ref var Traps = ref parameters.TrapsGeneral;
+            ref var Recruit = ref parameters.RecruitGeneral;
+            ref var Patrol = ref parameters.HoldGeneral;
+
+            Traps.Enabled = true;
+            Traps.RelayTaskToOthers = true;
+            Traps.RelayTaskRange = 100;
+            Traps.Cooldown = 900;
+            Traps.Inaccuracy = 90;
+            Traps.Minimum = tank.Parameters.TankAwarenessMine * 2;
+        }
     }
 
     private void IntermissionAnimator_OnKeyFrameFinish(TanksRebirth.Internals.Common.Framework.Animation.KeyFrame frame)
     {
         if (IntermissionSystem.ShouldDrawBanner){
-            if (Difficulties.Types.Count(diff => diff.Value) != Modifiers_currentlyactive && Difficulties.Types.Count(diff => diff.Value)!=0 && !LevelEditorUI.Active)
+            if (Difficulties.Types.Count(diff => diff.Value) != Modifiers_currentlyactive && Difficulties.Types.Count(diff => diff.Value)!=0 && !LevelEditorUI.IsActive)
             {
                 Modifiers_currentlyactive = Difficulties.Types.Count(diff => diff.Value);
                 // TankGame.ClientLog.Write(Modifiers_currentlyactive + "Modifiers were active",LogType.Info);
@@ -561,7 +579,7 @@ public class CA_Main : TanksMod {
 
     private void GameProperties_OnMissionStart()
     {
-        if (LevelEditorUI.Active || LevelEditorUI.IsTestingLevel)
+        if (LevelEditorUI.IsActive || LevelEditorUI.IsTestingLevel)
         {
             if (LevelEditorUI.IsTestingLevel && Difficulties.Types["CobaltArmada_Swap"])
             {
@@ -575,7 +593,7 @@ public class CA_Main : TanksMod {
                         var t = new AITank(template.AiTankType);
                         t.Physics.Position = template.Position3D.FlattenZ() / Tank.UNITS_PER_METER;
                         t.Position = template.Position3D.FlattenZ();
-                        t.Dead = false;
+                        t.IsDestroyed = false;
                         t.Team = template.Team;
                         template.Remove(true);
 
@@ -594,7 +612,7 @@ public class CA_Main : TanksMod {
             {
                 if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
-                if (ai is null || ai.Dead) continue;
+                if (ai is null || ai.IsDestroyed) continue;
                 ai.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
                 for (int j = 1; j < (int)modifier_Tanktosis; j++)
                 {
@@ -614,11 +632,11 @@ public class CA_Main : TanksMod {
         {
             Tank[] tanks = GameHandler.AllTanks;
 
-            Tank[] tanks2 = GameHandler.AllTanks.ToList().FindAll(x => x is not null && x is not PlayerTank && !x.Dead).ToArray();
+            Tank[] tanks2 = GameHandler.AllTanks.ToList().FindAll(x => x is not null && x is not PlayerTank && !x.IsDestroyed).ToArray();
             for (int i = tanks2.Length - 1; i >= 0; i--)
             {
                 var ai = tanks2[i] as AITank;
-                if (ai is null || ai.Dead) continue;
+                if (ai is null || ai.IsDestroyed) continue;
                 var t = new AITank(ForgetMeNot);
 
                 t.Physics.Position = ai.Physics.Position;
@@ -638,15 +656,25 @@ public class CA_Main : TanksMod {
                 if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
                 var ai = tanks[i] as AITank;
                 if (ai is null) continue;
-                if (ai is null || ai.Dead || ai.AiTankType == NightShade) continue;
+                if (ai is null || ai.IsDestroyed || ai.AiTankType == NightShade) continue;
 
                 PoisonTank(ai);
             }
 
         }
-        if(Difficulties.Types["CobaltArmada_YouAndWhatArmy"] || Difficulties.Types["CobaltArmada_YouAndMyArmy"])
-            GiveDrone();
+         GiveDrone();
 
+
+
+    }
+
+    bool TankSpawnsWithDrone(AITank tank)
+    {
+        return tank.AiTankType == SunFlower || 
+            tank.AiTankType == Kudzu || 
+            tank.AiTankType == Carnation || 
+            tank.AiTankType == NightShade || 
+            tank.AiTankType == Hydrangea;
     }
 
     private void GiveDrone()
@@ -654,15 +682,24 @@ public class CA_Main : TanksMod {
         ref Tank[] tanks = ref GameHandler.AllTanks;
         for (int i = 0; i < tanks.Length; i++)
         {
-            if (tanks[i] is Tank ai  && (ai is PlayerTank && Difficulties.Types["CobaltArmada_YouAndMyArmy"] || ai is AITank && Difficulties.Types["CobaltArmada_YouAndWhatArmy"])){
-                new CA_Drone(ai, ai.Position / 8f);
-                                    }
+            if (tanks[i] is Tank ai  && 
+                (ai is PlayerTank && Difficulties.Types["CobaltArmada_YouAndMyArmy"] || 
+                ai is AITank && Difficulties.Types["CobaltArmada_YouAndWhatArmy"]
+                || (ai is AITank tankai && TankSpawnsWithDrone(tankai))
+                )
+                ){
+                    if (Client.IsHost() || !Client.IsConnected())
+                    {
+                    var Drone = new CA_Drone(ai, ai.Position / 8f);
+                    CA_NetPlay.SyncDrone(Drone,true);
+                    }
+                }
         }
     }
 
     public static void PoisonTank(Tank ai)
     {
-        if ((Client.IsHost() && Client.IsConnected()) || (!Client.IsConnected() && !ai.Dead) || MainMenuUI.Active)
+        if ((Client.IsHost() && Client.IsConnected()) || (!Client.IsConnected() && !ai.IsDestroyed) || MainMenuUI.IsActive)
         {
             if (PoisonedTanks.Find(x => x == ai) is null)
             {
@@ -746,7 +783,7 @@ public class CA_Main : TanksMod {
             fp?.Render();
 
         boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth-WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight-60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
-        MissionDeadline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
+        MissionIsDestroyedline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
     }
 
     private void MainMenu_OnMenuClose()
@@ -758,13 +795,13 @@ public class CA_Main : TanksMod {
     private void Open()
     {
         boss = null;
-        MissionDeadline = null;
+        MissionIsDestroyedline = null;
     }
 
     private void Campaign_OnMissionLoad(Tank[] tanks, Block[] blocks)
     {
-        if (LevelEditorUI.Active) return;
-        if (MainMenuUI.Active) return;
+        if (LevelEditorUI.IsActive) return;
+        if (MainMenuUI.IsActive) return;
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
 
         if (IntermissionHandler.LastResult != MissionEndContext.Lose)
@@ -780,8 +817,8 @@ public class CA_Main : TanksMod {
     
     private void CampaignGlobals_OnMissionEnd(int delay, MissionEndContext context, bool result1up)
     {
-        if (LevelEditorUI.Active) return;
-        if (MainMenuUI.Active) return;
+        if (LevelEditorUI.IsActive) return;
+        if (MainMenuUI.IsActive) return;
         if (!Difficulties.Types["CobaltArmada_Swap"]) return;
 
         if (context == MissionEndContext.Win)
@@ -810,8 +847,8 @@ public class CA_Main : TanksMod {
     public static int[] PreSpawns = Array.Empty<int>();
     //Hijack mission
     private void Campaign_OnPreLoadTank(ref TankTemplate template)
-    {   if (MainMenuUI.Active) return;
-        if (LevelEditorUI.Active)
+    {   if (MainMenuUI.IsActive) return;
+        if (LevelEditorUI.IsActive)
         {
             return;
         }
@@ -882,7 +919,7 @@ public class CA_Main : TanksMod {
 
     public static void Lay_AbstractMine(Shell origin)
     {
-        if (!MainMenuUI.Active && !CampaignGlobals.InMission)return;
+        if (!MainMenuUI.IsActive && !CampaignGlobals.InMission)return;
         Mine mine = new Mine(origin.Owner, origin.Position - new Vector2(0f, 10f).Rotate(origin.Rotation), 400f, 1f);
     }
 
@@ -891,7 +928,7 @@ public class CA_Main : TanksMod {
     /// </summary>
     public static void Fire_AbstractShell(Shell origin,int count, int newType = 1, uint burst_bounces = 0,float burst_expand=3.5f)
     {
-        if (MainMenuUI.Active || !CampaignGlobals.InMission) return;
+        if (MainMenuUI.IsActive || !CampaignGlobals.InMission) return;
         if (origin is null||origin.Owner is null) return;
         float angle = 0;
         float rng_burst = origin.Rotation+ (MathF.PI * 2f / (count*2f));
@@ -911,7 +948,7 @@ public class CA_Main : TanksMod {
 
     public static void Fire_AbstractShell_Tank(Tank origin, int count,ITankHurtContext player_kill, int newType = 1, uint burst_bounces=0, float burst_expand = 3.4f)
     {
-        if (MainMenuUI.Active || !CampaignGlobals.InMission) return;
+        if (MainMenuUI.IsActive || !CampaignGlobals.InMission) return;
         if (origin is null) return;
 
         float angle = 0;
@@ -931,7 +968,7 @@ public class CA_Main : TanksMod {
     }
     public static void Fire_AbstractShell_Mine(Mine origin, int count, int newType = 1, uint burst_bounces = 0, float burst_expand = 3.5f)
     {
-        if ((!MainMenuUI.Active && !CampaignGlobals.InMission)) return;
+        if ((!MainMenuUI.IsActive && !CampaignGlobals.InMission)) return;
         if (origin is null || origin.Owner is null) return;
         float angle = 0;
         float rng_burst = Server.ServerRandom.NextFloat(-MathF.PI, MathF.PI);
@@ -951,6 +988,7 @@ public class CA_Main : TanksMod {
 
 
     public override void OnUnload() {
+        CA_DroneLicenseManager.OnApplyLicense -= CA_DroneLicenseManager_OnApplyLicense;
         MainMenuUI.OnMenuOpen -= Open;
         MainMenuUI.OnMenuClose -= MainMenu_OnMenuClose;
         Campaign.OnPreLoadTank -= Campaign_OnPreLoadTank;
@@ -977,5 +1015,6 @@ public class CA_Main : TanksMod {
         MainMenuUI.AllDifficultyButtons.RemoveRange(Hook_UI.startIndex, MainMenuUI.AllDifficultyButtons.Count - Hook_UI.startIndex - 1);
         CA_NetPlay.Unload();
         AITank.OnDamage -= AITank_OnDamage;
+      
     }
 }

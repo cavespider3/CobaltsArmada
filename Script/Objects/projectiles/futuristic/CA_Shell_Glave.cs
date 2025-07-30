@@ -73,7 +73,7 @@ namespace CobaltsArmada
                shell.Position3D, shell.Model, TextureGlobals.Pixels[Color.White]);
             p.Yaw = shell.Rotation;
             p.Color = shell.Properties.FlameColor;
-            p.HasAddativeBlending = true;
+            p.HasAdditiveBlending = true;
             p.Scale = new(2.4f);
             p.UniqueBehavior = (a) => {
                 p.Alpha -= 0.02f * RuntimeData.DeltaTime;

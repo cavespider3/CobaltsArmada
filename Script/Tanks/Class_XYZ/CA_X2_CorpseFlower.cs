@@ -95,7 +95,7 @@ namespace CobaltsArmada
         public override void PostUpdate()
         {
             base.PostUpdate();
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             if (CA_Main.modifier_Difficulty > CA_Main.ModDifficulty.Lunatic)
             {
                 ref Tank[] tanks = ref GameHandler.AllTanks;
@@ -105,7 +105,7 @@ namespace CobaltsArmada
                     if (tanks[i] is Tank ai)
                     {
                         //Kill Tethers Chain on Phantasm
-                        if (ai == AITank || ai.Dead || AITank.Team != TeamID.NoTeam && ai.Team == AITank.Team) continue;
+                        if (ai == AITank || ai.IsDestroyed || AITank.Team != TeamID.NoTeam && ai.Team == AITank.Team) continue;
                         bloat =MathHelper.Clamp(1f-MathF.Max(0f,Vector2.Distance(ai.Position, AITank.Position)-75)/75,0f,1f);
                         if (bloat >= 1)
                         {

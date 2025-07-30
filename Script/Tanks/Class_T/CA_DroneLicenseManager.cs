@@ -222,27 +222,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             Traps.Maximum = 600;
                             break;
 
-                            #endregion
-
-
+                        #endregion
                     }
                 }
-               
-                //light modded support... it didn't work (for the time being) :(
                 OnApplyLicense?.Invoke(ai, ref droneParams);
-                return droneParams;
             }
-
-
-
-
-
-
-
-
-
-
-
+            //light modded support... it didn't work (for the time being) :(
+           
             return droneParams;
         }
     }

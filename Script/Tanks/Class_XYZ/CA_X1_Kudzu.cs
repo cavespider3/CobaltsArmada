@@ -93,8 +93,8 @@ namespace CobaltsArmada
             base.PreUpdate();
 
             //STOP SPAWNING SHIT
-            if (LevelEditorUI.Active) return;
-            if (AITank.Dead || !GameScene.ShouldRenderAll) return;
+            if (LevelEditorUI.IsActive) return;
+            if (AITank.IsDestroyed || !GameScene.ShouldRenderAll) return;
             if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
             {
                 AITank.SpecialBehaviors[0].Value = 300f;

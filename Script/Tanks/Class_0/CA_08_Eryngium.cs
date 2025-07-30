@@ -176,7 +176,7 @@ namespace CobaltsArmada
                 var ring = GameHandler.Particles.MakeParticle(_Tank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                 ring.Scale = new(0.6f);
                 ring.Roll = MathHelper.PiOver2;
-                ring.HasAddativeBlending = false;
+                ring.HasAdditiveBlending = false;
                 ring.Color = Color.Purple;
 
                 ring.UniqueBehavior = (a) =>
@@ -210,7 +210,7 @@ namespace CobaltsArmada
         {
             const string invisibleTankSound = "Assets/sounds/tnk_invisible.ogg";
 
-            if (tank.Dead) return;
+            if (tank.IsDestroyed) return;
             SoundPlayer.PlaySoundInstance(invisibleTankSound, SoundContext.Effect, 0.3f);
 
             var lightParticle = GameHandler.Particles.MakeParticle(tank.Position3D,

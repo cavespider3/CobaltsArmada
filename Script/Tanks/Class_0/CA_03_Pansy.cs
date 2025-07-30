@@ -81,7 +81,7 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             var properties = AITank.Properties;
             if (AITank.TargetTank is not null && AITank.SeesTarget)
             {

@@ -56,7 +56,7 @@ namespace CobaltsArmada
             {
                
                 var tank = Unsafe.Add(ref tankSSpace, i);
-                if (tank == null || tank.Dead) continue;
+                if (tank == null || tank.IsDestroyed) continue;
                
                 if (Vector2.Distance(tank.Position, Center) - tank.CollisionCircle.Radius > Radius) continue;
                

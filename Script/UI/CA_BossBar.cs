@@ -72,7 +72,7 @@ namespace CobaltsArmada
                 Anim_Rising += RuntimeData.DeltaTime / 60f;
                 Anim_Rising = MathHelper.Clamp(Anim_Rising, 0f, 1f);
             }
-            Anim_Up += (CampaignGlobals.InMission && Owner is not null && !Owner.Dead ? 0.025f:-0.025f) * RuntimeData.DeltaTime;
+            Anim_Up += (CampaignGlobals.InMission && Owner is not null && !Owner.IsDestroyed ? 0.025f:-0.025f) * RuntimeData.DeltaTime;
             Anim_Up = MathHelper.Clamp(Anim_Up, 0f, 1f);
             Vector2 finalpos = position + Vector2.UnitY * 120f*Easings.InBack(1f-Anim_Up);
 

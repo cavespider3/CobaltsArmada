@@ -136,7 +136,7 @@ namespace CobaltsArmada
         {
           
             base.PostUpdate();
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             bool Enraged = AITank.SpecialBehaviors[6].Value/2f>= AITank.SpecialBehaviors[2].Value;
             Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, AITank.SpecialBehaviors[3].Value);
             var smoke = GameHandler.Particles.MakeParticle(AITank.Position3D + smokey.ExpandZ(),
@@ -144,7 +144,7 @@ namespace CobaltsArmada
             smoke.Pitch = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
             smoke.Scale = new(0.8f * Client.ClientRandom.NextFloat(0.1f, 1f));
             smoke.Color = Color.DarkViolet;
-            smoke.HasAddativeBlending = false;
+            smoke.HasAdditiveBlending = false;
             smoke.UniqueBehavior = (part) => {
 
                 GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
@@ -156,7 +156,7 @@ namespace CobaltsArmada
 
             };
 
-            if (LevelEditorUI.Active) return;
+            if (LevelEditorUI.IsActive) return;
 
 
 
@@ -174,7 +174,7 @@ namespace CobaltsArmada
                     if (tanks[i] is Tank ai)
                     {
 
-                        if (ai.Dead || AITank == ai || ai.Team != AITank.Team && AITank.Team != TeamID.NoTeam ||
+                        if (ai.IsDestroyed || AITank == ai || ai.Team != AITank.Team && AITank.Team != TeamID.NoTeam ||
                             ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
 
                         if (Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) > AITank.SpecialBehaviors[3].Value) continue;

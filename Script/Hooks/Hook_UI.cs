@@ -195,7 +195,7 @@ namespace CobaltsArmada.Hooks
             if (Invasion is null) return;
             try
             {
-                if (!MainMenuUI.Active) return;
+                if (!MainMenuUI.IsActive) return;
                 if (MainMenuUI.BulletHell.IsVisible)
                 {
                     Invasion!.IsVisible = true;
@@ -256,7 +256,7 @@ namespace CobaltsArmada.Hooks
            
             //Gameplay
             boss?.Update();
-            MissionDeadline?.Update();
+            MissionIsDestroyedline?.Update();
         }
 
     }

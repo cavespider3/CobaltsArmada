@@ -98,7 +98,7 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             if (AITank.SpecialBehaviors[2].Value < 0f){
                 AITank.SpecialBehaviors[2].Value = AITank.Team;
             }
@@ -106,14 +106,14 @@ namespace CobaltsArmada
         public override void PostUpdate()
         {
             base.PostUpdate();
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
                 if (tanks[i] is Tank ai)
                 {
                     //Kill Tethers Chain on Phantasm
-                    if (ai.Dead || (ai is AITank ai2 && ai2.AiTankType == Type && CA_Main.modifier_Difficulty <= ModDifficulty.Lunatic) || ai == AITank) continue;
+                    if (ai.IsDestroyed || (ai is AITank ai2 && ai2.AiTankType == Type && CA_Main.modifier_Difficulty <= ModDifficulty.Lunatic) || ai == AITank) continue;
 
                     if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[0].Value * 2.1f)
                     {

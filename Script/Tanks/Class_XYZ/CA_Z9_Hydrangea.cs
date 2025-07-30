@@ -122,7 +122,7 @@ namespace CobaltsArmada
             base.PostUpdate();
 
             AITank.Model.Root.Transform = Matrix.CreateScale(100f) * AITank.Model.Root.Transform;
-            if (LevelEditorUI.Active || AITank.Dead || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
             AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
             //if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
             //{
@@ -179,7 +179,7 @@ namespace CobaltsArmada
                     var ring = GameHandler.Particles.MakeParticle(AITank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.6f);
                     ring.Roll = MathHelper.PiOver2;
-                    ring.HasAddativeBlending = true;
+                    ring.HasAdditiveBlending = true;
                     ring.Color = Color.Cyan;
                    
                     ring.UniqueBehavior = (a) =>
@@ -215,7 +215,7 @@ namespace CobaltsArmada
                     var ring = GameHandler.Particles.MakeParticle(AITank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                     ring.Scale = new(0.6f);
                     ring.Roll = MathHelper.PiOver2;
-                    ring.HasAddativeBlending = true;
+                    ring.HasAdditiveBlending = true;
                     ring.Color = Color.Cyan;
 
                     ring.UniqueBehavior = (a) =>

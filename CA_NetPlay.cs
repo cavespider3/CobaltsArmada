@@ -12,6 +12,7 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI.MainMenu;
+using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Net;
 using static TanksRebirth.Net.Client;
 
@@ -25,6 +26,7 @@ namespace CobaltsArmada
         /// </summary>
         public static int SyncNightShade;
         public static int SyncEntityDrone;
+        public static int SyncCrateSpawn;
 
         #endregion
 
@@ -32,12 +34,14 @@ namespace CobaltsArmada
         {
             SyncNightShade = PacketID.AddPacketId(nameof(SyncNightShade));
             SyncEntityDrone = PacketID.AddPacketId(nameof(SyncEntityDrone));
+            SyncCrateSpawn = PacketID.AddPacketId(nameof(SyncCrateSpawn));
             NetPlay.OnReceiveClientPacket += NetPlay_OnReceiveClientPacket;
             NetPlay.OnReceiveServerPacket += NetPlay_OnReceiveServerPacket;
         }
 
         public static void Unload()
         {
+            PacketID.Collection.TryRemove(SyncCrateSpawn);
             PacketID.Collection.TryRemove(SyncEntityDrone);
             PacketID.Collection.TryRemove(SyncNightShade);
             NetPlay.OnReceiveClientPacket -= NetPlay_OnReceiveClientPacket;
@@ -50,9 +54,55 @@ namespace CobaltsArmada
             if (packet == SyncNightShade)
             {
                 int tank = reader.GetInt();
-                ChatSystem.SendMessage("Mods. Nightshade this tank in particular.", Color.Plum);
+              //  ChatSystem.SendMessage("Mods. Nightshade this tank in particular.", Color.Plum);
                 CA_Main.PoisonedTanks.Add(GameHandler.AllTanks[tank]);
                 CA_Main.Tank_OnPoisoned(GameHandler.AllTanks[tank]);
+            }
+            if(packet == SyncEntityDrone)
+            {
+            
+                bool newdrone = reader.GetBool();
+
+                if (!newdrone)
+                {
+                    int _drone = reader.GetInt();
+                    Vector3 position = reader.GetVector3();
+                    Vector3 velocity = reader.GetVector3();
+
+                    float dronerotation = reader.GetFloat();
+                    float turretrotation = reader.GetFloat();
+
+                    int task = reader.GetInt();
+                    int taskstate = reader.GetInt();
+                    ref CA_Drone drone = ref CA_Drone.AllDrones[_drone];
+
+                    drone.Body.Position = position.FlattenZ() / 8f;
+                    drone.HoverHeight = position.Y;
+                    drone.Velocity = velocity.FlattenZ();
+                    drone.HoverSpeed = velocity.Y;
+
+                    drone.Task = (CA_Drone.DroneTask)task;
+                    drone.CurrentState = (CA_Drone.TaskState)taskstate;
+                }else
+                {
+                    int _tank = reader.GetInt();
+                    Vector3 position = reader.GetVector3();
+                    CA_Drone syncdrone = new CA_Drone(GameHandler.AllTanks[_tank],position.FlattenZ());
+                }
+               
+            }
+            if(packet == SyncCrateSpawn)
+            {
+                int drone = reader.GetInt();
+                int id = reader.GetInt();
+                int team = reader.GetInt();
+                TankTemplate tenk = new TankTemplate() { AiTier = id,Team = team};
+                Vector3 P = reader.GetVector3();
+                float G = reader.GetFloat();
+                var crate = Crate.SpawnCrate(P,G);
+                crate.TankToSpawn = tenk;
+                CA_Drone.AllDrones[drone].Recruit = crate;
+
             }
         }
 
@@ -68,13 +118,39 @@ namespace CobaltsArmada
                 message.Put(reader.GetInt());
                 Server.NetManager.SendToAll(message, LiteNetLib.DeliveryMethod.ReliableOrdered, peer);
             }
+            if(packet == SyncEntityDrone)
+            {
+                bool Spawn = reader.GetBool();
+                message.Put(Spawn);
+
+                message.Put(reader.GetInt());
+                message.Put(reader.GetVector3());
+                if (!Spawn)
+                {
+                    message.Put(reader.GetVector3());
+                    message.Put(reader.GetFloat());
+                    message.Put(reader.GetFloat());
+                    message.Put(reader.GetInt());
+                    message.Put(reader.GetInt());
+                }
+                Server.NetManager.SendToAll(message, LiteNetLib.DeliveryMethod.Unreliable, peer);
+            }
+            if (packet == SyncCrateSpawn)
+            {
+                message.Put(reader.GetInt());
+                message.Put(reader.GetInt());
+                message.Put(reader.GetInt());
+                message.Put(reader.GetVector3());
+                message.Put(reader.GetFloat());
+                Server.NetManager.SendToAll(message, LiteNetLib.DeliveryMethod.ReliableOrdered, peer);
+            }
         }
         #endregion
         //Sends a packet to apply nightshade to a tank
         public static void RequestNightshadeTank(Tank target)
         {
             // If the game client is not connected to a server, we don't bother running the future lines.
-            if (!IsConnected() || MainMenuUI.Active)
+            if (!IsConnected() || MainMenuUI.IsActive)
                 return;
             
             // Constructs a NetDataWriter, which will be our packet.
@@ -95,7 +171,7 @@ namespace CobaltsArmada
         public static void SyncDrone(CA_Drone target,bool Spawn)
         {
             // If the game client is not connected to a server, we don't bother running the future lines.
-            if (!IsConnected() || MainMenuUI.Active)
+            if (!IsConnected() || MainMenuUI.IsActive)
                 return;
 
             // Constructs a NetDataWriter, which will be our packet.
@@ -104,16 +180,18 @@ namespace CobaltsArmada
             // Here we put the data that goes into our packet of data. We send the packet type first, and not by choice.
             // Tanks Rebirth automatically reads an integer as the first piece of data in the packet's data stream, which becomes the 'int packet' above.
             message.Put(SyncEntityDrone);
-           
-            message.Put(target.Id); //Drone id in array
+            message.Put(Spawn);
+            if (!Spawn) message.Put(target.Id); //Drone id in array
+            if (Spawn) message.Put(target.droneOwner!.WorldId);
             message.Put(target.Position3D);  //Drone position in array
-            message.Put(target.Velocity3D); //Drone velocity in array
+            if (!Spawn) message.Put(target.Velocity3D); //Drone velocity in array
 
-            message.Put(target.DroneRotation); //Drone's body rotation
-            message.Put(target.TurretRotation);
+            if (!Spawn) message.Put(target.DroneRotation); //Drone's body rotation
+            if (!Spawn) message.Put(target.TurretRotation);
 
-            message.Put((int)target.Task); //for mostly animation stuff
-            message.Put((int)target.CurrentState); //for mostly animation stuff
+            if (!Spawn) message.Put((int)target.Task); //for mostly animation stuff
+            if (!Spawn) message.Put((int)target.CurrentState); //for mostly animation stuff
+
 
 
             // This is how our data is sent to the server. We end up handling the data again within the scope of the server.
@@ -121,6 +199,21 @@ namespace CobaltsArmada
             NetClient.Send(message, LiteNetLib.DeliveryMethod.Unreliable);
         }
 
+        public static void SyncDroneCrate(CA_Drone drone,Crate crate)
+        {
+            if (!IsConnected() || MainMenuUI.IsActive)
+                return;
+
+            // Constructs a NetDataWriter, which will be our packet.
+            NetDataWriter message = new();
+            message.Put(SyncCrateSpawn);
+            message.Put(drone.Id);
+            message.Put(crate.TankToSpawn.AiTier);
+            message.Put(crate.TankToSpawn.Team);
+            message.Put(crate.position);
+            message.Put(crate.gravity);
+            NetClient.Send(message, LiteNetLib.DeliveryMethod.ReliableOrdered);
+        }
 
 
     }

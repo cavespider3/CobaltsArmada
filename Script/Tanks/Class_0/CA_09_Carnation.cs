@@ -106,10 +106,10 @@ namespace CobaltsArmada
             AITank.SpecialBehaviors[1].Value -= RuntimeData.DeltaTime;
         }
 
-        public override void DangerDetected(IAITankDanger danger)
+        public override void DangerDetected()
         {
-            base.DangerDetected(danger);
-            if (danger.Team != AITank.Team && danger is Shell && AITank.SpecialBehaviors[1].Value <0.1f)
+            base.DangerDetected();
+            if (AITank.ClosestDanger!.Team != AITank.Team && AITank.SpecialBehaviors[1].Value <0.1f)
             {
                 AITank.SpecialBehaviors[0].Value = 2.06f*60f;
                 AITank.SpecialBehaviors[1].Value = 2.6f * 60f;

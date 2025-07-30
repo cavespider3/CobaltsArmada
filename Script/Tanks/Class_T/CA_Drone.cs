@@ -165,7 +165,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         public float TargetTankRotation;
 
         /// <summary>Whether or not the tank has been destroyed or not.</summary>
-        public bool Dead { get; set; }
+        public bool IsDestroyed { get; set; }
 
         /// <summary>Whether or not this tank is used for ingame purposes or not.</summary>
         public bool IsIngame { get; set; } = true;
@@ -223,7 +223,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         public float AISeed = 0;
         public float AssignmentPersistance = 0f;
         private DroneTask _task;
-        public TaskState CurrentState { get; private set; }
+        public TaskState CurrentState { get; set; }
         public DroneTask Task
         {
             get { return _task; }
@@ -289,7 +289,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 var targetPosition = new Vector2(float.MaxValue);
                 foreach (var tank in GameHandler.AllTanks)
                 {
-                    if (tank is not null && !tank.Dead)
+                    if (tank is not null && !tank.IsDestroyed)
                     {
 
                         if (GameUtils.Distance_WiiTanksUnits(tank.Position, Position) < GameUtils.Distance_WiiTanksUnits(targetPosition, Position))
@@ -410,7 +410,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 foreach (var Drone in AllDrones)
                 {
                     
-                    if (Drone is null || Drone.droneOwner is null || Drone.droneOwner.Dead) continue;
+                    if (Drone is null || Drone.droneOwner is null || Drone.droneOwner.IsDestroyed) continue;
                     Vector2 Lookahead = Vector2.Normalize(Drone.Velocity).IsValid() ? Vector2.Normalize(Drone.Velocity) * MathF.PI : Vector2.Zero;
                     float distance = (Vector2.Distance(Block.Position, Drone.Position + (Lookahead * Block.SIDE_LENGTH / 2)) - Block.SIDE_LENGTH*1.2f);
                     var dummy = Drone.Position;
@@ -485,7 +485,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 var targetPosition = new Vector2(float.MaxValue);
                 foreach (var tank in GameHandler.AllTanks)
                 {
-                    if (tank is not null && !tank.Dead)
+                    if (tank is not null && !tank.IsDestroyed)
                     {
 
                         if (GameUtils.Distance_WiiTanksUnits(tank.Position, Position) < GameUtils.Distance_WiiTanksUnits(targetPosition, Position))
@@ -500,7 +500,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             }
 
 
-            if (droneOwner.Dead)
+            if (droneOwner.IsDestroyed)
             {
                 if (Recruit is Crate crate2)
                 {
@@ -526,22 +526,30 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             HoverAbove = DRN_BASEHOVER;
 
             //like the ai tanks, only the host should do the ai
-            if (Client.IsHost() || !Client.IsConnected() && !Dead || MainMenuUI.Active)
+            if (Client.IsHost() || !Client.IsConnected() && !IsDestroyed || MainMenuUI.IsActive)
             {
                // timeSinceLastAction++;
 
-                if (!MainMenuUI.Active)
-                    if (!CampaignGlobals.InMission || IntermissionSystem.IsAwaitingNewMission || LevelEditorUI.Active)
+                if (!MainMenuUI.IsActive)
+                    if (!CampaignGlobals.InMission || IntermissionSystem.IsAwaitingNewMission || LevelEditorUI.IsActive)
                         Velocity = Vector2.Zero;
                 DroneAI();
 
-               // if (IsIngame)
-                 //   Client.SyncAITank(this);
+                CA_NetPlay.SyncDrone(this, false);
+         
             }
-            //if (!Client.IsHost() && Client.IsConnected())
-            //{
-            //    HandleTankMetaData();
-            //}
+            if (!Client.IsHost() && Client.IsConnected() && Recruit is Crate)
+            {
+                if (CurrentState == TaskState.During)
+                {
+                    Recruit!.position = Position3D - new Vector3(0, 12, 0);
+                    Recruit.gravity = 0f;
+                }
+                else
+                {
+                    Recruit.gravity = 2f;
+                }
+            }
 
             
 
@@ -626,7 +634,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 }
                 else
                 {
-                    AISeed = Server.ServerRandom.NextFloat(0f, 1f);
+                    AISeed = Client.ClientRandom.NextFloat(0f, 1f); //it's handled completly by the host
                     AssignmentPersistance = 5f;
                 }
 
@@ -911,7 +919,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             }
             if (CurrentState == TaskState.During)
             {
-                new Mine(droneOwner, Position, 600);
+                var M = new Mine(droneOwner, Position, 600);
+                Client.SyncMinePlace(Position, 600, M.Id);
                 CurrentState = TaskState.Finishing;
                 return;
             }
@@ -965,8 +974,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         shell.ShootSound!.Instance.Pitch = MathHelper.Clamp(Properties.ShootPitch + 0.3f, -1f, 1f);
                         SoundPlayer.PlaySoundInstance(shell.ShootSound, SoundContext.Effect, 0.3f);
                         DoShootParticles();
-                        Client.SyncShellFire(shell);
                         shell.Owner = droneOwner;
+                        Client.SyncShellFire(shell);
+                        
                         int index = Array.IndexOf(OwnedShells, null);
                         OwnedShells[index] = shell;
                         Ammo--;
@@ -999,19 +1009,23 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             {
                 if (Vector2.Distance(Position, TargetPosition) <= HoverDistance)
                 {
-                    CurrentState = TaskState.During;
-                    Recruit = Crate.SpawnCrate(Position3D - new Vector3(0, 12, 0), 0f);
-                    var CallableRecruits = PlayerTank.TankKills.Where((a, b) => b > 0).ToArray();
-                    Recruit.TankToSpawn = new TankTemplate()
+                    if (Client.IsHost() || !Client.IsConnected())
                     {
-                        AiTier = droneOwner is AITank ai && !Difficulties.Types["RandomizedTanks"] ? 
-                        CallableRecruits.Length > 0 ? Difficulties.Types["MasterModBuff"] ? (CallableRecruits[Server.ServerRandom.Next(0, CallableRecruits.Length)].Key - 1) % 9 + 1 : 
-                        CallableRecruits[Server.ServerRandom.Next(0, CallableRecruits.Length)].Key :
-                        TankID.Brown :
-                        Difficulties.Types["MasterModBuff"] ? Server.ServerRandom.Next(TankID.Brown, TankID.Black + 1) : Server.ServerRandom.Next(TankID.Brown, TankID.Obsidian + 1),
-                        IsPlayer = false,
-                        Team = droneOwner!.Team
-                    };
+                        CurrentState = TaskState.During;
+                        Recruit = Crate.SpawnCrate(Position3D - new Vector3(0, 12, 0), 0f);
+                        var CallableRecruits = PlayerTank.TankKills.Where((a, b) => b > 0).ToArray();
+                        Recruit.TankToSpawn = new TankTemplate()
+                        {
+                            AiTier = droneOwner is AITank ai && !Difficulties.Types["RandomizedTanks"] ?
+                            CallableRecruits.Length > 0 ? Difficulties.Types["MasterModBuff"] ? (CallableRecruits[Server.ServerRandom.Next(0, CallableRecruits.Length)].Key - 1) % 9 + 1 :
+                            CallableRecruits[Server.ServerRandom.Next(0, CallableRecruits.Length)].Key :
+                            TankID.Brown :
+                            Difficulties.Types["MasterModBuff"] ? Server.ServerRandom.Next(TankID.Brown, TankID.Black + 1) : Server.ServerRandom.Next(TankID.Brown, TankID.Obsidian + 1),
+                            IsPlayer = false,
+                            Team = droneOwner!.Team
+                        };
+                        CA_NetPlay.SyncDroneCrate(this, Recruit);
+                    }
                 }
                 return;
             }
@@ -1066,7 +1080,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
                 smoke.Scale = new(1.25f);
                 smoke.Color = new(84, 22, 0, 255);
-                smoke.HasAddativeBlending = false;
+                smoke.HasAdditiveBlending = false;
             }
             else
             {
@@ -1078,7 +1092,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
                 smoke.Color = new(84, 22, 0, 255);
 
-                smoke.HasAddativeBlending = false;
+                smoke.HasAdditiveBlending = false;
             }
 
             int achieveable = 80;
@@ -1213,7 +1227,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
                 foreach (var enemy in GameHandler.AllTanks)
                 {
-                    if (enemy is null || enemy.Dead || tanks.Contains(enemy)) continue;
+                    if (enemy is null || enemy.IsDestroyed || tanks.Contains(enemy)) continue;
 
                     if (i > 15 && GameUtils.Distance_WiiTanksUnits(enemy.Position, pathPos) <= realMiss)
                     {
@@ -1429,7 +1443,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     var info = drawInfo.ElementAt(i);
                     var pos2 = pos -
                         new Vector2(0, ((1 + i) * 20));
-                    DrawUtils.DrawTextWithBorder(TankGame.SpriteRenderer, FontGlobals.RebirthFont, info.Key, pos2,
+                    DrawUtils.DrawStringWithBorder(TankGame.SpriteRenderer, FontGlobals.RebirthFont, info.Key, pos2,
                         info.Value, Color.White, new Vector2(0.5f).ToResolution(), 0f, Anchor.TopCenter, 0.6f);
                 }
 
@@ -1517,7 +1531,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     var info = drawInfo.ElementAt(i);
 
                     var pos = MatrixUtils.ConvertWorldToScreen(Vector3.Up * 20, Matrix.CreateTranslation(info.Value.position), View, Projection) - new Vector2(0, i * 20);
-                    DrawUtils.DrawTextWithBorder(TankGame.SpriteRenderer, FontGlobals.RebirthFont, $"{info.Key.Name}: {info.Key.Value}", pos, info.Value.color, Color.White,
+                    DrawUtils.DrawStringWithBorder(TankGame.SpriteRenderer, FontGlobals.RebirthFont, $"{info.Key.Name}: {info.Key.Value}", pos, info.Value.color, Color.White,
                         Vector2.One * 0.75f, 0f, borderThickness: 0.25f);
                     DrawAwarenessCircle(TankBasicEffectHandler, info.Key.Value, info.Value.color,info.Value.position.FlattenZ());
                 }
@@ -1540,7 +1554,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     var info = drawInfo.ElementAt(i);
 
                     var pos = MatrixUtils.ConvertWorldToScreen(Vector3.Up * 20, Matrix.CreateTranslation(info.Value.position), View, Projection) - new Vector2(0, i * 20);
-                    DrawUtils.DrawTextWithBorder(TankGame.SpriteRenderer, FontGlobals.RebirthFont, $"{info.Key.Name}", pos, info.Value.color, Color.White,
+                    DrawUtils.DrawStringWithBorder(TankGame.SpriteRenderer, FontGlobals.RebirthFont, $"{info.Key.Name}", pos, info.Value.color, Color.White,
                         Vector2.One * 0.75f, 0f, borderThickness: 0.25f);
                     DrawAwarenessCircle(TankBasicEffectHandler, info.Key.Value, info.Value.color, info.Value.position.FlattenZ());
                 }
