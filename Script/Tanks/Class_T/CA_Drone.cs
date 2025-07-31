@@ -377,6 +377,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             //assign model and texture data
             if (droneOwner is Tank tnk)
                 Parameters = CA_DroneLicenseManager.ApplyDefaultLicense(tnk);
+      
         }
 
        
@@ -657,11 +658,11 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         foreach (var item in CalledDrones)
                         {
                             if (Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) > Parameters.TrapsGeneral.RelayTaskRange) continue;
-                            var signalStrength = Server.ServerRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.TrapsGeneral.RelayTaskRange,0,1);
+                            var signalStrength = Client.ClientRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.TrapsGeneral.RelayTaskRange,0,1);
                             if (signalStrength - 1f < 0f && item.droneOwner is AITank ai && ai.TargetTank is Tank && item.Parameters.TrapsGeneral.curCooldown < 0)
                             {
                                 item.TargetPosition = Vector2.Lerp(item.droneOwner!.Position, ai.TargetTank.Position, 0.99f);
-                                item.TargetPosition += Vector2.UnitY.Rotate(Server.ServerRandom.NextFloat(-1f, 1f) * MathF.Tau)* item.Parameters.TrapsGeneral.Inaccuracy;
+                                item.TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau)* item.Parameters.TrapsGeneral.Inaccuracy;
                                 var dummy = item.TargetPosition;
                                 var dummybox = new Rectangle(new Point((int)(item.TargetPosition.X / UNITS_TO_METERS), (int)(item.TargetPosition.Y / UNITS_TO_METERS)),item.CollisionBox.Size);
                                 Collision.HandleCollisionSimple_ForBlocks(dummybox,Vector2.Zero, ref dummy, out var dir, out var block, out bool corner,false);
@@ -678,7 +679,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     TargetPosition = Vector2.Lerp(aiBuddy.Position, aiBuddy.TargetTank.Position, 0.99f);
                     if (CanIWorkHere())
                     {
-                        TargetPosition += Vector2.UnitY.Rotate(Server.ServerRandom.NextFloat(-1f, 1f) * MathF.Tau) * Parameters.TrapsGeneral.Inaccuracy;
+                        TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * Parameters.TrapsGeneral.Inaccuracy;
                         var dummy = TargetPosition;
                         var dummybox = new Rectangle(new Point((int)(TargetPosition.X / UNITS_TO_METERS), (int)(TargetPosition.Y / UNITS_TO_METERS)), CollisionBox.Size);
                         Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
@@ -700,13 +701,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         foreach (var item in CalledDrones)
                         {
                             if (Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) > Parameters.RecruitGeneral.RelayTaskRange) continue;
-                            var signalStrength = Server.ServerRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.RecruitGeneral.RelayTaskRange, 0, 1);
+                            var signalStrength = Client.ClientRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.RecruitGeneral.RelayTaskRange, 0, 1);
                             if (signalStrength * 2 > 1f - item.Parameters.RecruitGeneral.ChanceToActivate * 1.25f && item.droneOwner is AITank ai && ai.TargetTank is Tank && item.Parameters.RecruitGeneral.curCooldown < 0)
                             {
                                 var places1 = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
-                                var angle1 = MathF.SinCos((Server.ServerRandom.NextFloat(0, 1) * MathF.Tau));
+                                var angle1 = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
                                 item.TargetPosition = (new Vector2(angle1.Sin, angle1.Cos) * 800f) + GameScene.Center.FlattenZ();
-                                item.RecruitRequestPos = places1[Server.ServerRandom.Next(0, places1.Length)].Position.FlattenZ();
+                                item.RecruitRequestPos = places1[Client.ClientRandom.Next(0, places1.Length)].Position.FlattenZ();
                                 var dummy = item.TargetPosition;
                                 var dummybox = new Rectangle(new Point((int)(item.TargetPosition.X / UNITS_TO_METERS), (int)(item.TargetPosition.Y / UNITS_TO_METERS)), item.CollisionBox.Size);
                                 Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
@@ -721,9 +722,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         goto skip;
                     }
                     var places = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
-                    var angle = MathF.SinCos((Server.ServerRandom.NextFloat(0, 1) * MathF.Tau));
+                    var angle = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
                     TargetPosition = (new Vector2(angle.Sin, angle.Cos) * 800f) + GameScene.Center.FlattenZ();
-                    RecruitRequestPos = places[Server.ServerRandom.Next(0, places.Length)].Position.FlattenZ();
+                    RecruitRequestPos = places[Client.ClientRandom.Next(0, places.Length)].Position.FlattenZ();
                     if (CanIWorkHere())
                     {
                         Parameters.RecruitGeneral.curCooldown = Parameters.RecruitGeneral.Cooldown;
@@ -743,13 +744,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         foreach (var item in CalledDrones)
                         {
                             if (Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) > Parameters.HoldGeneral.RelayTaskRange) continue;
-                            var signalStrength = Server.ServerRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.HoldGeneral.RelayTaskRange, 0, 1);
+                            var signalStrength = Client.ClientRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.HoldGeneral.RelayTaskRange, 0, 1);
                             if (signalStrength * 2 > 1f - item.Parameters.HoldGeneral.ChanceToActivate * 1.25f && item.droneOwner is AITank ai && ai.TargetTank is Tank && item.Parameters.HoldGeneral.curCooldown < 0)
                             {
                                 item.TargetPosition = Vector2.Lerp(item.droneOwner!.Position, ai.TargetTank.Position, 0.99f);
                                 if (CanIWorkHere())
                                 {
-                                    item.TargetPosition += Vector2.UnitY.Rotate(Server.ServerRandom.NextFloat(-1f, 1f) * MathF.Tau) * item.Parameters.HoldGeneral.Inaccuracy;
+                                    item.TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * item.Parameters.HoldGeneral.Inaccuracy;
                                     var dummy = item.TargetPosition;
                                     var dummybox = new Rectangle(new Point((int)(item.TargetPosition.X / UNITS_TO_METERS), (int)(item.TargetPosition.Y / UNITS_TO_METERS)), item.CollisionBox.Size);
                                     Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
@@ -768,7 +769,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     TargetPosition = Vector2.Lerp(aiBuddy.Position, aiBuddy.TargetTank.Position, 1f);
                     if (CanIWorkHere())
                     {
-                        TargetPosition += Vector2.UnitY.Rotate(Server.ServerRandom.NextFloat(-1f, 1f) * MathF.Tau) * Parameters.HoldGeneral.Inaccuracy;
+                        TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * Parameters.HoldGeneral.Inaccuracy;
                         var dummy = TargetPosition;
                         var dummybox = new Rectangle(new Point((int)(TargetPosition.X / UNITS_TO_METERS), (int)(TargetPosition.Y / UNITS_TO_METERS)), CollisionBox.Size);
                         Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
@@ -793,9 +794,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                                 //    AssignmentPersistance = 2000f;
                                 //    Task = DroneTask.Recruit;
                                 //    var places = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
-                                //    var angle = MathF.SinCos((Server.ServerRandom.NextFloat(0, 1) * MathF.Tau));
+                                //    var angle = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
                                 //    TargetPosition = (new Vector2(angle.Sin,angle.Cos) * 800f) + GameScene.Center.FlattenZ();
-                                //    RecruitRequestPos = places[Server.ServerRandom.Next(0,places.Length)].Position.FlattenZ();
+                                //    RecruitRequestPos = places[Client.ClientRandom.Next(0,places.Length)].Position.FlattenZ();
                                 //}
 
                                 //if (aiBuddy.SeesTarget && AssignmentPersistance <= 0f && (aiBuddy.AiTankType == TankID.Green || aiBuddy.AiTankType == TankID.Violet || aiBuddy.AiTankType == TankID.Ruby || aiBuddy.AiTankType == TankID.Sapphire))
@@ -818,9 +819,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     {
                         Task = DroneTask.Recruit;
                         var places = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
-                        var angle = MathF.SinCos((Server.ServerRandom.NextFloat(0, 1) * MathF.Tau));
+                        var angle = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
                         TargetPosition = (new Vector2(angle.Sin, angle.Cos) * 800f) + GameScene.Center.FlattenZ();
-                        RecruitRequestPos = places[Server.ServerRandom.Next(0, places.Length)].Position.FlattenZ();
+                        RecruitRequestPos = places[Client.ClientRandom.Next(0, places.Length)].Position.FlattenZ();
                         goto skip;
                     }
                     if (InputUtils.KeyJustPressed(Keys.D2))
@@ -1017,10 +1018,10 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         Recruit.TankToSpawn = new TankTemplate()
                         {
                             AiTier = droneOwner is AITank ai && !Difficulties.Types["RandomizedTanks"] ?
-                            CallableRecruits.Length > 0 ? Difficulties.Types["MasterModBuff"] ? (CallableRecruits[Server.ServerRandom.Next(0, CallableRecruits.Length)].Key - 1) % 9 + 1 :
-                            CallableRecruits[Server.ServerRandom.Next(0, CallableRecruits.Length)].Key :
+                            CallableRecruits.Length > 0 ? Difficulties.Types["MasterModBuff"] ? (CallableRecruits[Client.ClientRandom.Next(0, CallableRecruits.Length)].Key - 1) % 9 + 1 :
+                            CallableRecruits[Client.ClientRandom.Next(0, CallableRecruits.Length)].Key :
                             TankID.Brown :
-                            Difficulties.Types["MasterModBuff"] ? Server.ServerRandom.Next(TankID.Brown, TankID.Black + 1) : Server.ServerRandom.Next(TankID.Brown, TankID.Obsidian + 1),
+                            Difficulties.Types["MasterModBuff"] ? Client.ClientRandom.Next(TankID.Brown, TankID.Black + 1) : Client.ClientRandom.Next(TankID.Brown, TankID.Obsidian + 1),
                             IsPlayer = false,
                             Team = droneOwner!.Team
                         };

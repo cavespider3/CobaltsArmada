@@ -58,7 +58,7 @@ namespace CobaltsArmada
                 CA_Main.PoisonedTanks.Add(GameHandler.AllTanks[tank]);
                 CA_Main.Tank_OnPoisoned(GameHandler.AllTanks[tank]);
             }
-            if(packet == SyncEntityDrone)
+           else if(packet == SyncEntityDrone)
             {
             
                 bool newdrone = reader.GetBool();
@@ -91,7 +91,7 @@ namespace CobaltsArmada
                 }
                
             }
-            if(packet == SyncCrateSpawn)
+            else if(packet == SyncCrateSpawn)
             {
                 int drone = reader.GetInt();
                 int id = reader.GetInt();
@@ -118,7 +118,7 @@ namespace CobaltsArmada
                 message.Put(reader.GetInt());
                 Server.NetManager.SendToAll(message, LiteNetLib.DeliveryMethod.ReliableOrdered, peer);
             }
-            if(packet == SyncEntityDrone)
+            else if(packet == SyncEntityDrone)
             {
                 bool Spawn = reader.GetBool();
                 message.Put(Spawn);
@@ -135,7 +135,7 @@ namespace CobaltsArmada
                 }
                 Server.NetManager.SendToAll(message, LiteNetLib.DeliveryMethod.Unreliable, peer);
             }
-            if (packet == SyncCrateSpawn)
+            else if (packet == SyncCrateSpawn)
             {
                 message.Put(reader.GetInt());
                 message.Put(reader.GetInt());
@@ -182,16 +182,18 @@ namespace CobaltsArmada
             message.Put(SyncEntityDrone);
             message.Put(Spawn);
             if (!Spawn) message.Put(target.Id); //Drone id in array
-            if (Spawn) message.Put(target.droneOwner!.WorldId);
+            else if (Spawn) message.Put(target.droneOwner!.WorldId);
+
             message.Put(target.Position3D);  //Drone position in array
-            if (!Spawn) message.Put(target.Velocity3D); //Drone velocity in array
 
-            if (!Spawn) message.Put(target.DroneRotation); //Drone's body rotation
-            if (!Spawn) message.Put(target.TurretRotation);
-
-            if (!Spawn) message.Put((int)target.Task); //for mostly animation stuff
-            if (!Spawn) message.Put((int)target.CurrentState); //for mostly animation stuff
-
+            if (!Spawn)
+            {
+               message.Put(target.Velocity3D); //Drone velocity in array
+               message.Put(target.DroneRotation); //Drone's body rotation
+               message.Put(target.TurretRotation);
+               message.Put((int)target.Task); //for mostly animation stuff
+               message.Put((int)target.CurrentState); //for mostly animation stuff
+            }
 
 
             // This is how our data is sent to the server. We end up handling the data again within the scope of the server.
