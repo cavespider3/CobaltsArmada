@@ -88,7 +88,7 @@ namespace CobaltsArmada
                 Shell.Velocity *=
                     CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Lunatic ?
                     CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Extra ?
-                    CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1.175f : 1.10f : 1.05f :1f ;
+                    1.10f : 1.05f :1f ;
 
             }
         }

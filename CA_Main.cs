@@ -130,7 +130,7 @@ public class CA_Main : TanksMod {
 
     public enum ModDifficulty
     {
-        Easy=-1,Normal,Hard,Lunatic,Extra,Phantasm
+        Normal, Hard, Lunatic, Extra
     }
 
     public enum Tanktosis
@@ -196,8 +196,7 @@ public class CA_Main : TanksMod {
     {
         switch (difficulty)
         {
-            case ModDifficulty.Easy:
-                return new(0, 191, 71);
+        
             case ModDifficulty.Normal:
                 return new(0, 113, 226);
             case ModDifficulty.Hard:
@@ -206,8 +205,7 @@ public class CA_Main : TanksMod {
                 return new(179, 0, 179);
             case ModDifficulty.Extra:
                 return new(176, 0, 0);
-            case ModDifficulty.Phantasm:
-                return new(199, 0, 154);
+
             default:
                 return new(120, 120, 120);
         }
@@ -230,16 +228,14 @@ public class CA_Main : TanksMod {
         }
     }
 
-    public static dynamic GetValueByDifficulty<T>(T Easy, T Normal, T Hard, T Lunatic, T Extra, T Phantasm)
+    public static dynamic GetValueByDifficulty<T>(T Normal, T Hard, T Lunatic, T Extra)
     {
         switch (modifier_Difficulty)
         {
-            case ModDifficulty.Easy: default: if (Easy is not null) return Easy; else TankGame.ClientLog.Write("Easy Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
             case ModDifficulty.Normal: if (Normal is not null) return Normal; else TankGame.ClientLog.Write("Normal Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
             case ModDifficulty.Hard: if (Hard is not null) return Hard; else TankGame.ClientLog.Write("Hard Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
             case ModDifficulty.Lunatic: if (Lunatic is not null) return Lunatic; else TankGame.ClientLog.Write("Lunatic Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
             case ModDifficulty.Extra: if (Extra is not null) return Extra; else TankGame.ClientLog.Write("Extra Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
-            case ModDifficulty.Phantasm: if (Phantasm is not null) return Phantasm; else TankGame.ClientLog.Write("Phantasm Difficulty Value is Null!", TanksRebirth.Internals.LogType.ErrorFatal, true); break;
         }
         return null;
     }

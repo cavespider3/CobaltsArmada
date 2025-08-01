@@ -8,6 +8,8 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
+using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
@@ -30,78 +32,61 @@ namespace CobaltsArmada
         public override Color AssociatedColor => CA_Main.Dandy;
         public override void PostApplyDefaults()
         {
-            AITank.UsesCustomModel = true;
+            base.PostApplyDefaults();
+            AIParameters aiParams = AITank.Parameters;
+            TankProperties properties = AITank.Properties;
+            AITank.Model = CA_Main.Neo_Remote;
+            //## Visuals ##//
+
             AITank.Scaling = Vector3.One;
-            AITank.Parameters.TurretMovementTimer = 40;
-            AITank.Parameters.TurretSpeed = 0.03f;
-            AITank.Parameters.AimOffset = 0.2f;
+            properties.DestructionColor = CA_Main.Dandy;
+            properties.Invisible = false;
 
-            AITank.Properties.DestructionColor = CA_Main.Dandy;
-            uint cooler =
-             CA_Main.modifier_Difficulty > ModDifficulty.Easy ? 
-             CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
-             CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-             CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
-             75u : 100u : 150u : 225u : 300u ;
+            //## Behaviour ##//
 
-            AITank.Properties.ShellCooldown = Difficulties.Types["MachineGuns"]?25u: cooler;
+            properties.Stationary = true;
+            aiParams.SmartRicochets = true;
 
-            AITank.Properties.ShellLimit = Difficulties.Types["MachineGuns"] ? 10 : 5;
+            //## Properties ##//
 
-            AITank.Properties.ShellSpeed = 4f;
-            AITank.Properties.ShootStun = CA_Main.modifier_Difficulty >= ModDifficulty.Extra ? 3u : 10u ;
+            properties.ShellCooldown = CA_Main.GetValueByDifficulty(Normal: 20u, Hard: 20u, Lunatic: 10u, Extra: 5u);
 
-            AITank.Properties.ShellType = ShellID.Standard;
+            properties.ShellLimit = (Difficulties.Types["MachineGuns"] ? 2 : 1) * CA_Main.GetValueByDifficulty(Normal: 3, Hard: 4, Lunatic: 6, Extra: 10);
 
-            AITank.Properties.RicochetCount = CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
-             CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
-             CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-             CA_Main.modifier_Difficulty >= ModDifficulty.Extra ?
-             5u : 4u : 3u : 2u : 2u;
+            properties.ShellSpeed = 4f;
 
-            AITank.Parameters.RandomTimerMinShoot = CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
-            CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-            30 : 60 : 120;
-            AITank.Parameters.RandomTimerMaxShoot = (CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
-         CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-         30 : 60 : 120 ) + AITank.Parameters.RandomTimerMinShoot;
+            AITank.Properties.RicochetCount = CA_Main.GetValueByDifficulty(Normal: 3u, Hard: 3u, Lunatic: 4u, Extra: 6u);
 
-           
-            AITank.Properties.Invisible = false;
+            aiParams.RandomTimerMinShoot = CA_Main.GetValueByDifficulty(Normal: 70, Hard: 50, Lunatic: 25, Extra: 5);
 
-            AITank.Parameters.SmartRicochets = true;
-
-            AITank.Properties.Stationary = true;
+            aiParams.RandomTimerMaxShoot = CA_Main.GetValueByDifficulty(Normal: 120, Hard: 80, Lunatic: 40, Extra: 10);
 
             AITank.Properties.ShellHoming = new();
+            aiParams.DetectionForgivenessSelf = MathHelper.ToRadians(10);
+            aiParams.DetectionForgivenessHostile = MathHelper.ToRadians(6);
+            aiParams.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            aiParams.AimOffset = MathHelper.ToRadians(CA_Main.GetValueByDifficulty(Normal: 10, Hard: 6, Lunatic: 4, Extra: 0));
 
-            base.PostApplyDefaults();
-           
+            aiParams.TurretSpeed = CA_Main.GetValueByDifficulty(Normal: 0.025f, Hard: 0.035f, Lunatic: 0.05f, Extra: 0.07f);
+
+            aiParams.TurretMovementTimer = CA_Main.GetValueByDifficulty(Normal: 40u, Hard: 25u, Lunatic: 15u, Extra: 10u);
+
+            aiParams.TankAwarenessShoot = 14f;
         }
 
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            int count = 
-            CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
-            CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-            CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
-            12:8:6:4;
-            float speed =
-            CA_Main.modifier_Difficulty > ModDifficulty.Easy ?
-            CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-            CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
-            7f : 6.5f : 5f : 3.5f;
-            CA_Main.Fire_AbstractShell_Tank(base.AITank, count, context, 1, CA_Main.modifier_Difficulty >= ModDifficulty.Lunatic ? 2u : CA_Main.modifier_Difficulty > ModDifficulty.Easy ? 1u : 0, 5f);
+            if (!destroy || context is TankHurtContextExplosion) return;
+            int count = CA_Main.GetValueByDifficulty(Normal: 4, Hard: 6, Lunatic: 8, Extra: 12);
+            float speed = CA_Main.GetValueByDifficulty(Normal: 3.1f, Hard: 3.8f, Lunatic: 4.5f, Extra: 7.5f);
+            uint rics = CA_Main.GetValueByDifficulty(Normal: 0u, Hard: 1u, Lunatic: 1u, Extra: 0u);
+            CA_Main.Fire_AbstractShell_Tank(base.AITank, count, context, 1,rics);
         }
 
         public override void Shoot(Shell shell)
         {
-                float rad =
-                    CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
-               CA_Main.modifier_Difficulty > ModDifficulty.Hard ?
-               CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
-               CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
-                 4.5f : 3.75f : 3f : 2.25f : 1.5f;
+                float rad = CA_Main.GetValueByDifficulty(Normal: 1.7f, Hard: 2.4f, Lunatic: 3.2f, Extra: 4.5f);
+
                 var ring = GameHandler.Particles.MakeParticle(AITank.TargetTank!.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
                 ring.Scale = new(0.6f);
                 ring.Pitch = MathHelper.PiOver2;

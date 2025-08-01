@@ -53,9 +53,6 @@ namespace CobaltsArmada
             if (context == DestructionContext.WithExplosion || context == DestructionContext.WithMine) return;
             switch (CA_Main.modifier_Difficulty)
             {
-                case CA_Main.ModDifficulty.Easy:
-                    if (context != DestructionContext.WithObstacle) return; break;
-
                 case CA_Main.ModDifficulty.Normal:
                     if (context == DestructionContext.WithShell) return; break;
 
@@ -64,9 +61,9 @@ namespace CobaltsArmada
                     if (context == DestructionContext.WithShell && CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is null) return;break;
 
                 case CA_Main.ModDifficulty.Extra:
-                case CA_Main.ModDifficulty.Phantasm:
-                    if (CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstSize += CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm? 2:1;
-                    if (CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstBounces = CA_Main.modifier_Difficulty == CA_Main.ModDifficulty.Phantasm ? 1u : 0; break;
+    
+                    if (CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstSize += 1;
+                    if (CA_Main.PoisonedTanks.Find(x => x == Shell.Owner) is not null) BurstBounces = 0; break;
                 default:
                 break;
             }

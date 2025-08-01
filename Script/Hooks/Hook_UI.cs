@@ -111,7 +111,7 @@ namespace CobaltsArmada.Hooks
                 Tooltip = "Modifies Armada tanks to be easier or harder.",
                 OnLeftClick = (elem) =>
                 {
-                    if (modifier_Difficulty + 1 > ModDifficulty.Phantasm) modifier_Difficulty = ModDifficulty.Easy;
+                    if (modifier_Difficulty + 1 > ModDifficulty.Extra) modifier_Difficulty = ModDifficulty.Normal;
                     else modifier_Difficulty += 1;
                     Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
 
@@ -119,7 +119,7 @@ namespace CobaltsArmada.Hooks
                 },
                 OnRightClick = (elem) =>
                 {
-                    if (modifier_Difficulty - 1 < ModDifficulty.Easy) modifier_Difficulty = ModDifficulty.Phantasm;
+                    if (modifier_Difficulty - 1 < ModDifficulty.Normal) modifier_Difficulty = ModDifficulty.Extra;
                     else modifier_Difficulty -= 1;
                     Difficulties.Types["CobaltArmada_GetGud"] = modifier_Difficulty != ModDifficulty.Normal;
                 },
@@ -209,7 +209,7 @@ namespace CobaltsArmada.Hooks
                     TankSiblings!.IsVisible = true;
 
                     Touhoumode_2.Text = "Difficulty: " + modifier_Difficulty.ToString();
-                    Touhoumode_2.Tooltip = "Modifies Armada tanks to be easier or harder.\n\"" + (modifier_Difficulty == ModDifficulty.Easy ? "for people who need to stop and smell the roses" :
+                    Touhoumode_2.Tooltip = "Modifies Armada tanks to be easier or harder.\n\"" + (
                         modifier_Difficulty == ModDifficulty.Normal ? "for people who need a baseline experience" :
                         modifier_Difficulty == ModDifficulty.Hard ? "for people who need a challenge" :
                         modifier_Difficulty == ModDifficulty.Lunatic ? "for people that think master mod was too easy" :
