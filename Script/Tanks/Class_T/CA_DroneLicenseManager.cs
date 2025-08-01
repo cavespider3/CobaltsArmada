@@ -225,6 +225,34 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         #endregion
                     }
                 }
+                if(tankType == CA_Main.Kudzu)
+                {
+                    Recruit.Enabled = true;
+                    Recruit.Cooldown = 1;
+                    Recruit.ChanceToActivate = 1f;
+                    Recruit.GlobalSkill = true;
+
+                }else if(tankType == CA_Main.SunFlower)
+                {
+                    Traps.Enabled = true;
+                    Traps.Cooldown = 0;
+                    Traps.Inaccuracy = 20f;
+                    Traps.ChanceToActivate = 0.01f;
+                }
+                else if (tankType == CA_Main.Carnation)
+                {
+                    Patrol.Enabled = true;
+                    Patrol.Cooldown = 600;
+                    Patrol.ChanceToActivate = 0.1f;
+                    Patrol.Minimum = 200;
+                    Patrol.Maximum = 300;
+
+                    Traps.Enabled = true;
+                    Traps.Cooldown = 3600;
+                    Traps.ChanceToActivate = 0.04f;
+                    Traps.Minimum = 250;
+                    Traps.Maximum = 600;
+                }
                 OnApplyLicense?.Invoke(ai, ref droneParams);
             }
             //light modded support... it didn't work (for the time being) :(

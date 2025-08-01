@@ -32,8 +32,8 @@ namespace CobaltsArmada
             AITank.Parameters.TurretSpeed = 0.06f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(3);
 
-            AITank.Parameters.AggressivenessBias = 0.4f;
-    
+            AITank.Parameters.AggressivenessBias = 0.3f;
+            AITank.Parameters.MaxQueuedMovements = 4;
 
             AITank.Parameters.AwarenessHostileShell = 120;
             AITank.Parameters.AwarenessFriendlyShell = 100;
@@ -65,6 +65,9 @@ namespace CobaltsArmada
             AITank.Properties.MineStun = 0;
 
             AITank.Parameters.ObstacleAwarenessMovement = 44;
+            AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
         }
 
         public override void Shoot(Shell shell)

@@ -43,7 +43,7 @@ namespace CobaltsArmada
             Parameters.TurretMovementTimer = 60;
             Parameters.TurretSpeed = 0.2f;
             Parameters.AimOffset = 0.03f;
-
+            AITank.Parameters.MaxQueuedMovements = 4;
             properties.TurningSpeed = 0.1f;
             properties.MaximalTurn = MathHelper.PiOver4;
             //also maximum agro lmfao
@@ -78,9 +78,11 @@ namespace CobaltsArmada
             Parameters.ChanceMineLay = 0.1f;
 
             Parameters.ObstacleAwarenessMovement = 80;
-         
+            Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
 
-            
+
         }
 
         public override void Shoot(Shell shell)

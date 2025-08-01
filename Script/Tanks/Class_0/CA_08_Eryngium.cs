@@ -43,6 +43,7 @@ namespace CobaltsArmada
             {
                 AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
             }
+            AITank.Parameters.MaxQueuedMovements = 4;
             Properties_Visible(AITank);
             
         }
@@ -96,8 +97,10 @@ namespace CobaltsArmada
             Parameters.ChanceMineLay = 0.05f;
 
             Parameters.ObstacleAwarenessMovement = 90;
-            Parameters.ObstacleAwarenessMovement = 10;
-           
+            tank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            tank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            tank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+
         }
 
         static void Properties_Invisible(AITank tank)
@@ -108,7 +111,7 @@ namespace CobaltsArmada
             Parameters.TurretSpeed = 0.03f;
             Parameters.TurretMovementTimer = 40;
             Parameters.AimOffset = MathHelper.ToRadians(23);
-
+           
             Parameters.AimOffset = 0.1f;
 
             Parameters.AggressivenessBias = 1f;
@@ -151,7 +154,9 @@ namespace CobaltsArmada
             Parameters.ChanceMineLay = 0.00f;
 
             Parameters.ObstacleAwarenessMovement = 90;
-            Parameters.ObstacleAwarenessMovement = 10;
+            tank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            tank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            tank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
 
         }
 

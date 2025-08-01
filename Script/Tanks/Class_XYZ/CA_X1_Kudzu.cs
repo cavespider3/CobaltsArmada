@@ -34,11 +34,6 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
 
-            Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
-            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
-            {
-                AITank.SpecialBehaviors[i] = new AiBehavior();
-            }
 
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One * 0.81f;
@@ -49,8 +44,8 @@ namespace CobaltsArmada
             AITank.Parameters.TurretSpeed = 0.03f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(9);
 
-            AITank.Parameters.AggressivenessBias = 1.2f;
-     
+            AITank.Parameters.AggressivenessBias = 0.4f;
+            AITank.Parameters.MaxQueuedMovements = 4;
 
             //Clueless
             AITank.Parameters.AwarenessFriendlyShell = 0;
@@ -78,8 +73,8 @@ namespace CobaltsArmada
             AITank.Properties.MaxSpeed = 2.3f;
 
             AITank.Properties.Acceleration = 0.1f;
-            AITank.SpecialBehaviors[0].Value = 300f;
-            AITank.Parameters.ObstacleAwarenessMovement = 69;
+
+            AITank.Parameters.ObstacleAwarenessMovement = 40;
             base.PostApplyDefaults();
         }
         public override void Shoot(Shell shell)
@@ -91,34 +86,6 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
-
-            //STOP SPAWNING SHIT
-            if (LevelEditorUI.IsActive) return;
-            if (AITank.IsDestroyed || !GameScene.ShouldRenderAll) return;
-            if (AIManager.CountAll(x => x.AiTankType == Type) >= 12)
-            {
-                AITank.SpecialBehaviors[0].Value = 300f;
-                return;
-            }
-
-            AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
-
-            if (AITank.SpecialBehaviors[0].Value <= 0)
-            {
-                AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 550) * Math.Clamp(float.Lerp(1, 3.25f, Easings.OutCirc(AIManager.CountAll() / 7f)), 0, 1);
- 
-
-                //Check to see if within bounds
-                if (AITank.Position.X != Math.Clamp(AITank.Position.X, GameScene.MIN_X, GameScene.MAX_X) && AITank.Position.Y != Math.Clamp(AITank.Position.Y, GameScene.MIN_Z, GameScene.MAX_Z)) return;
-
-                var crate = Crate.SpawnCrate(AITank.Position3D + new Vector3(0, 100, 0), 2f);
-                crate.TankToSpawn = new TankTemplate()
-                {
-                    AiTier = Type,
-                    IsPlayer = false,
-                    Team = AITank.Team
-                };
-            }
         }
     
     }

@@ -83,6 +83,9 @@ namespace CobaltsArmada
             AITank.Properties.MineStun = 0;
 
             AITank.Parameters.ObstacleAwarenessMovement = 44;
+            AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {

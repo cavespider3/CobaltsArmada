@@ -688,6 +688,13 @@ public class CA_Main : TanksMod {
                     {
                     var Drone = new CA_Drone(ai, ai.Position / 8f);
                     CA_NetPlay.SyncDrone(Drone,true);
+                        if(ai is AITank tankai2 && tankai2.AiTankType == Kudzu)
+                        {
+                        var Drone2 = new CA_Drone(ai, ai.Position / 8f);
+                        CA_NetPlay.SyncDrone(Drone2, true);
+                        var Drone3 = new CA_Drone(ai, ai.Position / 8f);
+                        CA_NetPlay.SyncDrone(Drone3, true);
+                    }
                     }
                 }
         }

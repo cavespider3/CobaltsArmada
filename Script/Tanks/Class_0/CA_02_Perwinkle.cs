@@ -43,7 +43,7 @@ namespace CobaltsArmada
             Parameters.AimOffset = 0.9f;
 
 
-            Parameters.AggressivenessBias = 1f;
+            Parameters.AggressivenessBias = 0.2f;
 
             Parameters.AwarenessHostileShell = 70;
             Parameters.AwarenessHostileMine = 140;
@@ -66,14 +66,17 @@ namespace CobaltsArmada
             properties.MaxSpeed = 1.3f;
             properties.Acceleration = 0.1f;
             properties.Deceleration = 0.1f;
+            AITank.Parameters.MaxQueuedMovements = 4;
 
             properties.MineCooldown = 60 * 20;
-            properties.MineLimit = 1;
             properties.MineStun = 10;
             Parameters.SmartRicochets = true;
             Parameters.PredictsPositions = true;
             Parameters.ChanceMineLay = 0.05f;
             base.PostApplyDefaults();
+            Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
 
             //AIParameters aiParams = AITank.Parameters;
             //TankProperties properties = AITank.Properties;
@@ -111,7 +114,7 @@ namespace CobaltsArmada
             //aiParams.AggressivenessBias = 0; //21
             //aiParams.MaxQueuedMovements = 0; //22
             //properties.MaxSpeed = 0; //23
-            
+
             //properties.TurningSpeed = 0; //26
             //properties.MaximalTurn = 0; //27
             //aiParams.ObstacleAwarenessMovement = 0; //28

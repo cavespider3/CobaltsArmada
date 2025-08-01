@@ -43,10 +43,14 @@ namespace CobaltsArmada
             Parameters.TurretSpeed = 0.025f;
             Parameters.AimOffset = 0.2f;
 
-            Parameters.AggressivenessBias = -0.3f;
+            Parameters.AggressivenessBias = -0.03f;
 
             Parameters.AwarenessHostileShell = 40;
             Parameters.AwarenessHostileMine = 70;
+            Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+
 
             properties.TurningSpeed = 0.15f;
             properties.MaximalTurn = MathHelper.PiOver2;
@@ -69,13 +73,8 @@ namespace CobaltsArmada
             properties.MaxSpeed = 1.4f;
             properties.Acceleration = 0.3f;
             properties.Deceleration = 0.6f;
+            AITank.Parameters.MaxQueuedMovements = 4;
 
-            properties.MineCooldown = 1000;
-            properties.MineLimit = 1;
-            properties.MineStun = 0;
-
-            Parameters.ChanceMineLay = 0.05f;
-   
         }
 
         public override void PreUpdate()

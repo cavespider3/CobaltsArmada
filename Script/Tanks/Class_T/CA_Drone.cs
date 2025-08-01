@@ -1025,6 +1025,10 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             IsPlayer = false,
                             Team = droneOwner!.Team
                         };
+                        if(droneOwner is AITank ai2 && ai2.AiTankType == CA_Main.Kudzu)
+                        {
+                            Recruit.TankToSpawn.AiTier = CA_Main.Kudzu;
+                        }
                         CA_NetPlay.SyncDroneCrate(this, Recruit);
                     }
                 }

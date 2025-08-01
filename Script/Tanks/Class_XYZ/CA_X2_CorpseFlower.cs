@@ -79,13 +79,16 @@ namespace CobaltsArmada
             AITank.Properties.MineStun = 0;
 
             AITank.Parameters.ObstacleAwarenessMovement = 44;
-           
+            AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            AITank.Parameters.MaxQueuedMovements = 4;
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
             base.TakeDamage(destroy, context);
             if (!destroy) return;
-            new Explosion(AITank.Position, 12.5f, AITank);
+            new Explosion(AITank.Position, 6.5f, AITank);
         }
         public override void Shoot(Shell shell)
         {

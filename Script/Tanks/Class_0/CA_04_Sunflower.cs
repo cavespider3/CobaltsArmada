@@ -66,10 +66,14 @@ namespace CobaltsArmada
             AITank.Properties.MaxSpeed = 1.3f;
 
             AITank.Properties.Acceleration = 0.1f;
+            AITank.Parameters.MaxQueuedMovements = 4;
 
             AITank.Properties.MineCooldown = 0;
             AITank.Properties.MineLimit = 0;
             AITank.Properties.MineStun = 0;
+            AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
 
             AITank.Parameters.ObstacleAwarenessMovement = 44;
             base.PostApplyDefaults();

@@ -107,7 +107,10 @@ namespace CobaltsArmada
             properties.Acceleration = 0.3f;
 
             Parameters.ObstacleAwarenessMovement = 45;
-
+            AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+            AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+            AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            AITank.Parameters.MaxQueuedMovements = 4;
         }
 
         public override void PostUpdate()
