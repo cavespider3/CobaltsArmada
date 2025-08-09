@@ -26,7 +26,7 @@ namespace CobaltsArmada
         public override bool HasSong => true;
         public override LocalizedString Name => new(new()
         {
-            [LangCode.English] = "Eryngium"
+            [LangCode.English] = "Sea Holly"
         });
 
         public override string Texture => "assets/textures/tank_eryngium";
@@ -100,6 +100,7 @@ namespace CobaltsArmada
             tank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
             tank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             tank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            tank.Parameters.TankAwarenessShoot = 50;
 
         }
 
@@ -157,7 +158,7 @@ namespace CobaltsArmada
             tank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
             tank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             tank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
-
+            tank.Parameters.TankAwarenessShoot = 50;
         }
 
 

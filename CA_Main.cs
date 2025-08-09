@@ -379,7 +379,7 @@ public class CA_Main : TanksMod {
 
                     tank.Parameters.RandomTimerMinShoot /= 2;
                     tank.Parameters.RandomTimerMaxShoot /= 2;
-                    tank.Parameters.MaxAngleRandomTurn /= 2;
+                    tank.Parameters.MaxAngleRandomTurn *= 2;
                     tank.Parameters.MaxQueuedMovements /= 2;
                     tank.Parameters.TurretMovementTimer /= 2;
                     tank.Parameters.AimOffset /= 1.5f;
@@ -613,7 +613,7 @@ public class CA_Main : TanksMod {
                 for (int j = 1; j < (int)modifier_Tanktosis; j++)
                 {
                     var t = new AITank(ai.AiTankType);
-                    t.Physics.Position = ai.Physics.Position;
+                    t.Physics.Position = ai.Physics.Position+Vector2.One*0.1f;
 
                     t.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
                     t.Team = ai.Team;
@@ -664,15 +664,16 @@ public class CA_Main : TanksMod {
 
     }
 
-    bool TankSpawnsWithDrone(AITank tank)
+    int TankSpawnsWithDrone(AITank tank)
     {
-        return tank.AiTankType == SunFlower || 
-            tank.AiTankType == Kudzu || 
-            tank.AiTankType == Carnation || 
-            tank.AiTankType == NightShade || 
-            tank.AiTankType == Hydrangea;
+        return tank.AiTankType == SunFlower ? 1 :
+            tank.AiTankType == Kudzu ? 3 :
+            tank.AiTankType == Carnation ? 1 :
+            tank.AiTankType == NightShade ? 2 :
+            tank.AiTankType == Hydrangea ? 2 : 0;
     }
 
+    
     private void GiveDrone()
     {
         ref Tank[] tanks = ref GameHandler.AllTanks;
@@ -681,20 +682,14 @@ public class CA_Main : TanksMod {
             if (tanks[i] is Tank ai  && 
                 (ai is PlayerTank && Difficulties.Types["CobaltArmada_YouAndMyArmy"] || 
                 ai is AITank && Difficulties.Types["CobaltArmada_YouAndWhatArmy"]
-                || (ai is AITank tankai && TankSpawnsWithDrone(tankai))
+                || (ai is AITank tankai && TankSpawnsWithDrone(tankai)>0)
                 )
                 ){
-                    if (Client.IsHost() || !Client.IsConnected())
+                    int adopts = Math.Max(1 , ai is AITank iTank ? TankSpawnsWithDrone(iTank): 1);
+                    for (int j = 0; i < adopts; j++)
                     {
-                    var Drone = new CA_Drone(ai, ai.Position / 8f);
-                    CA_NetPlay.SyncDrone(Drone,true);
-                        if(ai is AITank tankai2 && tankai2.AiTankType == Kudzu)
-                        {
-                        var Drone2 = new CA_Drone(ai, ai.Position / 8f);
-                        CA_NetPlay.SyncDrone(Drone2, true);
-                        var Drone3 = new CA_Drone(ai, ai.Position / 8f);
-                        CA_NetPlay.SyncDrone(Drone3, true);
-                    }
+                    Vector2 offset = ai.Position + MathUtils.Rotate(Vector2.UnitY, MathF.Tau / adopts * j) * (adopts == 1 ? 0f : CA_Drone.DRN_WIDTH);
+                    new CA_Drone(ai, offset/ 8);
                     }
                 }
         }

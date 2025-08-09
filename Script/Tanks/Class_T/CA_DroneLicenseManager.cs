@@ -252,6 +252,12 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     Traps.ChanceToActivate = 0.04f;
                     Traps.Minimum = 250;
                     Traps.Maximum = 600;
+                }else if(tankType == CA_Main.Lotus)
+                {
+                    Traps.Enabled = true;
+                    Traps.Cooldown = 600;
+                    Traps.ChanceToActivate = 0.04f;
+
                 }
                 OnApplyLicense?.Invoke(ai, ref droneParams);
             }

@@ -111,6 +111,7 @@ namespace CobaltsArmada
             AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
             AITank.Parameters.MaxQueuedMovements = 4;
+            AITank.Parameters.TankAwarenessShoot = 50;
         }
 
         public override void PostUpdate()

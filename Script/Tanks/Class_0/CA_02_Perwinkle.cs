@@ -9,7 +9,7 @@ using TanksRebirth.GameContent.Systems.TankSystem;
 
 namespace CobaltsArmada
 {
-    /// <summary> Periwinkles
+    /// <summary> Periwinkles are rather average tanks, with the small exception of marking invisible tanks (for about 10 minutes... missions shouldn't last that long though)
     /// 
     /// </summary>
     public class CA_02_Perwinkle: CA_ArmadaTank
@@ -33,109 +33,81 @@ namespace CobaltsArmada
             AITank.UsesCustomModel = true;
             AITank.Model = CA_Main.Neo_Mobile;
             AITank.Scaling = Vector3.One;
-            var Parameters = AITank.Parameters;
-            var properties = AITank.Properties;
-            Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(7);
-            Parameters.RandomTimerMinMove = 20;
-            Parameters.RandomTimerMaxMove = 60;
-            Parameters.TurretMovementTimer = 60;
-            Parameters.TurretSpeed = 0.045f;
-            Parameters.AimOffset = 0.9f;
 
+            AIParameters aiParams = AITank.Parameters;
+            TankProperties properties = AITank.Properties;
 
-            Parameters.AggressivenessBias = 0.2f;
+            //## Visuals ##//
 
-            Parameters.AwarenessHostileShell = 70;
-            Parameters.AwarenessHostileMine = 140;
+            AITank.Scaling = Vector3.One;
+            properties.Invisible = false; //1
 
-            properties.TurningSpeed = 0.13f;
-            properties.MaximalTurn = MathHelper.PiOver4 / 2;
+            //## Mines ##//
 
-            properties.ShootStun = 0;
-            properties.ShellCooldown = 70;
-            properties.ShellLimit = 3;
-            properties.ShellSpeed = 4f;
-            properties.ShellType = ShellID.Standard;
-            properties.RicochetCount = 1;
+            aiParams.ObstacleAwarenessMine = 210; //2
+            properties.MineLimit = 0; //3
+            aiParams.RandomTimerMinMine = 0; //4
+            aiParams.RandomTimerMaxMine = 0; //5
+            aiParams.TankAwarenessMine = 100; //6
+            aiParams.ChanceMineLayNearBreakables = 0; //7
+            aiParams.ChanceMineLay = 0; //8
+            properties.MineCooldown = 0; //9
+            properties.MineLimit = 0; //10
 
-            properties.Invisible = false;
-            properties.Stationary = false;
-            properties.CanLayTread = false;
+            //## Movement & Navigation ##//
 
-            properties.TreadPitch = 0.2f;
-            properties.MaxSpeed = 1.3f;
-            properties.Acceleration = 0.1f;
-            properties.Deceleration = 0.1f;
-            AITank.Parameters.MaxQueuedMovements = 4;
+            properties.Acceleration = 0.04f; //11
+            properties.Deceleration = 0.01f; //12
+            aiParams.MaxAngleRandomTurn = MathHelper.ToRadians(60); //13
+            aiParams.RedirectAngle = MathHelper.ToRadians(4); //13
+            aiParams.RandomTimerMaxMove = 30; //14
+            aiParams.RandomTimerMinMove = 10; //15
+            aiParams.AwarenessFriendlyMine = 0; //16
+            aiParams.AwarenessFriendlyShell = 120; //17
+            aiParams.AwarenessHostileMine = 130; //18
+            aiParams.AwarenessHostileShell = 80; //19
+            aiParams.CantShootWhileFleeing = true; //20
+            aiParams.AggressivenessBias = 0.3f; //21
+            aiParams.MaxQueuedMovements = 4; //22
+            properties.MaxSpeed = 1.3f; //23
 
-            properties.MineCooldown = 60 * 20;
-            properties.MineStun = 10;
-            Parameters.SmartRicochets = true;
-            Parameters.PredictsPositions = true;
-            Parameters.ChanceMineLay = 0.05f;
-            base.PostApplyDefaults();
-            Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
-            Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
-            Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            properties.TurningSpeed = 0.08f; //26
+            properties.MaximalTurn = MathHelper.ToRadians(30); //27
+            aiParams.ObstacleAwarenessMovement = 80; //28
+            aiParams.AimOffset = MathHelper.ToRadians(15); //29
+            aiParams.PredictsPositions = true;
+            aiParams.Rememberance = 3600;
+            
 
-            //AIParameters aiParams = AITank.Parameters;
-            //TankProperties properties = AITank.Properties;
+            //## Shells ##//
 
-            ////## Visuals ##//
+            properties.ShellLimit = 7; //30
+            aiParams.DetectionForgivenessSelf = MathHelper.ToRadians(5); //31
+            aiParams.DetectionForgivenessFriendly = MathHelper.ToRadians(15); //32
+            aiParams.DetectionForgivenessHostile = MathHelper.ToRadians(35); //33
+            properties.RicochetCount = 0; //34
+            aiParams.RandomTimerMaxShoot = 45; //35
+            aiParams.RandomTimerMinShoot = 2; //36
+            properties.ShellCooldown = 40; //37
+            properties.ShellSpeed = 7f; //38
+            aiParams.TurretSpeed = 0.05f; //39
+            aiParams.TurretMovementTimer = 80; //40
+            aiParams.TankAwarenessShoot = 130; //41
+            properties.ShootStun = 20; //42
+            properties.Recoil = 1f;
 
-            //AITank.Scaling = Vector3.One;
-            //properties.DestructionColor = CA_Main.Dandy;
-            //properties.Invisible = false; //1
+            properties.ShellType = ShellID.TrailedRocket;
+            properties.ShellHoming = new() { Cooldown = 20,HeatSeeks= true, Radius = 500f,Power = properties.ShellSpeed * 0.03f, Speed = properties.ShellSpeed};
 
-            ////## Mines ##//
-
-            //aiParams.ObstacleAwarenessMine = 0; //2
-            //properties.MineLimit = 0; //3
-            //aiParams.RandomTimerMinMine = 0; //4
-            //aiParams.RandomTimerMaxMine = 0; //5
-            //aiParams.TankAwarenessMine = 0; //6
-            //aiParams.ChanceMineLayNearBreakables = 0; //7
-            //aiParams.ChanceMineLay = 0; //8
-            //properties.MineCooldown = 0; //9
-            //properties.MineLimit = 0; //10
-
-            ////## Movement & Navigation ##//
-
-            //properties.Acceleration = 0; //11
-            //properties.Deceleration = 0; //12
-            //aiParams.MaxAngleRandomTurn = 0; //13
-            //aiParams.RandomTimerMaxMove = 0; //14
-            //aiParams.RandomTimerMinMove = 0; //15
-            //aiParams.AwarenessFriendlyMine = 0; //16
-            //aiParams.AwarenessFriendlyShell = 0; //17
-            //aiParams.AwarenessHostileMine = 0; //18
-            //aiParams.AwarenessHostileShell = 0; //19
-            //aiParams.CantShootWhileFleeing = false; //20
-            //aiParams.AggressivenessBias = 0; //21
-            //aiParams.MaxQueuedMovements = 0; //22
-            //properties.MaxSpeed = 0; //23
-
-            //properties.TurningSpeed = 0; //26
-            //properties.MaximalTurn = 0; //27
-            //aiParams.ObstacleAwarenessMovement = 0; //28
-            //aiParams.AimOffset = 0; //29
-
-            ////## Shells ##//
-
-            //properties.ShellLimit = 0; //30
-            //aiParams.DetectionForgivenessSelf = 0; //31
-            //aiParams.DetectionForgivenessFriendly = 0; //32
-            //aiParams.DetectionForgivenessHostile = 0; //33
-            //properties.RicochetCount = 0; //34
-            //aiParams.RandomTimerMaxShoot = 0; //35
-            //aiParams.RandomTimerMinShoot = 0; //36
-            //properties.ShellCooldown = 0; //37
-            //properties.ShellSpeed = 0; //38
-            //aiParams.TurretSpeed = 0; //39
-            //aiParams.AimOffset = 0; //40
-            //aiParams.TankAwarenessShoot = 0; //41
-            //properties.ShootStun = 0; //42
         }
-    
+
+        public override bool CustomAI()
+        {
+            if(AITank.TargetTank is Tank tank && tank.Properties.Invisible)
+            {
+                tank.TimeSinceLastAction = -6000;
+            }
+            return true;
+        }
     }
 }

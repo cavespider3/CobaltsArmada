@@ -51,7 +51,7 @@ namespace CobaltsArmada
             Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
 
-
+            Parameters.TankAwarenessShoot = 50;
             properties.TurningSpeed = 0.15f;
             properties.MaximalTurn = MathHelper.PiOver2;
 
@@ -84,20 +84,22 @@ namespace CobaltsArmada
             var properties = AITank.Properties;
             if (AITank.TargetTank is not null && AITank.SeesTarget)
             {
-                var isInShotgunRange = Vector2.Distance(AITank.Position, AITank.TargetTank.Position) <= 200f;
+                var isInShotgunRange = Vector2.Distance(AITank.Position, AITank.TargetTank.Position) <= 300f;
                 //Ruby
                 if (!isInShotgunRange)
                 {
                     properties.ShootStun = 1;
-                    properties.ShellCooldown = 10;
+                    properties.ShellCooldown = 30;
                     properties.ShellLimit = 8;
                     properties.ShellSpeed = 5.6f;
                     properties.ShellType = ShellID.Rocket;
                     properties.ShellShootCount = 1;
                     properties.Recoil = 0f;
+                    AITank.Parameters.TankAwarenessShoot = 50;
                 }
                 else //SHOTGUN
                 {
+                    AITank.Parameters.TankAwarenessShoot = 140;
                     properties.ShootStun = 40;
                     properties.ShellCooldown = 60;
                     properties.ShellLimit = 15;

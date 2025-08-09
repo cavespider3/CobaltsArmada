@@ -68,6 +68,7 @@ namespace CobaltsArmada
             AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
             AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            AITank.Parameters.TankAwarenessShoot = 50;
         }
 
         public override void Shoot(Shell shell)

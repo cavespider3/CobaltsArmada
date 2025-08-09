@@ -42,7 +42,7 @@ namespace CobaltsArmada
 
         public override void PostApplyDefaults()
         {
-          
+            
 
             //TANK NO BACK DOWN
             base.PostApplyDefaults();

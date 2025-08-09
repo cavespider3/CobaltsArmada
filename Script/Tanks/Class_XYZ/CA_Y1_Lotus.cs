@@ -7,6 +7,10 @@ using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
+using TanksRebirth.Net;
+using TanksRebirth.Internals.Common.Utilities;
+using TanksRebirth;
+using CobaltsArmada.Script.Tanks.Class_T;
 //Boss AITank
 namespace CobaltsArmada
 {
@@ -29,15 +33,19 @@ namespace CobaltsArmada
         
         public override void PostApplyDefaults()
         {
+            Array.Resize(ref AITank.SpecialBehaviors,2);
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
+                AITank.SpecialBehaviors[i].Value = 180f;
+            }
+            AITank.SpecialBehaviors[1].Value = 20 + Server.CurrentClientCount * 5;
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"]?5:20;
-            AITank.Properties.Armor = new TankArmor(AITank, 1);
-            CA_Main.boss = new BossBar(AITank, "Lotus", "The Reformer");
+            AITank.Properties.Armor = new TankArmor(AITank, 20 + Server.CurrentClientCount * 5);
             AITank.Properties.Armor.HideArmor = true;
-
             AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 1.1f;
+            AITank.Scaling = Vector3.One * 1.3f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
@@ -46,12 +54,10 @@ namespace CobaltsArmada
             AITank.Parameters.TurretSpeed = 0.06f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(45);
 
+            AITank.Parameters.AggressivenessBias = 0.1f;
 
-            AITank.Parameters.AggressivenessBias = 0.6f;
-     
-
-            AITank.Parameters.AwarenessHostileShell = 10;
-            AITank.Parameters.AwarenessFriendlyShell = 40;
+            AITank.Parameters.AwarenessHostileShell = 120;
+            AITank.Parameters.AwarenessFriendlyShell = 120;
             AITank.Parameters.AwarenessHostileMine = 10;
             AITank.Parameters.AwarenessFriendlyMine = 50;
 
@@ -80,18 +86,20 @@ namespace CobaltsArmada
             AITank.Properties.MineLimit = 0;
             AITank.Properties.MineStun = 0;
 
-            AITank.Parameters.ObstacleAwarenessMovement = 44;
+            AITank.Parameters.ObstacleAwarenessMovement = 60;
             AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
             AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            AITank.Parameters.MaxQueuedMovements = 4;
+            AITank.Parameters.TankAwarenessShoot = 120;
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (AITank.SpecialBehaviors[2].Value > 0 && AITank.Properties.Armor is not null)
+            if(AITank.Properties.Armor!.HitPoints == (int)MathF.Floor(AITank.SpecialBehaviors[1].Value /2))
             {
-                AITank.Properties.Armor.HitPoints = Math.Min((int)AITank.SpecialBehaviors[2].Value, 1);
-                AITank.SpecialBehaviors[2].Value -= 1f;
-                CA_Main.Fire_AbstractShell_Tank(AITank, 1, context, 0, 1, 3f);
+                //Lore :3
+              var Bobbert = new CA_Drone(AITank, AITank.Physics.Position);
+              Bobbert.Task = CA_Drone.DroneTask.Recruit;
             }
             base.TakeDamage(destroy, context);
 
@@ -102,8 +110,33 @@ namespace CobaltsArmada
             shell.SwapTexture(CA_Main.Tank_Y1);
             shell.Properties.FlameColor = AssociatedColor;
         }
+        public override bool CustomAI()
+        {
+            float speed = 5.8f;
+            Shell.HomingProperties homing = new() { Cooldown = 0, Power = speed * 0.03f, Speed = speed, Radius = 500f };
 
-     
+            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team))&& !AITank.IsTooCloseToObstacle && (AITank.TargetTank is Tank target && CA_Utils.UnobstructedRaycast(AITank.Position,target.Position,(v2)=>CA_Utils.UnobstructedPosition(v2) ) || AITank.SpecialBehaviors[0].Value <60))
+            {
+                if (AITank.SpecialBehaviors[0].Value<=35 && (int)AITank.SpecialBehaviors[0].Value % 7 == 0)
+                {
+                    Vector2 sending = MathUtils.Rotate(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-45,45)+180f));
+                    new Shell(sending * 25f + AITank.Position, sending * speed,ShellID.Rocket,AITank,0,homing,true);
+
+                    if (AITank.SpecialBehaviors[0].Value <= 0) AITank.SpecialBehaviors[0].Value = 120;
+                }
+
+                AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
+
+
+
+            }
+
+
+
+            return true;
+        }
+
+
 
     }
 }

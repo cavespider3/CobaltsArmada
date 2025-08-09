@@ -20,7 +20,7 @@ using tainicom.Aether.Physics2D.Common;
 
 using TanksRebirth.GameContent.Systems.PingSystem;
 
-using static CobaltsArmada.CA_PaintMacros;
+
 using TanksRebirth.GameContent.GameMechanics;
 using TanksRebirth.GameContent.Systems.Coordinates;
 
