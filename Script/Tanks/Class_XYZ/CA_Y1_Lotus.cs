@@ -20,7 +20,7 @@ namespace CobaltsArmada
         /// The 1st boss AITank you fight, fought and rematched at mission's 20 and 96(only on extra and above)
         /// while active,
         /// </summary
-        public override int Songs => 2;
+        public override int Songs => 1;
          public override bool HasSong => true;
         public override LocalizedString Name => new(new()
         {
@@ -42,7 +42,7 @@ namespace CobaltsArmada
             AITank.SpecialBehaviors[1].Value = 20 + Server.CurrentClientCount * 5;
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.Properties.Armor = new TankArmor(AITank, 20 + Server.CurrentClientCount * 5);
+            AITank.Properties.Armor = new TankArmor(AITank, (int)AITank.SpecialBehaviors[1].Value);
             AITank.Properties.Armor.HideArmor = true;
             AITank.Model = CA_Main.Neo_Boss;
             AITank.Scaling = Vector3.One * 1.3f;
@@ -65,11 +65,12 @@ namespace CobaltsArmada
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21);
 
             AITank.Properties.ShootStun = 12;
-            AITank.Properties.ShellCooldown = 240;
+            AITank.Properties.ShellCooldown = CA_Main.modifier_Difficulty <= CA_Main.ModDifficulty.Extra ? 240u : 360u ;
             AITank.Properties.ShellLimit = 2;
             AITank.Properties.ShellSpeed = 4f;
             AITank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Glaive>().Type;
             AITank.Properties.RicochetCount = 7;
+           
 
 
 
@@ -77,7 +78,7 @@ namespace CobaltsArmada
             AITank.Properties.Stationary = false;
 
             AITank.Properties.TreadVolume = 0.1f;
-            AITank.Properties.TreadPitch = 0.3f;
+            AITank.Properties.TreadPitch = -0.4f;
             AITank.Properties.MaxSpeed = 1.5f;
 
             AITank.Properties.Acceleration = 0.1f;
@@ -108,26 +109,40 @@ namespace CobaltsArmada
         {
             base.Shoot( shell);
             shell.SwapTexture(CA_Main.Tank_Y1);
+            shell.Properties.Penetration = -1;
             shell.Properties.FlameColor = AssociatedColor;
         }
         public override bool CustomAI()
         {
             float speed = 5.8f;
-            Shell.HomingProperties homing = new() { Cooldown = 0, Power = speed * 0.03f, Speed = speed, Radius = 500f };
-
-            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team))&& !AITank.IsTooCloseToObstacle && (AITank.TargetTank is Tank target && CA_Utils.UnobstructedRaycast(AITank.Position,target.Position,(v2)=>CA_Utils.UnobstructedPosition(v2) ) || AITank.SpecialBehaviors[0].Value <60))
+            Shell.HomingProperties homing = new() {HeatSeeks = true, Cooldown = 0, Power = speed * 0.03f, Speed = speed, Radius = 900f };
+           // if (CA_Main.modifier_Difficulty <= CA_Main.ModDifficulty.Hard) return true;
+            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team))&& !AITank.IsTooCloseToObstacle && (AITank.TargetTank is Tank target && AITank.SeesTarget || AITank.SpecialBehaviors[0].Value <40))
             {
-                if (AITank.SpecialBehaviors[0].Value<=35 && (int)AITank.SpecialBehaviors[0].Value % 7 == 0)
+                if (CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic)
                 {
-                    Vector2 sending = MathUtils.Rotate(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-45,45)+180f));
-                    new Shell(sending * 25f + AITank.Position, sending * speed,ShellID.Rocket,AITank,0,homing,true);
+                    if (AITank.SpecialBehaviors[0].Value < 40 && (int)AITank.SpecialBehaviors[0].Value % 20 == 0)
+                    {
+                        Vector2 sending = MathUtils.Rotate(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-135, 135) ));
+                        new Shell(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 1, homing, true);
 
-                    if (AITank.SpecialBehaviors[0].Value <= 0) AITank.SpecialBehaviors[0].Value = 120;
+                        if (AITank.SpecialBehaviors[0].Value <= 0) AITank.SpecialBehaviors[0].Value = 240;
+                    }
+
+
+                }
+                else
+                {
+                    if (AITank.SpecialBehaviors[0].Value <= 40 && (int)AITank.SpecialBehaviors[0].Value % 8 == 0)
+                    {
+                        Vector2 sending = MathUtils.Rotate(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-60, 60) + 180f));
+                        new Shell(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 0, homing, true);
+
+                        if (AITank.SpecialBehaviors[0].Value <= 0) AITank.SpecialBehaviors[0].Value = 240;
+                    }
                 }
 
                 AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
-
-
 
             }
 

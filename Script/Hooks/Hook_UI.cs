@@ -188,8 +188,8 @@ namespace CobaltsArmada.Hooks
             startIndex = MainMenuUI.AllDifficultyButtons.Count - 1;
             MainMenuUI.AllDifficultyButtons.AddRange(buttons);
 
-
         }
+        
         public static void Hook_UpdateUI()
         {
             if (Invasion is null) return;

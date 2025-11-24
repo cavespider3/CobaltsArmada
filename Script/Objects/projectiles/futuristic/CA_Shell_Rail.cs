@@ -45,8 +45,9 @@ namespace CobaltsArmada
         /// <param name="shell">the original shell</param>
         /// <param name="Center">the kill position</param>
         /// <param name="Radius">the radius of the kill box</param>
-        public static void CheckCollisions_DeathBeam(Shell shell, Vector2 Center, float Radius)
+        public static void CheckCollisions_DeathBeam(Shell shell, Vector2 Center, float Radius,bool cankill )
         {
+            if (!cankill) return;
             var Properties = shell.Properties;
 
 
@@ -142,7 +143,7 @@ namespace CobaltsArmada
             AITank ai = (AITank)shell.Owner;
             for (var i = 0; i < ai.ShotPathTankCollPoints.Length; i++)
             {
-                CheckCollisions_DeathBeam(shell, ai.ShotPathTankCollPoints[i],unforgiveness);
+                CheckCollisions_DeathBeam(shell, ai.ShotPathTankCollPoints[i],unforgiveness,draw);
             }
             
         }
@@ -177,7 +178,7 @@ namespace CobaltsArmada
                 float reacher = 1.075f;
                 Shell.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-Shell.Rotation, 0, 0)
                     * Matrix.CreateTranslation(Shell.Position3D) * Matrix.CreateTranslation(Vector3.Normalize(Shell.Velocity3D) * Laser_length / 2f * reacher);
-                if (scaletimer > 0.2) DoKillcast(Shell, laser_Magnify * 1.25f);
+                if (scaletimer > 0.2) DoKillcast(Shell, laser_Magnify * 1.25f, scaletimer>=0.95f);
 
                 if (dur * 60f < Shell.LifeTime)
                 {

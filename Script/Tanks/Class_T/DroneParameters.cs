@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TanksRebirth.GameContent.ID;
 using TanksRebirth.Net;
 
 namespace CobaltsArmada.Script.Tanks.Class_T
@@ -78,6 +79,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         /// <summary>Is the drone capable of bringing in backup</summary>
         public Skill RecruitGeneral = new();
 
+        public int[] ValidRecruits = [];
+
         /// <summary>Is the drone capable of holding a position</summary>
         public Skill HoldGeneral = new();
 
@@ -86,5 +89,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         public int Armor;
 
+        public bool Elite;
     }
 }

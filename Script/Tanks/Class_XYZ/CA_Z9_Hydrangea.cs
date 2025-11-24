@@ -36,7 +36,7 @@ namespace CobaltsArmada
         });
 
         public override string Texture => "assets/textures/tank_zenith";
-        public override int Songs => 2;
+        public override int Songs => 1;
         public override Color AssociatedColor => Color.Cyan;
 
 

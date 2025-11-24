@@ -63,6 +63,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                                 Traps.ChanceToActivate = 1f;
                                 Traps.GlobalSkill = true;
                                 Traps.Inaccuracy = 120f;
+                                droneParams.Elite = true;
                                 break;
                             case "Fade":
 
@@ -73,7 +74,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                                 Recruit.Cooldown = 4;
                                 Recruit.ChanceToActivate = 1f;
                                 Recruit.GlobalSkill = true;
-
+                                droneParams.Elite = true;
                                 break;
                             case "Gamma":
 
@@ -220,19 +221,22 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             Traps.ChanceToActivate = 0.04f;
                             Traps.Minimum = 250;
                             Traps.Maximum = 600;
+                            droneParams.Elite = true;
                             break;
 
                         #endregion
                     }
                 }
-                if(tankType == CA_Main.Kudzu)
+                if(tankType == CA_Main.Kudzu || tankType == CA_Main.NightShade)
                 {
                     Recruit.Enabled = true;
-                    Recruit.Cooldown = 1;
-                    Recruit.ChanceToActivate = 1f;
+                    Recruit.Cooldown = tankType == CA_Main.NightShade ? 120 : 1;
+                    Recruit.ChanceToActivate = tankType == CA_Main.NightShade ? 0.1f : 1f;
                     Recruit.GlobalSkill = true;
+                    droneParams.Elite = true;
 
-                }else if(tankType == CA_Main.SunFlower)
+                }
+                else if(tankType == CA_Main.SunFlower)
                 {
                     Traps.Enabled = true;
                     Traps.Cooldown = 0;
@@ -252,7 +256,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     Traps.ChanceToActivate = 0.04f;
                     Traps.Minimum = 250;
                     Traps.Maximum = 600;
-                }else if(tankType == CA_Main.Lotus)
+                    droneParams.Elite = true;
+                }
+                else if(tankType == CA_Main.Lotus)
                 {
                     Traps.Enabled = true;
                     Traps.Cooldown = 600;

@@ -1,46 +1,42 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
-
-using TanksRebirth.Internals.Common.Utilities;
-
-using tainicom.Aether.Physics2D.Dynamics;
-using TanksRebirth.Internals.Common.Framework;
-using TanksRebirth.GameContent.Systems;
-
-using TanksRebirth.Graphics;
-using TanksRebirth.GameContent.Globals;
-using TanksRebirth.GameContent.ID;
-using TanksRebirth.Net;
-using TanksRebirth.GameContent.RebirthUtils;
-using TanksRebirth.GameContent.UI.MainMenu;
-using TanksRebirth.GameContent;
-using TanksRebirth;
-using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
-using tainicom.Aether.Physics2D.Common;
-
-using TanksRebirth.GameContent.Systems.PingSystem;
-
-
-using TanksRebirth.GameContent.GameMechanics;
-using TanksRebirth.GameContent.Systems.Coordinates;
-
 using Microsoft.Xna.Framework.Input;
-using TanksRebirth.Internals.Common;
-using MathUtils = TanksRebirth.Internals.Common.Utilities.MathUtils;
 using Newtonsoft.Json.Linq;
 using Octokit;
-using TanksRebirth.Internals.Common.Framework.Audio;
-using TanksRebirth.GameContent.Globals.Assets;
-using TanksRebirth.Internals;
-using TanksRebirth.GameContent.Systems.ParticleSystem;
 using System.Reflection;
-using TanksRebirth.IO;
 using System.Text;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.Internals.Common.Framework.Collisions;
+using tainicom.Aether.Physics2D.Common;
+using tainicom.Aether.Physics2D.Dynamics;
+using TanksRebirth;
 using TanksRebirth.Enums;
+using TanksRebirth.GameContent;
+using TanksRebirth.GameContent.GameMechanics;
+using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.Globals.Assets;
+using TanksRebirth.GameContent.ID;
+using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.RebirthUtils;
+using TanksRebirth.GameContent.Systems;
+using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.Coordinates;
+using TanksRebirth.GameContent.Systems.ParticleSystem;
+using TanksRebirth.GameContent.Systems.PingSystem;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.GameContent.UI.LevelEditor;
+using TanksRebirth.GameContent.UI.MainMenu;
+using TanksRebirth.Graphics;
+using TanksRebirth.Internals;
+using TanksRebirth.Internals.Common;
+using TanksRebirth.Internals.Common.Framework;
+using TanksRebirth.Internals.Common.Framework.Audio;
+using TanksRebirth.Internals.Common.Framework.Collisions;
+using TanksRebirth.Internals.Common.Utilities;
+using TanksRebirth.IO;
+using TanksRebirth.Localization;
+using TanksRebirth.Net;
+using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
+using MathUtils = TanksRebirth.Internals.Common.Utilities.MathUtils;
 
 
 namespace CobaltsArmada.Script.Tanks.Class_T
@@ -247,6 +243,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         private Texture2D? _droneTexture;
 
+        public OggAudio? FlySound;
+        public OggAudio? EliteFlySound;
 
         #region Model Stuff
 
@@ -369,15 +367,34 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Id = index;
 
             AllDrones[index] = this;
-            InitModelSemantics();
+           
 
-            Body = DroneCollisions.CreateCircle(DRN_HEIGHT / UNITS_TO_METERS, 1, position, bodyType: BodyType.Dynamic);
+           
             CurrentHover = 300f;
             OwnedShells = new Shell[ClipSize];
             //assign model and texture data
+
+            FlySound = new OggAudio(CA_Main.Drone_Hover!.Path, 0.3f);
+            FlySound.Instance.IsLooped = true;
+            FlySound.Play();
+
             if (droneOwner is Tank tnk)
+            {
                 Parameters = CA_DroneLicenseManager.ApplyDefaultLicense(tnk);
-      
+                SoundPlayer.PlaySoundInstance(CA_Main.Drone_Activate!, SoundContext.Effect, 0.3f);
+                if(Parameters.Elite)
+                {
+                    Model = CA_Main.Elite_Drone!;
+                    EliteFlySound = new OggAudio(CA_Main.Drone_Hover!.Path, 0.3f);
+                    EliteFlySound.Instance.IsLooped = true;
+                    EliteFlySound.Play();
+                    Scaling = Vector3.One * 1.3f * 0.01f;
+                }
+            }
+            Body = DroneCollisions.CreateCircle(DRN_HEIGHT / UNITS_TO_METERS * (Parameters.Elite ? 1.3f : 1f), 1, position, bodyType: BodyType.Dynamic);
+            InitModelSemantics();
+
+
         }
 
        
@@ -474,6 +491,34 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Model!.Root.Transform = World;
             Model!.CopyAbsoluteBoneTransformsTo(_boneTransforms);
 
+            if (droneOwner is AITank ai && ai.ModdedData is ModTank modTank &&
+                modTank.Mod.InternalName == "AdditionalTanksMarble" && modTank.Name.GetLocalizedString(LangCode.English) == "Marble")
+            {
+
+                float hue = testtimer * 80;
+
+                var tierName = TankID.Collection.GetKey(ai.AiTankType)!.ToLower();
+                    var colors = new Color[Tank.Assets[$"tank_" + tierName].Width * Tank.Assets[$"tank_" + tierName].Height];
+                    Tank.Assets[$"tank_" + tierName].GetData(colors);
+                    CustomPaint = true;
+                    BodyPaint = colors[0];
+
+                    NeonPaint = ColorUtils.HsvToRgb(hue % 360, 1, 1);
+                    AccentPaint = Color.Lerp(NeonPaint, Color.Black, 0.5f);
+
+                    CA_Main.Tank_CustomPaint!.GetData(colors);
+
+                    for (int i = 0; i < colors.Length; i++)
+                    {
+                        colors[i].Deconstruct(out byte r, out byte g, out byte b);
+                        colors[i] = Color.Lerp(Color.Black, ai.AiTankType != TankID.Obsidian ? BodyPaint : NeonPaint, r / 255f);
+                        colors[i] = Color.Lerp(colors[i], ai.AiTankType == TankID.Obsidian ? BodyPaint : NeonPaint, b / 255f * (ai.AiTankType == MathHelper.Clamp(ai.AiTankType, TankID.Bronze, TankID.Obsidian) ? 3f : 1f));
+                        colors[i] = Color.Lerp(colors[i], AccentPaint, g / 255f);
+                    }
+                    _droneTexture!.SetData(colors);
+              }
+            
+
             #endregion
 
             //in the case of a drone doesn't spawn in with an owner
@@ -500,6 +545,20 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 return;
             }
 
+            if (FlySound is not null && FlySound.Instance is not null)
+            {
+                FlySound.Instance.Pitch = -0.5f + MathF.Min(1f,MathF.Max(0,(Velocity3D * new Vector3(1f,0.5f,1f)).Length() / 4f));
+                FlySound.Volume = MathF.Min(1f, MathF.Max(0, (Velocity3D * new Vector3(1f, 0.5f, 1f)).Length() / 4f)) * 0.2f + 0.03f;
+               
+            }
+            if (EliteFlySound is not null && EliteFlySound.Instance is not null)
+            {
+                EliteFlySound.Instance.Pitch = -0.8f + MathF.Min(1f, MathF.Max(0, (Velocity3D * new Vector3(1f, 0.5f, 1f)).Length() / 4f));
+                EliteFlySound.Volume = MathF.Min(1f, MathF.Max(0, (Velocity3D * new Vector3(1f, 0.5f, 1f)).Length() / 4f)) * 0.2f + 0.03f;
+            }
+
+          
+
 
             if (droneOwner.IsDestroyed)
             {
@@ -509,14 +568,25 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     crate2.gravity = 4f;
                     Recruit = null;
                 }
-
+                if (Task != DroneTask.Die && FlySound is not null && FlySound.Instance is not null) {
+                    FlySound?.Instance?.Stop();
+                    FlySound = null;
+                    if (EliteFlySound is not null && EliteFlySound.Instance is not null)
+                    {
+                        EliteFlySound?.Instance?.Stop();
+                        EliteFlySound = null;
+                        SoundPlayer.PlaySoundInstance(CA_Main.Drone_Disable!, SoundContext.Effect, 0.3f,pitchOverride:-0.4f);
+                    }
+                        SoundPlayer.PlaySoundInstance(CA_Main.Drone_Disable!, SoundContext.Effect, 0.4f);
+                }
                 Task = DroneTask.Die;
                 FallSpeed += 0.03f * RuntimeData.DeltaTime;
                 Gravity += FallSpeed * RuntimeData.DeltaTime;
                 FallSpeed *= 1.02f;
                 if (Position3D.Y < 0)
                 {
-                    new Explosion(Position, 4, droneOwner, soundPitch: 0.6f);
+                    SoundPlayer.PlaySoundInstance(CA_Main.Drone_Crash[Client.ClientRandom.Next(0, CA_Main.Drone_Crash.Length)]!, SoundContext.Effect, 0.2f);
+                    new Explosion(Position, 4 * (Parameters.Elite? 2 :1), droneOwner, soundPitch: 0.6f);
                     Remove();
                 }
 
@@ -580,7 +650,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 newHeight = Block.FULL_SIZE;
             }
             HoverHeight = MathHelper.Lerp(HoverHeight, newHeight * 1.1f, 0.4f);
-            HoverSpeed = MathHelper.Lerp(HoverSpeed, MathHelper.Clamp((HoverTarget - CurrentHover) / 5f, -80f, 80f) + MathHelper.Clamp(HoverTarget - CurrentHover, -80f, 80f) * 0.1f, RuntimeData.DeltaTime / 40f + hurryrise * 0.2f);
+            HoverSpeed = MathHelper.Lerp(HoverSpeed, MathHelper.Clamp((HoverTarget - CurrentHover) / 5f, -80f, 80f) + MathHelper.Clamp(HoverTarget - CurrentHover, -80f, 80f) * 0.1f, RuntimeData.DeltaTime / 30f + hurryrise * 0.2f);
             if (CurrentHover < 5) HoverSpeed = MathF.Abs(HoverSpeed);
             //AI stuff
 
@@ -973,7 +1043,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         Properties.ShellType, null, Properties.RicochetCount, homing: Properties.ShellHoming, playSpawnSound: true);
                         Velocity = new Vector2(-new2d.X, new2d.Y) * Properties.ShellSpeed * -0.9f;
                         shell.ShootSound!.Instance.Pitch = MathHelper.Clamp(Properties.ShootPitch + 0.3f, -1f, 1f);
-                        SoundPlayer.PlaySoundInstance(shell.ShootSound, SoundContext.Effect, 0.3f);
+                        SoundPlayer.PlaySoundInstance(CA_Main.Drone_Shoot[Client.ClientRandom.Next(0,CA_Main.Drone_Shoot.Length)]!, SoundContext.Effect, 0.2f,pitchOverride:0.5f);
                         DoShootParticles();
                         shell.Owner = droneOwner;
                         Client.SyncShellFire(shell);
@@ -1028,7 +1098,11 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         if(droneOwner is AITank ai2 && ai2.AiTankType == CA_Main.Kudzu)
                         {
                             Recruit.TankToSpawn.AiTier = CA_Main.Kudzu;
+                        }else if(droneOwner is AITank ai3 && Parameters.ValidRecruits.Length != 0)
+                        {
+                            Recruit.TankToSpawn.AiTier = Parameters.ValidRecruits[Client.ClientRandom.Next(0, Parameters.ValidRecruits.Length)];
                         }
+
                         CA_NetPlay.SyncDroneCrate(this, Recruit);
                     }
                 }
@@ -1289,6 +1363,12 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             {
                 DroneCollisions.Remove(Body);
             }
+            
+            FlySound?.Instance?.Stop();
+            FlySound = null;
+            EliteFlySound?.Instance?.Stop();
+            EliteFlySound = null;
+
             AllDrones[Id] = null;
         }
 
@@ -1315,6 +1395,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 TankGame.SpriteRenderer.GraphicsDevice.BlendState = mesh.Name.StartsWith("Hover") || mesh.Name.StartsWith("ring") ? BlendState.Additive : BlendState.AlphaBlend;
                 foreach (BasicEffect effect in mesh.Effects)
                 {
+                    
                     effect.World = _boneTransforms[mesh.ParentBone.Index];
                     effect.View = CameraGlobals.GameView;
                     effect.Projection = CameraGlobals.GameProjection;

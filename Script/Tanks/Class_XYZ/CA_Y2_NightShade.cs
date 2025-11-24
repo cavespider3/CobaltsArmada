@@ -1,4 +1,5 @@
 ﻿using CobaltsArmada.Script.Tanks;
+using CobaltsArmada.Script.Tanks.Class_T;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace CobaltsArmada
         /// The 2nd boss AITank you fight, fought and rematched at mission's 40 and 97(only on extra and above).
         /// function, while active, this AITank calls for backup. any tanks closeby are poisioned, becoming much more aggressive
         /// </summary
-        public override int Songs => 2;
+        public override int Songs => 1;
         public override bool HasSong => true;
         public override LocalizedString Name => new(new()
         {
@@ -49,23 +50,23 @@ namespace CobaltsArmada
             base.OnLoad();
         }
 
-       
-
+        public float NightNadeTimer = 0f;
+        public Vector2 GloomPulse = Vector2.Zero;
         public override void PostApplyDefaults()
         {
+
+            Array.Resize(ref AITank.SpecialBehaviors, 6);
+            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
+            {
+                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
+                AITank.SpecialBehaviors[i].Value = 0;
+            }
+            AITank.SpecialBehaviors[1].Value = 15 + Server.CurrentClientCount * 10;
             //TANK NO BACK DOWN
-            Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
-
             base.PostApplyDefaults();
-
-            AITank.SpecialBehaviors[6] = new() { Value = 30 };
-            AITank.SpecialBehaviors[5] = new() { Value = 0 };
-            AITank.SpecialBehaviors[4] = new() { Value = 0 };
-            AITank.SpecialBehaviors[3] = new() { Value = 0 };
-            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 5 : AITank.SpecialBehaviors[6].Value;
-            AITank.Properties.Armor = new TankArmor(AITank, 1);
+            AITank.Properties.Armor = new TankArmor(AITank, (int)AITank.SpecialBehaviors[1].Value);
             AITank.Properties.Armor.HideArmor = true;
-            CA_Main.boss = new BossBar(AITank, "Nightshade", "The Infector");
+           // CA_Main.boss = new BossBar(AITank, "Nightshade", "The Infector");
 
             AITank.SpecialBehaviors[3].Value =
            CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
@@ -74,22 +75,22 @@ namespace CobaltsArmada
             150f : 105f : 75f : 60f;
 
             AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 100f * 1.03f;
+            AITank.Scaling = Vector3.One * 1.03f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
-            AITank.Parameters.RandomTimerMaxMove = 10;
+            AITank.Parameters.RandomTimerMaxMove = 20;
             AITank.Parameters.TurretMovementTimer = 20;
             AITank.Parameters.TurretSpeed = 0.06f;
             AITank.Parameters.AimOffset = MathHelper.ToRadians(20);
 
+            AITank.Parameters.MaxQueuedMovements = 5;
 
+            AITank.Parameters.AggressivenessBias = 0.1f;
 
-            AITank.Parameters.AggressivenessBias = 1f;
-
-            AITank.Parameters.AwarenessHostileShell = 0;
+            AITank.Parameters.AwarenessHostileShell = 15;
             AITank.Parameters.AwarenessFriendlyShell = 40;
-            AITank.Parameters.AwarenessHostileMine = 0;
+            AITank.Parameters.AwarenessHostileMine = 100;
             AITank.Parameters.AwarenessFriendlyMine = 50;
 
             AITank.Properties.TurningSpeed = 0.09f;
@@ -120,17 +121,13 @@ namespace CobaltsArmada
             AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
             AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
             AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+            AITank.Parameters.TankAwarenessShoot = 120;
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (AITank.SpecialBehaviors[2].Value > 0 && AITank.Properties.Armor is not null)
-            {
-                AITank.Properties.Armor.HitPoints = Math.Min((int)AITank.SpecialBehaviors[2].Value, 1);
-                AITank.SpecialBehaviors[2].Value -= 1f;
-          
-            }
+            AITank.SpecialBehaviors[4].Value = 0;
+            AITank.SpecialBehaviors[5].Value = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(AITank.SpecialBehaviors[1].Value / 2) || AITank.SpecialBehaviors[5].Value == 1f ? 1f:0f;
             base.TakeDamage(destroy, context);
-
         }
 
        
@@ -140,8 +137,8 @@ namespace CobaltsArmada
           
             base.PostUpdate();
             if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
-            bool Enraged = AITank.SpecialBehaviors[6].Value/2f>= AITank.SpecialBehaviors[2].Value;
-            Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, AITank.SpecialBehaviors[3].Value);
+            bool Phase2 = AITank.SpecialBehaviors[5].Value == 1f;
+            Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, 130);
             var smoke = GameHandler.Particles.MakeParticle(AITank.Position3D + smokey.ExpandZ(),
                 GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
             smoke.Pitch = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
@@ -160,17 +157,88 @@ namespace CobaltsArmada
             };
 
             if (LevelEditorUI.IsActive) return;
-
-
-
-            AITank.SpecialBehaviors[0].Value += RuntimeData.DeltaTime;
-            if (AITank.SpecialBehaviors[1].Value == 0)
-                AITank.SpecialBehaviors[1].Value = 5;
-
-            if (AITank.SpecialBehaviors[0].Value > AITank.SpecialBehaviors[1].Value)
+            AITank.SpecialBehaviors[4].Value += RuntimeData.DeltaTime;
+            // it has regen shield
+            if (AITank.SpecialBehaviors[4].Value > GetValueByDifficulty(60 * 3, 60 * 2, 60 * 1.5, 60 * 1) * (Phase2 ? 0.75f : 1f) &&
+                AITank.Properties.Armor!.HitPoints < AITank.SpecialBehaviors[1].Value)
             {
-                AITank.SpecialBehaviors[1].Value = 0f;
-                AITank.SpecialBehaviors[0].Value = 0f;
+                AITank.Properties.Armor!.HitPoints += 1;
+                AITank.SpecialBehaviors[4].Value = 0;
+            }
+
+            if (Phase2)
+            {
+                NightNadeTimer += RuntimeData.DeltaTime;
+
+                if (NightNadeTimer > 600)
+                {
+                    
+                    for (int i = 0; i < 8; i++)
+                    {
+                        Vector2 smokey2 = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * (Client.ClientRandom.NextFloat(-2,2)+ (NightNadeTimer - 595)*3);
+                        var smoke2 = GameHandler.Particles.MakeParticle(GloomPulse.ExpandZ() + smokey2.ExpandZ() + Vector3.UnitY *3,
+                            GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
+                        smoke2.Pitch = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
+                        smoke2.Scale = new(0.8f * Client.ClientRandom.NextFloat(0.1f, 1f));
+                        smoke2.Color = Color.DarkViolet;
+                        smoke2.HasAdditiveBlending = false;
+                        smoke2.UniqueBehavior = (part) => {
+
+                            GeometryUtils.Add(ref part.Scale, -0.004f * RuntimeData.DeltaTime);
+                            part.Position += Vector3.UnitY * 1f * RuntimeData.DeltaTime;
+                            part.Alpha -= 0.04f * RuntimeData.DeltaTime;
+
+                            if (part.Alpha <= 0)
+                                part.Destroy();
+
+                        };
+                    }
+                    ref Tank[] tanks2 = ref GameHandler.AllTanks;
+                    for (int i = 0; i < tanks2.Length; i++)
+                    {
+                        if (tanks2[i] is Tank ai)
+                        {
+
+                            if (ai.IsDestroyed || AITank == ai || ai.Team != AITank.Team && AITank.Team != TeamID.NoTeam ||
+                                ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
+
+                            if (Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) < ((NightNadeTimer - 595) * 3 - 2f) ||
+                                Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) > ((NightNadeTimer - 595) * 3 + 2f)) continue;
+                            PoisonTank(ai);
+                        }
+                    }
+
+                    if(NightNadeTimer > 600 + 300)
+                    {
+                        NightNadeTimer = 0;
+                    }
+                }
+                else
+                {
+                    GloomPulse = AITank.Position;
+                 }
+
+
+
+
+
+
+                //if(NightNadeTimer > 300)
+                //{
+                //    CA_Utils.CreateNightShadeGrenade(GameHandler.Particles, AITank.Position3D + Vector3.UnitY * 20f, (Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)).ExpandZ() + Vector3.Up) * new Vector3(1,3,1), AITank.Team);
+                //    NightNadeTimer = 0f;
+                //}
+            }
+
+
+            AITank.SpecialBehaviors[2].Value += RuntimeData.DeltaTime;
+            if (AITank.SpecialBehaviors[3].Value == 0)
+                AITank.SpecialBehaviors[3].Value = 5;
+
+            if (AITank.SpecialBehaviors[2].Value > AITank.SpecialBehaviors[3].Value)
+            {
+                AITank.SpecialBehaviors[3].Value = 0f;
+                AITank.SpecialBehaviors[2].Value = 0f;
                 ref Tank[] tanks = ref GameHandler.AllTanks;
                 for (int i = 0; i < tanks.Length; i++)
                 {
@@ -180,38 +248,32 @@ namespace CobaltsArmada
                         if (ai.IsDestroyed || AITank == ai || ai.Team != AITank.Team && AITank.Team != TeamID.NoTeam ||
                             ai is AITank ai2 && (ai2.AiTankType == NightShade || ai2.AiTankType == Lily)) continue;
 
-                        if (Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) > AITank.SpecialBehaviors[3].Value) continue;
+                        if (Vector2.Distance(ai.Position, AITank.Position3D.FlattenZ()) > 130) continue;
                         PoisonTank(ai);
                     }
                 }
             }
-
-            AITank.SpecialBehaviors[4].Value += RuntimeData.DeltaTime;
-            if (AITank.SpecialBehaviors[5].Value == 0)
-                AITank.SpecialBehaviors[5].Value = 900;
-
-            if (AITank.SpecialBehaviors[4].Value > AITank.SpecialBehaviors[5].Value)
+            foreach(CA_Drone drone in CA_Drone.AllDrones)
             {
-                AITank.SpecialBehaviors[5].Value = 0f;
-                AITank.SpecialBehaviors[4].Value = 0f;
-                //Check to see if within bounds
-                if (AITank.Position.X != Math.Clamp(AITank.Position.X, GameScene.MIN_X, GameScene.MAX_X) && AITank.Position.Y != Math.Clamp(AITank.Position.Y, GameScene.MIN_Z, GameScene.MAX_Z)) return;
-                int[] Pool;
-                switch (CA_Main.modifier_Difficulty)
+                if(drone is not null && drone.droneOwner == AITank)
                 {
-                    default:Pool = !Enraged?
-                            [TankID.Brown,TankID.Ash,TankID.Marine,TankID.Pink]:
-                            [TankID.Brown,TankID.Ash,TankID.Marine,TankID.Pink,TankID.Violet,TankID.Green]; break;
+                    drone.Parameters.ValidRecruits = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(AITank.SpecialBehaviors[1].Value / 2) || AITank.SpecialBehaviors[5].Value == 1 ?
+                        CA_Main.GetValueByDifficulty<int[]>(
+                            [TankID.Pink,TankID.Yellow,TankID.Marine,TankID.Violet], //normal phase 2
+                            [TankID.Pink, TankID.Yellow, TankID.Marine, TankID.Violet], //hard phase 2
+                            [TankID.Pink, TankID.Yellow, TankID.Marine, TankID.Violet], //lunatic phase 2
+                            [TankID.Obsidian,TankID.Black,Lavender,TankID.Amethyst,TankID.Sapphire,TankID.Gold,Carnation,ForgetMeNot,CorpseFlower,Allium] //extra phase 2 (You will suffer)
+                            ) :
+                            CA_Main.GetValueByDifficulty<int[]>(
+                            [TankID.Brown,TankID.Marine,TankID.Ash,TankID.Yellow], //normal phase 1
+                            [TankID.Brown, TankID.Marine, TankID.Ash, TankID.Yellow], //hard phase 1
+                            [TankID.Bronze,TankID.Silver,Dandelion,Periwinkle], //lunatic phase 1
+                            [TankID.Pink, TankID.Yellow, TankID.Marine, TankID.Violet] //extra phase 1
+                            );
                 }
 
-                var crate = Crate.SpawnCrate(AITank.Position3D + new Vector3(0, 20, 0), 2f);
-                crate.TankToSpawn = new TankTemplate()
-                {
-                    AiTier = Pool[Server.ServerRandom.Next(0, Pool.Length - 1)],
-                    IsPlayer = false,
-                    Team = AITank.Team
-                };
             }
+   
 
     
           

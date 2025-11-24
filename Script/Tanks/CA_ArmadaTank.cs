@@ -20,6 +20,7 @@ namespace CobaltsArmada.Script.Tanks
         {
             AITank.UsesCustomModel = true;
             AITank.Model = AITank.Properties.Stationary ? AITank.AiTankType == CA_Main.Dandelion ? CA_Main.Neo_Remote! : CA_Main.Neo_Stationary! : BossTank ? CA_Main.Neo_Boss! : CA_Main.Neo_Mobile!;
+            AITank.Properties.CanLayTread = false;
             base.PostApplyDefaults();
         }
 

@@ -1,39 +1,37 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
-using TanksRebirth.GameContent.ModSupport;
-using TanksRebirth;
-using TanksRebirth.Internals.Common.Framework.Audio;
-using TanksRebirth.GameContent;
-using TanksRebirth.GameContent.ID;
-
-using TanksRebirth.Internals.Common.Utilities;
-using TanksRebirth.Net;
-using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.Coordinates;
-
-using TanksRebirth.Internals.Common;
-using TanksRebirth.GameContent.RebirthUtils;
-using Microsoft.Xna.Framework.Input;
+﻿using CobaltsArmada.Hooks;
 using CobaltsArmada.Objects.projectiles.futuristic;
-using CobaltsArmada.Hooks;
-using TanksRebirth.Internals;
-
-using TanksRebirth.GameContent.UI.MainMenu;
-using TanksRebirth.GameContent.Globals;
-using TanksRebirth.GameContent.UI.LevelEditor;
-
-using TanksRebirth.Enums;
-using LiteNetLib.Utils;
 using CobaltsArmada.Script.Tanks.Class_T;
+using CobaltsArmada.Script.UI;
+using LiteNetLib.Utils;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using TanksRebirth.IO;
-using TanksRebirth.Graphics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using tainicom.Aether.Physics2D.Dynamics;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth;
+using TanksRebirth.Enums;
+using TanksRebirth.GameContent;
+using TanksRebirth.GameContent.Globals;
+using TanksRebirth.GameContent.ID;
+using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.RebirthUtils;
+using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
-using CobaltsArmada.Script.UI;
+using TanksRebirth.GameContent.Systems.Coordinates;
+using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.UI.LevelEditor;
+using TanksRebirth.GameContent.UI.MainMenu;
+using TanksRebirth.Graphics;
+using TanksRebirth.Internals;
+using TanksRebirth.Internals.Common;
+using TanksRebirth.Internals.Common.Framework.Audio;
+using TanksRebirth.Internals.Common.Utilities;
+using TanksRebirth.IO;
+using TanksRebirth.Localization;
+using TanksRebirth.Net;
+using static StbVorbisSharp.StbVorbis;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace CobaltsArmada;
@@ -113,6 +111,15 @@ public class CA_Main : TanksMod {
     public static Model? Shell_Glaive;
 
     public static Model? Drone;
+    public static Model? Elite_Drone;
+
+    //Ror2 assets used here
+    public static OggAudio? Drone_Hover;
+    public static OggAudio?[] Drone_Shoot = new OggAudio[6];
+    public static OggAudio? Drone_Disable;
+    public static OggAudio?[] Drone_Crash = new OggAudio[3];
+    public static OggAudio? Drone_Activate;
+
 
     public static Texture2D? Beam;
     public static Texture2D? Beam_Dan;
@@ -228,6 +235,8 @@ public class CA_Main : TanksMod {
         }
     }
 
+
+
     public static dynamic GetValueByDifficulty<T>(T Normal, T Hard, T Lunatic, T Extra)
     {
         switch (modifier_Difficulty)
@@ -239,6 +248,7 @@ public class CA_Main : TanksMod {
         }
         return null;
     }
+
     public static void WhilePoisoned_Update(Tank tank)
     {
         if (PoisonedTanks.Find(x => x == tank) is not null && Client.ClientRandom.NextFloat(0.1f, 1f) < 0.7f && !tank.IsDestroyed)
@@ -362,13 +372,13 @@ public class CA_Main : TanksMod {
        
         if (_tank.Properties.Invisible)
         {
-            _tank.Properties.CanLayTread = false;
-            _tank.Properties.TreadVolume = 0f;
+        //        _tank.Properties.CanLayTread = false;
+        //       _tank.Properties.TreadVolume = 0f;
         }
         if (_tank.Properties.Stationary && !_tank.Properties.Invisible)
         {
-            _tank.Properties.Invisible = true;
-            _tank.DoInvisibilityGFXandSFX();
+        //        _tank.Properties.Invisible = true;
+        //       _tank.DoInvisibilityGFXandSFX();
         }
 
         if (_tank is AITank tank)
@@ -431,12 +441,29 @@ public class CA_Main : TanksMod {
         Shell_Beam = ImportAsset<Model>("assets/models/laser_beam");
         Shell_Glaive = ImportAsset<Model>("assets/models/bullet_glave");
         Drone = ImportAsset<Model>("assets/models/tank_drone");
+        Elite_Drone = ImportAsset<Model>("assets/models/tank_drone_elite");
 
 
         Tank_Y1 = ImportAsset<Texture2D>("assets/textures/tank_lotus");
         Beam = ImportAsset<Texture2D>("assets/textures/tank_zenith");
         Beam_Dan = ImportAsset<Texture2D>("assets/textures/tank_dandy");
         Tank_CustomPaint = ImportAsset<Texture2D>("assets/textures/tank_custompaint");
+
+        Drone_Activate = new OggAudio(Path.Combine(ModPath,"assets/sfx/drone_repair_01.ogg"));
+        Drone_Hover = new OggAudio(Path.Combine(ModPath, "assets/sfx/drone_active_01.ogg"));
+
+        for (int i = 0; i < Drone_Shoot.Length; i++)
+        {
+            Drone_Shoot[i] = new OggAudio(Path.Combine(ModPath, "assets/sfx/drone_attack_v2_0" + (i+1).ToString() + ".ogg"));
+        }
+
+        for (int i = 0; i < Drone_Crash.Length; i++)
+        {
+            Drone_Crash[i] = new OggAudio(Path.Combine(ModPath, "assets/sfx/drone_deathpt2_0" + (i + 1).ToString() + ".ogg"));
+        }
+        Drone_Disable = new OggAudio(Path.Combine(ModPath, "assets/sfx/drone_deathpt1_01.ogg"));
+
+
 
         MainMenuUI.OnMenuOpen += Open;
         MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
@@ -527,6 +554,30 @@ public class CA_Main : TanksMod {
             t.ReassignId(I);
 
         }
+
+        //Stuff for death messages
+        if (destroy && CampaignGlobals.InMission)
+        {
+            var A = victim is PlayerTank plyer ? "Player " + (plyer.PlayerId + 1).ToString() : victim is AITank aitank ? TankID.Collection.GetKey(aitank.AiTankType) + " Tank" : null;
+            var B = context.Source is PlayerTank plyer2 ? "Player " + (plyer2.PlayerId + 1).ToString() : context.Source is AITank aitank2 ? TankID.Collection.GetKey(aitank2.AiTankType) + " Tank" : null;
+            bool Suicide = A is not null && B is not null && A == B;
+            string message;
+            if (context is TankHurtContextShell shelldeath)
+            {
+              
+                message = B is not null ? Suicide ? $"{A} shot themselves." : $"{A} was shot by {B}." : $"{A} was shot.";
+
+            }else if (context is TankHurtContextExplosion bombdeath)
+            {
+               message = B is not null ? Suicide ? $"{A} blew themselves up." : $"{A} was blown by {B}." : $"{A} was blown up.";
+            }
+            else //if(context is TankHurtContextOther otherdeath)
+            {
+                
+                message = B is not null ? Suicide ? $"{A} killed themselves." : $"{A} died from something related to {B}." : $"{A} died.";
+            }  
+            ChatSystem.SendMessage(message, (context.Source is not null ? context.Source : victim).Properties.DestructionColor);
+        }
     }
 
     private void Block_OnDestroy(Block block)
@@ -606,19 +657,14 @@ public class CA_Main : TanksMod {
             Tank[] tanks = GameHandler.AllTanks;
             for (int i = tanks.Length - 1; i >= 0; i--)
             {
-                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                var ai = tanks[i] as AITank;
-                if (ai is null || ai.IsDestroyed) continue;
+                if (tanks[i] is AITank ai && !ai.IsDestroyed)
+                {
                 ai.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
                 for (int j = 1; j < (int)modifier_Tanktosis; j++)
                 {
-                    var t = new AITank(ai.AiTankType);
-                    t.Physics.Position = ai.Physics.Position+Vector2.One*0.1f;
-
-                    t.Scaling *= 1f - (float)modifier_Tanktosis * 0.1f;
-                    t.Team = ai.Team;
-                    t.Properties = ai.Properties;
-
+                    var t = new AITank(ai.AiTankType) { Team = ai.Team,Properties = ai.Properties, Scaling = ai.Scaling};
+                    t.Physics.Position = ai.Physics.Position + Vector2.One * 0.1f;
+                }
                 }
             }
 
@@ -626,8 +672,6 @@ public class CA_Main : TanksMod {
 
         if (Difficulties.Types["CobaltArmada_P2"])
         {
-            Tank[] tanks = GameHandler.AllTanks;
-
             Tank[] tanks2 = GameHandler.AllTanks.ToList().FindAll(x => x is not null && x is not PlayerTank && !x.IsDestroyed).ToArray();
             for (int i = tanks2.Length - 1; i >= 0; i--)
             {
@@ -649,12 +693,7 @@ public class CA_Main : TanksMod {
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
-                if (tanks[i] is PlayerTank || tanks[i] is null || tanks[i] as AITank is null) continue;
-                var ai = tanks[i] as AITank;
-                if (ai is null) continue;
-                if (ai is null || ai.IsDestroyed || ai.AiTankType == NightShade) continue;
-
-                PoisonTank(ai);
+                if (tanks[i] is AITank ai && !ai.IsDestroyed && ai.AiTankType != NightShade) PoisonTank(ai);
             }
 
         }
@@ -686,7 +725,7 @@ public class CA_Main : TanksMod {
                 )
                 ){
                     int adopts = Math.Max(1 , ai is AITank iTank ? TankSpawnsWithDrone(iTank): 1);
-                    for (int j = 0; i < adopts; j++)
+                    for (int j = 0; j < adopts; j++)
                     {
                     Vector2 offset = ai.Position + MathUtils.Rotate(Vector2.UnitY, MathF.Tau / adopts * j) * (adopts == 1 ? 0f : CA_Drone.DRN_WIDTH);
                     new CA_Drone(ai, offset/ 8);
@@ -716,6 +755,11 @@ public class CA_Main : TanksMod {
         
         KudzuRegen -= RuntimeData.DeltaTime;
         Hook_UI.Hook_UpdateUI();
+        if (!CampaignGlobals.InMission)
+        {
+            foreach (var IT in CA_Drone.AllDrones)
+                IT?.FlySound?.Stop(); //SHUT UP
+        }
 
         if (!IntermissionSystem.IsAwaitingNewMission)
         {

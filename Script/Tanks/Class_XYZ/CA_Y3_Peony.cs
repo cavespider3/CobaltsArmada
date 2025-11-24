@@ -17,7 +17,7 @@ namespace CobaltsArmada
     public class CA_Y3_Peony: CA_ArmadaTank
     {
 
-        public override int Songs => 2;
+        public override int Songs => 1;
          public override bool HasSong => true;
         public override LocalizedString Name => new(new()
         {
