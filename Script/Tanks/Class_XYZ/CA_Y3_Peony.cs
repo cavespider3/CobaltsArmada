@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Script.Tanks;
+using Microsoft.Xna.Framework;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
@@ -7,7 +8,7 @@ using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Localization;
-using CobaltsArmada.Script.Tanks;
+using TanksRebirth.Net;
 //Boss AITank
 namespace CobaltsArmada
 {
@@ -25,21 +26,23 @@ namespace CobaltsArmada
         });
 
         public override string Texture => "assets/textures/tank_peony";
-    
-        public override Color AssociatedColor => Color.PeachPuff;
         
+        public override Color AssociatedColor => Color.PeachPuff;
+
+        public int Health;
+
+
         public override void PostApplyDefaults()
         {
-            //TANK NO BACK DOWN
-
+         
             CA_Main.MissionIsDestroyedline = new VindicationTimer(AITank);
             base.PostApplyDefaults();
-            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 5 : 25;
+            Health = (Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 3 : 15) + Server.CurrentClientCount * 10;
             AITank.Properties.Armor = new TankArmor(AITank, 1);
             AITank.Properties.Armor.HideArmor = true;
-            CA_Main.boss = new BossBar(AITank, "Peony", "The Wilting");
-            AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 1.1f;
+          //  CA_Main.boss = new BossBar(AITank, "Peony", "The Wilting");
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
+            AITank.DrawParams.Scaling = Vector3.One * 1.1f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
@@ -64,7 +67,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 500;
             AITank.Properties.ShellLimit = 3;
             AITank.Properties.ShellSpeed = 4f;
-            AITank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Glaive>().Type;
+            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_Shell_Glaive>().Type;
             AITank.Properties.RicochetCount = 7;
 
 
@@ -89,11 +92,11 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (AITank.SpecialBehaviors[2].Value > 1 && AITank.Properties.Armor is not null)
+            if (Health > 1 && AITank.Properties.Armor is not null)
             {
                 AITank.Properties.Armor.HitPoints = 1;
                 if (context.Source is AITank && context is not TankHurtContextExplosion) return;
-                AITank.SpecialBehaviors[2].Value -= 1f;
+                Health -= 1;
             }
             base.TakeDamage(destroy, context);
 

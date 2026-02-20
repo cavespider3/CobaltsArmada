@@ -36,8 +36,8 @@ namespace CobaltsArmada
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
 
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 1.1f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One * 1.1f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(12);
             AITank.Parameters.RandomTimerMinMove = 40;
@@ -98,7 +98,7 @@ namespace CobaltsArmada
         public override void PostUpdate()
         {
             base.PostUpdate();
-            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.UpdateAndRender || !CampaignGlobals.InMission) return;
             if (CA_Main.modifier_Difficulty > CA_Main.ModDifficulty.Lunatic)
             {
                 ref Tank[] tanks = ref GameHandler.AllTanks;
@@ -117,7 +117,7 @@ namespace CobaltsArmada
                         }
                         else
                         {
-                            AITank.Scaling = Vector3.One * (1.1f+(Client.ClientRandom.NextFloat(0.7f,1f)*bloat*0.25f));
+                            AITank.DrawParams.Scaling = Vector3.One * (1.1f+(Client.ClientRandom.NextFloat(0.7f,1f)*bloat*0.25f));
                         }
                        
                     }

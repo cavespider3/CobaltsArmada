@@ -10,6 +10,7 @@ using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Systems.TankSystem.AI;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
@@ -35,10 +36,10 @@ namespace CobaltsArmada
             base.PostApplyDefaults();
             AIParameters aiParams = AITank.Parameters;
             TankProperties properties = AITank.Properties;
-            AITank.Model = CA_Main.Neo_Remote;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Remote;
             //## Visuals ##//
 
-            AITank.Scaling = Vector3.One;
+      
             properties.DestructionColor = CA_Main.Dandy;
             properties.Invisible = false;
 
@@ -51,11 +52,11 @@ namespace CobaltsArmada
 
             properties.ShellCooldown = CA_Main.GetValueByDifficulty(Normal: 20u, Hard: 20u, Lunatic: 10u, Extra: 5u);
 
-            properties.ShellLimit = (Difficulties.Types["MachineGuns"] ? 2 : 1) * CA_Main.GetValueByDifficulty(Normal: 3, Hard: 4, Lunatic: 6, Extra: 10);
+            properties.ShellLimit = (Modifiers.Map[Modifiers. MACHINE_GUNS] ? 2 : 1) * CA_Main.GetValueByDifficulty(Normal: 3, Hard: 4, Lunatic: 6, Extra: 10);
 
             properties.ShellSpeed = 4f;
 
-            AITank.Properties.RicochetCount = CA_Main.GetValueByDifficulty(Normal: 3u, Hard: 3u, Lunatic: 4u, Extra: 6u);
+            AITank.Properties.RicochetCount = CA_Main.GetValueByDifficulty(Normal: 3, Hard: 3, Lunatic: 4, Extra: 6);
 
             aiParams.RandomTimerMinShoot = CA_Main.GetValueByDifficulty(Normal: 70, Hard: 50, Lunatic: 25, Extra: 5);
 
@@ -79,7 +80,7 @@ namespace CobaltsArmada
             if (!destroy || context is TankHurtContextExplosion) return;
             int count = CA_Main.GetValueByDifficulty(Normal: 4, Hard: 6, Lunatic: 8, Extra: 12);
             float speed = CA_Main.GetValueByDifficulty(Normal: 3.1f, Hard: 3.8f, Lunatic: 4.5f, Extra: 7.5f);
-            uint rics = CA_Main.GetValueByDifficulty(Normal: 0u, Hard: 1u, Lunatic: 1u, Extra: 0u);
+            int rics = CA_Main.GetValueByDifficulty(Normal: 0u, Hard: 1u, Lunatic: 1u, Extra: 0u);
             CA_Main.Fire_AbstractShell_Tank(base.AITank, count, context, 1,rics);
         }
 

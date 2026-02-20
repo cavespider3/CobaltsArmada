@@ -29,6 +29,9 @@ namespace CobaltsArmada
             [LangCode.English] = "Sea Holly"
         });
 
+        public float SwitchTimer = 0;
+        public float Mode = 0;
+
         public override string Texture => "assets/textures/tank_eryngium";
         public override int Songs => 3;
         public override Color AssociatedColor => Color.SteelBlue;
@@ -36,13 +39,8 @@ namespace CobaltsArmada
         {
             base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 1.1f;
-            Array.Resize(ref AITank.SpecialBehaviors, 3);
-            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
-            {
-                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
-            }
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One * 1.1f;
             AITank.Parameters.MaxQueuedMovements = 4;
             Properties_Visible(AITank);
             
@@ -88,7 +86,7 @@ namespace CobaltsArmada
             properties.MaxSpeed = 1.3f;
             properties.TreadVolume = 0.2f;
             properties.Acceleration = 0.3f;
-            tank.Model = CA_Main.Neo_Mobile;
+            tank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
             tank.InitModelSemantics();
             properties.MineCooldown = 700;
             properties.MineLimit = 0;
@@ -129,9 +127,9 @@ namespace CobaltsArmada
             properties.ShellLimit = 1;
             properties.ShellSpeed = 3f;
           
-            tank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Rail>().Type;
+            tank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_Shell_Rail>().Type;
             properties.RicochetCount = 0;
-            tank.Model = CA_Main.Neo_Stationary;
+            tank.DrawParamsTank.Model = CA_Main.Neo_Stationary;
             tank.InitModelSemantics();
             //we get a little devious
 
@@ -171,12 +169,12 @@ namespace CobaltsArmada
             AITank.Velocity *= AITank.Properties.Stationary ? 0f : 1f;
             AITank.Parameters.TurretSpeed = AITank.CurShootStun > 0 ? 0f : 0.05f;
 
-            AITank.SpecialBehaviors[0].Value += RuntimeData.DeltaTime;
+            SwitchTimer += RuntimeData.DeltaTime;
 
-            if (AITank.SpecialBehaviors[1].Value == 0)
-                AITank.SpecialBehaviors[1].Value = AITank.Properties.Stationary ?600f: Server.ServerRandom.NextFloat(6,10)*100f;
+            if (Mode == 0)
+                Mode = AITank.Properties.Stationary ?600f: Server.ServerRandom.NextFloat(6,10)*100f;
 
-            if (AITank.SpecialBehaviors[0].Value > AITank.SpecialBehaviors[1].Value)
+            if (SwitchTimer > Mode)
             {
                 _Tank = AITank;
                 var ring = GameHandler.Particles.MakeParticle(_Tank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
@@ -193,8 +191,8 @@ namespace CobaltsArmada
                     if (ring.Alpha <= 0)
                         ring.Destroy();
                 };
-                _Tank.SpecialBehaviors[1].Value = 0f;
-                _Tank.SpecialBehaviors[0].Value = 0f;
+                Mode = 0f;
+                SwitchTimer = 0f;
 
                 if (!_Tank.Properties.Stationary)
                 {
@@ -257,7 +255,7 @@ namespace CobaltsArmada
 
                 lp.Color = Color.SkyBlue;
 
-                var velocity = Vector2.UnitY.Rotate(MathHelper.ToRadians(360f / NUM_LOCATIONS * i));
+                var velocity = Vector2.UnitY.RotatedBy(MathHelper.ToRadians(360f / NUM_LOCATIONS * i));
 
                 lp.Scale = new(1f);
 

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,88 +7,100 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="projrefs\**" />
+    <EmbeddedResource Remove="projrefs\**" />
+    <None Remove="projrefs\**" />
+  </ItemGroup>
+
 
   <ItemGroup>
+
     <Reference Include="AdditionalTanksMarble">
-      <HintPath>projrefs\AdditionalTanksMarble.dll</HintPath>
+      <HintPath>..\AdditionalTanksMarble\obj\Release\net8.0\AdditionalTanksMarble.dll</HintPath>
     </Reference>
+
     <Reference Include="Aether.Physics2D">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Aether.Physics2D.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Aether.Physics2D.dll</HintPath>
     </Reference>
+
     <Reference Include="Aspose.Zip">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Aspose.Zip.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Aspose.Zip.dll</HintPath>
     </Reference>
     <Reference Include="Cyotek.Drawing.BitmapFont">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Cyotek.Drawing.BitmapFont.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Cyotek.Drawing.BitmapFont.dll</HintPath>
     </Reference>
     <Reference Include="DiscordRPC">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\DiscordRPC.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\DiscordRPC.dll</HintPath>
     </Reference>
     <Reference Include="FontStashSharp.Base">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\FontStashSharp.Base.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\FontStashSharp.Base.dll</HintPath>
     </Reference>
     <Reference Include="FontStashSharp.MonoGame">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\FontStashSharp.MonoGame.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\FontStashSharp.MonoGame.dll</HintPath>
     </Reference>
     <Reference Include="FontStashSharp.Rasterizers.StbTrueTypeSharp">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\FontStashSharp.Rasterizers.StbTrueTypeSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\FontStashSharp.Rasterizers.StbTrueTypeSharp.dll</HintPath>
     </Reference>
     <Reference Include="HidSharp">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\HidSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\HidSharp.dll</HintPath>
     </Reference>
     <Reference Include="LibreHardwareMonitorLib">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\LibreHardwareMonitorLib.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\LibreHardwareMonitorLib.dll</HintPath>
     </Reference>
     <Reference Include="LiteNetLib">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\LiteNetLib.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\LiteNetLib.dll</HintPath>
     </Reference>
     <Reference Include="MeltySynth">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\MeltySynth.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\MeltySynth.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="MonoGame.Framework">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\MonoGame.Framework.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="NativeFileDialogSharp">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\NativeFileDialogSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\NativeFileDialogSharp.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NVorbis">
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\NVorbis.dll</HintPath>
     </Reference>
     <Reference Include="Octokit">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Octokit.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Octokit.dll</HintPath>
     </Reference>
     <Reference Include="StbImageSharp">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\StbImageSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\StbImageSharp.dll</HintPath>
     </Reference>
     <Reference Include="StbTrueTypeSharp">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\StbTrueTypeSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\StbTrueTypeSharp.dll</HintPath>
     </Reference>
     <Reference Include="StbVorbisSharp">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\StbVorbisSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\StbVorbisSharp.dll</HintPath>
     </Reference>
     <Reference Include="Steamworks.NET">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\Steamworks.NET.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\Steamworks.NET.dll</HintPath>
     </Reference>
     <Reference Include="System.CodeDom">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\System.CodeDom.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\System.CodeDom.dll</HintPath>
     </Reference>
     <Reference Include="System.IO.Ports">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\System.IO.Ports.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\System.IO.Ports.dll</HintPath>
     </Reference>
     <Reference Include="System.Management">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\System.Management.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\System.Management.dll</HintPath>
     </Reference>
     <Reference Include="TanksRebirth">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\TanksRebirth.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\TanksRebirth.dll</HintPath>
     </Reference>
     <Reference Include="TextCopy">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\TextCopy.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\TextCopy.dll</HintPath>
     </Reference>
     <Reference Include="WiimoteLib">
-      <HintPath>..\..\..\..\..\..\Games\tanks_rebirth\WiimoteLib.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\AppData\Local\Tanks Rebirth\WiimoteLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -96,6 +108,10 @@
     <Folder Include="modrefs\" />
     <Folder Include="Script\Objects\blocks\" />
     <Folder Include="Script\Objects\mines\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Script\Tanks\Class_XYZ\CA_Y3_Peony.cs" />
   </ItemGroup>
 
 </Project>

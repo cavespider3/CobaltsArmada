@@ -45,37 +45,37 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.DarkViolet;
 
        
+
         public override void OnLoad()
         {
             base.OnLoad();
         }
+        public int Health;
+        public float RegenTimer;
+        public float PhaseFlag = 0;
+        public float PoisonShock = 0;
+        public float PoisonShockTimer = 0;
 
         public float NightNadeTimer = 0f;
         public Vector2 GloomPulse = Vector2.Zero;
         public override void PostApplyDefaults()
         {
 
-            Array.Resize(ref AITank.SpecialBehaviors, 6);
-            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
-            {
-                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
-                AITank.SpecialBehaviors[i].Value = 0;
-            }
-            AITank.SpecialBehaviors[1].Value = 15 + Server.CurrentClientCount * 10;
+            Health = (Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 3 : 15) + Server.CurrentClientCount * 10;
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.Properties.Armor = new TankArmor(AITank, (int)AITank.SpecialBehaviors[1].Value);
+            AITank.Properties.Armor = new TankArmor(AITank, Health);
             AITank.Properties.Armor.HideArmor = true;
-           // CA_Main.boss = new BossBar(AITank, "Nightshade", "The Infector");
+            // CA_Main.boss = new BossBar(AITank, "Nightshade", "The Infector");
 
-            AITank.SpecialBehaviors[3].Value =
+            PoisonShockTimer =
            CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
            CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
            CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
             150f : 105f : 75f : 60f;
 
-            AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 1.03f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
+            AITank.DrawParams.Scaling = Vector3.One * 1.03f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
@@ -125,8 +125,12 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            AITank.SpecialBehaviors[4].Value = 0;
-            AITank.SpecialBehaviors[5].Value = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(AITank.SpecialBehaviors[1].Value / 2) || AITank.SpecialBehaviors[5].Value == 1f ? 1f:0f;
+            if(AITank.Properties.Armor is not null)
+            {
+                RegenTimer = 0;
+                PhaseFlag = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(Health / 2) || PhaseFlag == 1f ? 1f : 0f;
+
+            }
             base.TakeDamage(destroy, context);
         }
 
@@ -136,9 +140,9 @@ namespace CobaltsArmada
         {
           
             base.PostUpdate();
-            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
-            bool Phase2 = AITank.SpecialBehaviors[5].Value == 1f;
-            Vector2 smokey = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, 130);
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.UpdateAndRender || !CampaignGlobals.InMission) return;
+            bool Phase2 = PhaseFlag == 1;
+            Vector2 smokey = Vector2.One.RotatedBy(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * Client.ClientRandom.NextFloat(0.1f, 130);
             var smoke = GameHandler.Particles.MakeParticle(AITank.Position3D + smokey.ExpandZ(),
                 GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
             smoke.Pitch = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
@@ -157,13 +161,13 @@ namespace CobaltsArmada
             };
 
             if (LevelEditorUI.IsActive) return;
-            AITank.SpecialBehaviors[4].Value += RuntimeData.DeltaTime;
+            RegenTimer += RuntimeData.DeltaTime;
             // it has regen shield
-            if (AITank.SpecialBehaviors[4].Value > GetValueByDifficulty(60 * 3, 60 * 2, 60 * 1.5, 60 * 1) * (Phase2 ? 0.75f : 1f) &&
-                AITank.Properties.Armor!.HitPoints < AITank.SpecialBehaviors[1].Value)
+            if (RegenTimer > GetValueByDifficulty(60 * 3, 60 * 2, 60 * 1.5, 60 * 1) * (Phase2 ? 0.75f : 1f) &&
+                AITank.Properties.Armor!.HitPoints < Health)
             {
                 AITank.Properties.Armor!.HitPoints += 1;
-                AITank.SpecialBehaviors[4].Value = 0;
+                RegenTimer = 0;
             }
 
             if (Phase2)
@@ -175,7 +179,7 @@ namespace CobaltsArmada
                     
                     for (int i = 0; i < 8; i++)
                     {
-                        Vector2 smokey2 = Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * (Client.ClientRandom.NextFloat(-2,2)+ (NightNadeTimer - 595)*3);
+                        Vector2 smokey2 = Vector2.One.RotatedBy(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)) * (Client.ClientRandom.NextFloat(-2,2)+ (NightNadeTimer - 595)*3);
                         var smoke2 = GameHandler.Particles.MakeParticle(GloomPulse.ExpandZ() + smokey2.ExpandZ() + Vector3.UnitY *3,
                             GameResources.GetGameResource<Texture2D>("Assets/textures/misc/tank_smokes"));
                         smoke2.Pitch = -CameraGlobals.DEFAULT_ORTHOGRAPHIC_ANGLE;
@@ -218,11 +222,6 @@ namespace CobaltsArmada
                     GloomPulse = AITank.Position;
                  }
 
-
-
-
-
-
                 //if(NightNadeTimer > 300)
                 //{
                 //    CA_Utils.CreateNightShadeGrenade(GameHandler.Particles, AITank.Position3D + Vector3.UnitY * 20f, (Vector2.One.Rotate(Client.ClientRandom.NextFloat(-MathF.PI, MathF.PI)).ExpandZ() + Vector3.Up) * new Vector3(1,3,1), AITank.Team);
@@ -231,14 +230,14 @@ namespace CobaltsArmada
             }
 
 
-            AITank.SpecialBehaviors[2].Value += RuntimeData.DeltaTime;
-            if (AITank.SpecialBehaviors[3].Value == 0)
-                AITank.SpecialBehaviors[3].Value = 5;
+            PoisonShockTimer += RuntimeData.DeltaTime;
+            if (PoisonShock == 0)
+                PoisonShock = 5;
 
-            if (AITank.SpecialBehaviors[2].Value > AITank.SpecialBehaviors[3].Value)
+            if (PoisonShockTimer > PoisonShock)
             {
-                AITank.SpecialBehaviors[3].Value = 0f;
-                AITank.SpecialBehaviors[2].Value = 0f;
+                PoisonShock = 0f;
+                PoisonShockTimer = 0f;
                 ref Tank[] tanks = ref GameHandler.AllTanks;
                 for (int i = 0; i < tanks.Length; i++)
                 {
@@ -257,7 +256,7 @@ namespace CobaltsArmada
             {
                 if(drone is not null && drone.droneOwner == AITank)
                 {
-                    drone.Parameters.ValidRecruits = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(AITank.SpecialBehaviors[1].Value / 2) || AITank.SpecialBehaviors[5].Value == 1 ?
+                    drone.Parameters.ValidRecruits = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(Health / 2) || PhaseFlag == 1 ?
                         CA_Main.GetValueByDifficulty<int[]>(
                             [TankID.Pink,TankID.Yellow,TankID.Marine,TankID.Violet], //normal phase 2
                             [TankID.Pink, TankID.Yellow, TankID.Marine, TankID.Violet], //hard phase 2

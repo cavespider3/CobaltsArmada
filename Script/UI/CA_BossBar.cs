@@ -36,8 +36,8 @@ namespace CobaltsArmada
             Owner = owner;
             if (owner.Properties.Armor is not null)
             {
-               
-                BossHPMax = MathF.Ceiling(owner.SpecialBehaviors[2].Value);
+
+                BossHPMax = owner.Properties.Armor.HitPoints;
                 BossHP = BossHPMax;
                 
             }
@@ -48,7 +48,7 @@ namespace CobaltsArmada
         public void Update()
         {
             if (Owner is null) return;
-            BossHP = Owner.SpecialBehaviors[2].Value;
+            BossHP = Owner.Properties.Armor!.HitPoints;
         }
         public void Render(SpriteBatch sb, Vector2 position, Vector2 scale, Anchor aligning, Color emptyColor, Color fillColor)
         {

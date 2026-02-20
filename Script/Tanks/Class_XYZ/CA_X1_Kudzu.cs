@@ -35,8 +35,8 @@ namespace CobaltsArmada
         {
 
 
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 0.81f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One * 0.81f;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
             AITank.Parameters.RandomTimerMaxMove = 30;

@@ -79,7 +79,7 @@ namespace CobaltsArmada
         }
 
         //TODO: idfk, i was doing this at 5 in the morning
-        public static void CreateNightShadeGrenade(ParticleManager manager, Vector3 position, Vector3 velocity,int team)
+        public static Particle CreateNightShadeGrenade(ParticleManager manager, Vector3 position, Vector3 velocity,int team)
         {
             var p = manager.MakeParticle(position, ModelGlobals.SmokeGrenade.Asset, GameResources.GetGameResource<Texture2D>("Assets/textures/smoke/smokenade"));
             bool exploded = false;
@@ -243,6 +243,7 @@ namespace CobaltsArmada
 
                 shadow.Alpha = MathUtils.InverseLerp(150, 7, p.Position.Y, true);
             };
+            return p;
         }
 
     }

@@ -27,25 +27,23 @@ namespace CobaltsArmada
             [LangCode.English] = "Lotus"
         });
 
+        public int Health;
+        public float MissileCluster;
+
         public override string Texture => "assets/textures/tank_lotus";
     
         public override Color AssociatedColor => Color.Magenta;
         
         public override void PostApplyDefaults()
         {
-            Array.Resize(ref AITank.SpecialBehaviors,2);
-            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
-            {
-                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
-                AITank.SpecialBehaviors[i].Value = 180f;
-            }
-            AITank.SpecialBehaviors[1].Value = 20 + Server.CurrentClientCount * 5;
+
+            Health = (Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 5 : 20) + Server.CurrentClientCount * 5;
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.Properties.Armor = new TankArmor(AITank, (int)AITank.SpecialBehaviors[1].Value);
+            AITank.Properties.Armor = new TankArmor(AITank, Health);
             AITank.Properties.Armor.HideArmor = true;
-            AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 1.3f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
+            AITank.DrawParams.Scaling = Vector3.One * 1.3f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
@@ -68,7 +66,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = CA_Main.modifier_Difficulty <= CA_Main.ModDifficulty.Extra ? 240u : 360u ;
             AITank.Properties.ShellLimit = 2;
             AITank.Properties.ShellSpeed = 4f;
-            AITank.Properties.ShellType = ModContent.GetSingleton<CA_Shell_Glaive>().Type;
+            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_Shell_Glaive>().Type;
             AITank.Properties.RicochetCount = 7;
            
 
@@ -96,19 +94,24 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if(AITank.Properties.Armor!.HitPoints == (int)MathF.Floor(AITank.SpecialBehaviors[1].Value /2))
+            if (AITank.Properties.Armor is not null)
             {
-                //Lore :3
-              var Bobbert = new CA_Drone(AITank, AITank.Physics.Position);
-              Bobbert.Task = CA_Drone.DroneTask.Recruit;
+                if (AITank.Properties.Armor!.HitPoints == (int)MathF.Floor(Health / 2))
+                {
+                    //Lore :3
+                    var Bobbert = new CA_Drone(AITank, AITank.Physics.Position);
+                    Bobbert.Task = CA_Drone.DroneTask.Recruit;
+                }
             }
             base.TakeDamage(destroy, context);
+
+      
 
         }
         public override void Shoot(Shell shell)
         {
             base.Shoot( shell);
-            shell.SwapTexture(CA_Main.Tank_Y1);
+            shell.DrawParamsShell.ShellTexture = CA_Main.Tank_Y1;
             shell.Properties.Penetration = -1;
             shell.Properties.FlameColor = AssociatedColor;
         }
@@ -117,32 +120,32 @@ namespace CobaltsArmada
             float speed = 5.8f;
             Shell.HomingProperties homing = new() {HeatSeeks = true, Cooldown = 0, Power = speed * 0.03f, Speed = speed, Radius = 900f };
            // if (CA_Main.modifier_Difficulty <= CA_Main.ModDifficulty.Hard) return true;
-            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team))&& !AITank.IsTooCloseToObstacle && (AITank.TargetTank is Tank target && AITank.SeesTarget || AITank.SpecialBehaviors[0].Value <40))
+            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team))&& !AITank.IsTooCloseToObstacle && (AITank.TargetTank is Tank target && AITank.SeesTarget || MissileCluster <40))
             {
                 if (CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic)
                 {
-                    if (AITank.SpecialBehaviors[0].Value < 40 && (int)AITank.SpecialBehaviors[0].Value % 20 == 0)
+                    if (MissileCluster < 40 && (int)MissileCluster % 20 == 0)
                     {
-                        Vector2 sending = MathUtils.Rotate(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-135, 135) ));
+                        Vector2 sending = MathUtils.RotatedBy(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-135, 135) ));
                         new Shell(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 1, homing, true);
 
-                        if (AITank.SpecialBehaviors[0].Value <= 0) AITank.SpecialBehaviors[0].Value = 240;
+                        if (MissileCluster <= 0) MissileCluster = 240;
                     }
 
 
                 }
                 else
                 {
-                    if (AITank.SpecialBehaviors[0].Value <= 40 && (int)AITank.SpecialBehaviors[0].Value % 8 == 0)
+                    if (MissileCluster <= 40 && (int)MissileCluster % 8 == 0)
                     {
-                        Vector2 sending = MathUtils.Rotate(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-60, 60) + 180f));
+                        Vector2 sending = MathUtils.RotatedBy(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-60, 60) + 180f));
                         new Shell(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 0, homing, true);
 
-                        if (AITank.SpecialBehaviors[0].Value <= 0) AITank.SpecialBehaviors[0].Value = 240;
+                        if (MissileCluster <= 0) MissileCluster = 240;
                     }
                 }
 
-                AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
+                MissileCluster -= RuntimeData.DeltaTime;
 
             }
 

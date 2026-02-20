@@ -4,6 +4,7 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
+using TanksRebirth.GameContent.Systems.TankSystem;
 
 namespace CobaltsArmada
 {
@@ -26,8 +27,8 @@ namespace CobaltsArmada
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
 
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMaxMove = 10;

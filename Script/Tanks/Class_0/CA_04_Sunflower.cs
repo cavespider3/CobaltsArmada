@@ -29,7 +29,7 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
             AITank.Parameters.RandomTimerMaxMove = 70;

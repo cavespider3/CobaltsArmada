@@ -39,16 +39,17 @@ namespace CobaltsArmada
         public override int Songs => 1;
         public override Color AssociatedColor => Color.Cyan;
 
-
+        public float AttackTimer;
+        public int Health;
+        public float Attack;
         public override void PostApplyDefaults()
         {
-            
 
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
            
-            AITank.Model = CA_Main.Neo_Boss;
-            AITank.Scaling = Vector3.One * 1.4f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
+            AITank.DrawParams.Scaling = Vector3.One * 1.4f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
@@ -69,10 +70,10 @@ namespace CobaltsArmada
 
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21); 
-            AITank.SpecialBehaviors[2].Value = Difficulties.Types["RandomizedTanks"] ? 7 : 31;
+            Health = Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 7 : 31;
             AITank.Properties.Armor = new TankArmor(AITank,1);
 
-            CA_Main.boss = new BossBar(AITank, "Hydrangea", "The Unbounded");
+           // CA_Main.boss = new BossBar(AITank, "Hydrangea", "The Unbounded");
             AITank.Properties.Armor.HideArmor = true;
             AITank.Properties.ShootStun = 12;
             AITank.Properties.ShellCooldown = 150;
@@ -104,11 +105,11 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (AITank.SpecialBehaviors[2].Value > 1 && AITank.Properties.Armor is not null)
+            if (Health > 1 && AITank.Properties.Armor is not null)
             {
                 AITank.Properties.Armor.HitPoints = 1;
                 if (context.Source is AITank && context is not TankHurtContextExplosion) return;
-                AITank.SpecialBehaviors[2].Value -= 1f;
+                Health -= 1;
             }
             base.TakeDamage(destroy, context);
 
@@ -121,9 +122,9 @@ namespace CobaltsArmada
 
             base.PostUpdate();
 
-            AITank.Model.Root.Transform = Matrix.CreateScale(100f) * AITank.Model.Root.Transform;
-            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
-            AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime;
+        
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.UpdateAndRender || !CampaignGlobals.InMission) return;
+            AttackTimer -= RuntimeData.DeltaTime;
             //if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
             //{
             //    var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
@@ -136,44 +137,26 @@ namespace CobaltsArmada
             //        Team = AITank.Team
             //    };
             //}
-            if (AITank.SpecialBehaviors[0].Value < 0f && AITank.SpecialBehaviors[1].Value == 0f)
+            if (AttackTimer < 0f && Attack == 0f)
             {
-              if(AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
-                {
-                    var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
-
-                    var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
-                    crate.TankToSpawn = new TankTemplate()
-                    {
-                        AiTier = ModContent.GetSingleton<CA_08_Eryngium>().Type,
-                        IsPlayer = false,
-                        Team = AITank.Team
-                    };
-                    AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 400);
-                    AITank.SpecialBehaviors[1].Value = Server.ServerRandom.Next(0, 4);
-                }
-                else
-                {
-                    AITank.SpecialBehaviors[1].Value = 1f;
-                }
+             
             }
 
-            if (AITank.SpecialBehaviors[0].Value <= 0f && AITank.SpecialBehaviors[1].Value == 1f)
+            if (AttackTimer <= 0f && Attack == 1f)
             {
                 AITank.Speed = 0;
-                if (AITank.SpecialBehaviors[0].Value < -240f)
+                if (AttackTimer < -240f)
                 {
-                    AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 400);
-                    AITank.SpecialBehaviors[1].Value = Server.ServerRandom.Next(0, 4);
+                    AttackTimer = Client.ClientRandom.NextFloat(200, 400);
+                    Attack = Client.ClientRandom.Next(0, 4);
                 }
-                float a = MathF.Floor(MathF.Abs(AITank.SpecialBehaviors[0].Value) / 30f) * MathHelper.ToRadians(25f);
-                if (MathF.Floor(MathF.Abs(AITank.SpecialBehaviors[0].Value)) % 30==0)
+                float a = MathF.Floor(MathF.Abs(AttackTimer) / 30f) * MathHelper.ToRadians(25f);
+                if (MathF.Floor(MathF.Abs(AttackTimer)) % 30==0)
                 {
                     for (int i = 0; i < 3; i++)
                     {
-                        var pathPos = new Vector2(0, 40 + MathF.Abs(AITank.SpecialBehaviors[0].Value / 30) * 40f).Rotate(MathHelper.TwoPi*(i/3f) - a);
+                        var pathPos = new Vector2(0, 40 + MathF.Abs(AttackTimer / 30) * 40f).RotatedBy(MathHelper.TwoPi*(i/3f) - a);
                         new CA_OrbitalStrike(pathPos + AITank.Position, AITank);
-
 
                     }
                     var ring = GameHandler.Particles.MakeParticle(AITank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
@@ -194,22 +177,22 @@ namespace CobaltsArmada
             
             }
 
-            if (AITank.SpecialBehaviors[0].Value < 0f && AITank.SpecialBehaviors[1].Value >= 3f)
+            if (AttackTimer < 0f && Attack >= 3f)
             {
                 AITank.Speed = 0;
-                if (AITank.SpecialBehaviors[0].Value < -240f)
+                if (AttackTimer < -240f)
                 {
-                    AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 400);
-                    AITank.SpecialBehaviors[1].Value = Server.ServerRandom.Next(0, 4);
+                    AttackTimer = Client.ClientRandom.NextFloat(200, 400);
+                    Attack = Client.ClientRandom.Next(0, 4);
                 }
                 
-                if (MathF.Floor(MathF.Abs(AITank.SpecialBehaviors[0].Value)) % 30 == 0)
+                if (MathF.Floor(MathF.Abs(AttackTimer)) % 30 == 0)
                 {
 
-                    float a = MathF.Floor(MathF.Abs(AITank.SpecialBehaviors[0].Value) / 30f)*MathHelper.ToRadians(25f);
+                    float a = MathF.Floor(MathF.Abs(AttackTimer) / 30f)*MathHelper.ToRadians(25f);
                     for (int i = 0; i < 3; i++)
                     {
-                        var pathPos = new Vector2(0,40+ MathF.Abs(AITank.SpecialBehaviors[0].Value / 30 )* 40f).Rotate(MathHelper.TwoPi * (i / 3f)+ a);
+                        var pathPos = new Vector2(0,40+ MathF.Abs(AttackTimer / 30 )* 40f).RotatedBy(MathHelper.TwoPi * (i / 3f)+ a);
                         new CA_OrbitalStrike(pathPos+AITank.Position, AITank);
                     }
                     var ring = GameHandler.Particles.MakeParticle(AITank.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
@@ -229,31 +212,31 @@ namespace CobaltsArmada
                 }
             }
 
-            if (AITank.SpecialBehaviors[0].Value < 0f && AITank.SpecialBehaviors[1].Value == 2f)
-            {
-                var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
-                var r2 = new int[AITank.SpecialBehaviors[2].Value < 17f ? 8 : 4];
-                r2[0] = ModContent.GetSingleton<CA_02_Perwinkle>().Type;
-                r2[1] = ModContent.GetSingleton<CA_03_Pansy>().Type;
-                r2[2] = ModContent.GetSingleton<CA_01_Dandelion>().Type;
-                r2[3] = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type;
-                if (AITank.SpecialBehaviors[2].Value < 17f) {
-                    r2[4] = ModContent.GetSingleton<CA_05_Poppy>().Type;
-                    r2[5] = ModContent.GetSingleton<CA_X4_Allium>().Type;
-                    r2[7] = ModContent.GetSingleton<CA_X5_LilyValley>().Type;
-                    r2[6] = Server.ServerRandom.Next(TankID.Brown, TankID.Marine);
-                }
+            //if (AttackTimer < 0f && Attack == 2f)
+            //{
+            //    var r = RandomUtils.PickRandom(PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray());
+            //    var r2 = new int[AITank.SpecialBehaviors[2].Value < 17f ? 8 : 4];
+            //    r2[0] = ModContent.GetSingleton<CA_02_Perwinkle>().Type;
+            //    r2[1] = ModContent.GetSingleton<CA_03_Pansy>().Type;
+            //    r2[2] = ModContent.GetSingleton<CA_01_Dandelion>().Type;
+            //    r2[3] = ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type;
+            //    if (AITank.SpecialBehaviors[2].Value < 17f) {
+            //        r2[4] = ModContent.GetSingleton<CA_05_Poppy>().Type;
+            //        r2[5] = ModContent.GetSingleton<CA_X4_Allium>().Type;
+            //        r2[7] = ModContent.GetSingleton<CA_X5_LilyValley>().Type;
+            //        r2[6] = Client.ClientRandom.Next(TankID.Brown, TankID.Marine);
+            //    }
 
-                var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
-                crate.TankToSpawn = new TankTemplate()
-                {
-                    AiTier = r2[Server.ServerRandom.Next(0, r2.Length-1)],
-                    IsPlayer = false,
-                    Team = AITank.Team
-                };
-                AITank.SpecialBehaviors[0].Value = Server.ServerRandom.NextFloat(200, 400);
-                AITank.SpecialBehaviors[1].Value = Server.ServerRandom.Next(0, 1);
-            }
+            //    var crate = Crate.SpawnCrate(r.Position + new Vector3(0, 500, 0), 2f);
+            //    crate.TankToSpawn = new TankTemplate()
+            //    {
+            //        AiTier = r2[Client.ClientRandom.Next(0, r2.Length-1)],
+            //        IsPlayer = false,
+            //        Team = AITank.Team
+            //    };
+            //    AttackTimer = Client.ClientRandom.NextFloat(200, 400);
+            //    Attack = Client.ClientRandom.Next(0, 1);
+            //}
         }
 
     }

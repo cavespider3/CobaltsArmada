@@ -4,8 +4,10 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json.Linq;
 using Octokit;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using tainicom.Aether.Physics2D.Common;
 using tainicom.Aether.Physics2D.Dynamics;
 using TanksRebirth;
@@ -23,6 +25,7 @@ using TanksRebirth.GameContent.Systems.Coordinates;
 using TanksRebirth.GameContent.Systems.ParticleSystem;
 using TanksRebirth.GameContent.Systems.PingSystem;
 using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Systems.TankSystem.AI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.Graphics;
@@ -36,6 +39,7 @@ using TanksRebirth.IO;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
 using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
+using static TanksRebirth.GameContent.Shell;
 using MathUtils = TanksRebirth.Internals.Common.Utilities.MathUtils;
 
 
@@ -44,7 +48,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
     /// <summary>
     /// A little helper with a lot of depth
     /// </summary>
-    public class CA_Drone
+    public class CA_Drone : IAITankDanger
     {
         /// <summary>
         /// A list of tasks the drone can do
@@ -61,9 +65,14 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Recruit,
             /// <summary> The drone is holding a position</summary>
             Hold,
+            /// <summary> The drone is dropping a smokebomb</summary>
+            Smoke,
+            /// <summary> The drone is dropping a nightshade bomb</summary>
+            NightShade,
+ 
 
         }
-        public bool[] AssignedTask = new bool[5];
+        public bool[] AssignedTask = new bool[7];
         public enum TaskState
         {
             Start,
@@ -71,10 +80,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Finishing,
             Finished,
         }
-        // Making sure my code doesn't go nuclear
-        private static PropertyInfo[] _dronePropertySkillcache = null;
-
-
         private const int MaxDrones = 64;
         public static World DroneCollisions = new(Vector2.Zero);
         public static CA_Drone[] AllDrones { get; } = new CA_Drone[MaxDrones];
@@ -86,8 +91,10 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         public BasicEffect TankBasicEffectHandler = new(TankGame.Instance.GraphicsDevice);
 
+        public Particle? Shadow;
+
         public const float UNITS_TO_METERS = 8f;
-        public const float DRN_WIDTH = 9;
+        public const float DRN_WIDTH = 15;
         public const float DRN_HEIGHT = 9;
         public const float DRN_BASEHOVER = 13f;
         private float testtimer = 0f;
@@ -114,11 +121,11 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         private int _oldShellLimit;
 
-        public TankProperties Properties => droneOwner!.Properties;
+        public TankProperties? Properties = null;
 
         public Tank[] TanksSpotted = [];
 
-        public Vector2 TurretPosition => Position + new Vector2(0, 20).Rotate(-TurretRotation);
+        public Vector2 TurretPosition => Position + new Vector2(0, 20).RotatedBy(-TurretRotation);
         public Vector3 TurretPosition3D => new(TurretPosition.X, -3, TurretPosition.Y);
 
 
@@ -127,6 +134,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             get => Body.Position * UNITS_TO_METERS;
             set => Body.Position = value / UNITS_TO_METERS;
         }
+        public int Team => droneOwner?.Team ?? TeamID.NoTeam;
+
         float Gravity = 0;
         float FallSpeed = 0f;
         public Vector2 Velocity = Vector2.Zero;
@@ -136,11 +145,10 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         public BoundingBox Worldbox { get; set; }
 
         /// <summary>The 2D circle-represented hitbox of this <see cref="Tank"/>.</summary>
-        public Circle CollisionCircle => new() { Center = Position, Radius = DRN_WIDTH / 2 };
+        public BoundingSphere CollisionCircle;
 
         /// <summary>The 2D rectangle-represented hitbox of this <see cref="Tank"/>.</summary>
-        public Rectangle CollisionBox => new((int)(Position.X - DRN_WIDTH / 2 + 3), (int)(Position.Y - DRN_WIDTH / 2 + 2),
-            (int)DRN_HEIGHT - 8, (int)DRN_HEIGHT - 4);
+        public BoundingBox CollisionBox;
 
 
         /// <summary>How many <see cref="Mine"/>s this <see cref="Tank"/> owns.</summary>
@@ -191,23 +199,38 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         public float HoverTarget => HoverHeight + HoverAbove;
         public float HoverSpeed = 0;
         public float CurrentHover = 0;
+        public float _parrytimer = 0;
+        private bool _orphanspiteactive = false;
+        private bool _orphanspitecompleted = false;
 
         public int LastTask = -1;
 
         public float SeekingRotation;
         public float TimeInTask;
 
-        public bool CanIWorkHere()
+        public Tank? EnemyMemory;
+        private int TankRelation; 
+        public bool CanIWorkHere(bool ignorebounds=false)
         {
             foreach (var item in AllDrones)
             {
                 if (item is null) continue;
                 if (item.Task == DroneTask.Idle) continue;
                 if (item.Task == DroneTask.Recruit && Vector2.Distance(TargetPosition, item.RecruitRequestPos) < 50) return false;
-                if (Vector2.Distance(TargetPosition, item.TargetPosition) < 80) return false;
+                if (Vector2.Distance(TargetPosition, item.TargetPosition) < 80) return false;   
             }
+            //self checks
+            if (!ignorebounds && (TargetPosition.X < GameScene.TANKS_MIN_X || TargetPosition.X > GameScene.TANKS_MAX_X ||
+                   TargetPosition.Y < GameScene.TANKS_MIN_Y || TargetPosition.Y > GameScene.TANKS_MAX_Y)) return false;
+
             return true;
         }
+
+        public int SmokeBombs = 0;
+        public int SmokeBombStorage => Parameters.Elite ? 3 : 0;
+
+        public int NightBombs = 0;
+        public int NightBombStorage => Parameters.Elite ? 3 : 0;
 
         public int Ammo;
         public int Magazine => droneOwner is Tank tnk ? tnk.Properties.ShellLimit * 3 : 3;
@@ -271,7 +294,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         #endregion
 
-        public CA_Drone(Tank? owner, Vector2 position = default)
+        public CA_Drone(Tank? owner, Vector2 position = default,int? Override = null)
         {
             
             Model = CA_Main.Drone!;
@@ -300,18 +323,21 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 droneOwner = target;
 
             }
+            
+
 
             if (droneOwner is AITank ai)
             {
-                if (ai.AiTankType == MathHelper.Clamp(ai.AiTankType, CA_Main.Dandelion, CA_Main.Hydrangea))
+                int TankRelation = Override ?? ai.AiTankType;
+                if (TankRelation == MathHelper.Clamp(TankRelation, CA_Main.Dandelion, CA_Main.Hydrangea))
                 {
-                    var tierName = TankID.Collection.GetKey(ai.AiTankType)!.ToLower();
+                    var tierName = TankID.Collection.GetKey(TankRelation)!.ToLower();
                     _droneTexture = Tank.Assets[$"tank_" + tierName];
 
                 }
                 else
                 {
-                    var tierName = TankID.Collection.GetKey(ai.AiTankType)!.ToLower();
+                    var tierName = TankID.Collection.GetKey(TankRelation)!.ToLower();
                     var colors = new Color[Tank.Assets[$"tank_" + tierName].Width * Tank.Assets[$"tank_" + tierName].Height];
 
                     Tank.Assets[$"tank_" + tierName].GetData(colors);
@@ -326,8 +352,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     for (int i = 0; i < colors.Length; i++)
                     {
                         colors[i].Deconstruct(out byte r, out byte g, out byte b);
-                        colors[i] = Color.Lerp(Color.Black, ai.AiTankType != TankID.Obsidian ? BodyPaint : NeonPaint, r / 255f);
-                        colors[i] = Color.Lerp(colors[i], ai.AiTankType == TankID.Obsidian ? BodyPaint : NeonPaint, b / 255f * (ai.AiTankType == MathHelper.Clamp(ai.AiTankType, TankID.Bronze, TankID.Obsidian) ? 3f : 1f));
+                        colors[i] = Color.Lerp(Color.Black, TankRelation != TankID.Obsidian ? BodyPaint : NeonPaint, r / 255f);
+                        colors[i] = Color.Lerp(colors[i], TankRelation == TankID.Obsidian ? BodyPaint : NeonPaint, b / 255f * (TankRelation == MathHelper.Clamp(TankRelation, TankID.Bronze, TankID.Obsidian) ? 3f : 1f));
                         colors[i] = Color.Lerp(colors[i], AccentPaint, g / 255f);
                     }
                     t.SetData(colors);
@@ -378,10 +404,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             FlySound.Instance.IsLooped = true;
             FlySound.Play();
 
-            if (droneOwner is Tank tnk)
+            if (droneOwner is AITank tnk)
             {
-                Parameters = CA_DroneLicenseManager.ApplyDefaultLicense(tnk);
+                Parameters = CA_DroneLicenseManager.ApplyDefaultLicense(tnk,Override);
+
+                TankRelation = Override ?? (tnk as AITank)!.AiTankType;
                 SoundPlayer.PlaySoundInstance(CA_Main.Drone_Activate!, SoundContext.Effect, 0.3f);
+                Properties = AIManager.GetAITankProperties(TankRelation);
                 if(Parameters.Elite)
                 {
                     Model = CA_Main.Elite_Drone!;
@@ -390,6 +419,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     EliteFlySound.Play();
                     Scaling = Vector3.One * 1.3f * 0.01f;
                 }
+                
+
             }
             Body = DroneCollisions.CreateCircle(DRN_HEIGHT / UNITS_TO_METERS * (Parameters.Elite ? 1.3f : 1f), 1, position, bodyType: BodyType.Dynamic);
             InitModelSemantics();
@@ -417,22 +448,87 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         public static void CollisionUpdate()
         {
-            foreach (var Block in Block.AllBlocks)
+
+            foreach (var Drone in AllDrones)
             {
-                if (Block is null) continue;
-                bool valid = false;
-                if (DroneCollisions.BodyList.Contains(Block.Physics))
+
+                if (Drone is null || Drone.droneOwner is null || Drone.droneOwner.IsDestroyed) continue;
+                //Yes, you CAN kill the drones (if they don't dodge that is)
+
+                var pathCircle = new BoundingSphere { Center = Drone.Position3D, Radius = Drone.CollisionCircle.Radius };
+
+                foreach (var Bullet in Shell.AllShells)
                 {
-                    DroneCollisions.Remove(Block.Physics);
+                    if (Bullet is null) continue;
+
+
+
+                    if (!Bullet.Hitbox.Intersects(pathCircle)) continue;
+                    if (Vector3.Distance(Drone.Position3D * new Vector3(1,0.5f,1), Bullet.Position3D * new Vector3(1, 1, 1)) - Bullet.Hitbox.Radius*1.1f > Drone.CollisionCircle.Radius) continue;
+                    if (Drone.Parameters.InvulnerableToShells || !Drone.Parameters.CanBeDestroyed)
+                    {
+                        if (Drone._parrytimer <= 0)
+                        {
+                            Drone._parrytimer = 10;
+                            Drone.Velocity += Bullet.Velocity * 0.5f;
+                            Bullet.Velocity *= -1f;
+                            SoundPlayer.PlaySoundInstance(CA_Main.Drone_Parry!, SoundContext.Effect, 0.1f);
+                            GameHandler.Particles.MakeShineSpot(Bullet.Position3D, Color.Orange, 0.8f);
+                        }
+                    }
+                    else
+                    {
+                        Drone.Parameters.Armor -= 1;
+                        Drone.Velocity += Bullet.Velocity * 0.5f;
+                        Bullet.Destroy(DestructionContext.WithObstacle,false);
+                        var ding = SoundPlayer.PlaySoundInstance(
+                $"Assets/sounds/armor_ding_{Client.ClientRandom.Next(1, 3)}.ogg", SoundContext.Effect,0.2f);
+
+                        ding.Instance.Pitch = Client.ClientRandom.NextFloat(-0.1f, 0.1f);
+                    }  
                 }
-                foreach (var Drone in AllDrones)
+                foreach (var Boom in Explosion.Explosions)
                 {
+                    if (Boom is null) continue;
                     
-                    if (Drone is null || Drone.droneOwner is null || Drone.droneOwner.IsDestroyed) continue;
+                    if (Vector3.Distance(Drone.Position3D, Boom.Position3D) - Boom.DamageRadiusScale * 9f > 0) continue;
+                    if (Drone.Parameters.InvulnerableToMines || !Drone.Parameters.CanBeDestroyed)
+                    {
+                        if (Drone._parrytimer <= 0)
+                        {
+                            Drone._parrytimer = 30;
+                            SoundPlayer.PlaySoundInstance(CA_Main.Drone_Parry!, SoundContext.Effect, 0.1f);
+
+                        }
+                        else
+                        {
+                            if (Drone._parrytimer <= 0)
+                            {
+                                Drone._parrytimer = 120;
+                                Drone.Parameters.Armor -= 2;
+                                var ding = SoundPlayer.PlaySoundInstance(
+                        $"Assets/sounds/armor_ding_{Client.ClientRandom.Next(1, 3)}.ogg", SoundContext.Effect, 0.2f);
+                                ding.Instance.Pitch = Client.ClientRandom.NextFloat(-0.1f, 0.1f);
+                            }
+                        }
+                    } 
+                }
+
+                foreach (var Block in Block.AllBlocks)
+                {
+                    if (Block is null) continue;
+                    bool valid = false;
+                    if (DroneCollisions.BodyList.Contains(Block.Physics))
+                    {
+                        DroneCollisions.Remove(Block.Physics);
+                    }
+
                     Vector2 Lookahead = Vector2.Normalize(Drone.Velocity).IsValid() ? Vector2.Normalize(Drone.Velocity) * MathF.PI : Vector2.Zero;
-                    float distance = (Vector2.Distance(Block.Position, Drone.Position + (Lookahead * Block.SIDE_LENGTH / 2)) - Block.SIDE_LENGTH*1.2f);
+                    float distance = (Vector2.Distance(Block.Position, Drone.Position + (Lookahead * Block.SIDE_LENGTH / 2)) - Block.SIDE_LENGTH * 1.2f);
                     var dummy = Drone.Position;
-                    Collision.HandleCollisionSimple_ForBlocks(Drone.CollisionBox, Drone.Velocity, ref dummy, out var dir, out var block,
+                    var oldcollision = new Rectangle((int)(Drone.Position.X - DRN_WIDTH / 2 + 3), (int)(Drone.Position.Y - DRN_WIDTH / 2 + 2),
+            (int)DRN_HEIGHT - 8, (int)DRN_HEIGHT - 4);
+                    Collision.HandleCollisionSimple_ForBlocks(oldcollision, Drone.Velocity, ref dummy, out var dir, out var block,
             out bool corner, true, (c) => c.Properties.IsSolid && Drone.Position3D.Y + 1.5f <= c.HeightFromGround);
                     if ((dir != CollisionDirection.None || corner) && distance <= 0)
                     {
@@ -445,8 +541,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
                 }
 
-
-
             }
 
         }
@@ -456,16 +550,21 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         internal void Update()
         {
-            if (!GameScene.ShouldRenderAll)
+            if (!GameScene.UpdateAndRender)
                 return;
-            if (Recruit is Crate crate && (Crate.crates[crate.id] is null || Crate.crates[crate.id].IsOpening))
+            float hurtBoxSize = DRN_WIDTH * 0.7f;
+            CollisionCircle = new() { Center = Position3D, Radius = DRN_WIDTH / 1.5f };
+            CollisionBox = new(Position3D - new Vector3(hurtBoxSize / 2, hurtBoxSize / 2, hurtBoxSize / 2),
+                    Position3D + new Vector3(hurtBoxSize / 2, hurtBoxSize / 2, hurtBoxSize / 2));
+
+            if (Recruit is Crate crate && (Crate.AllCrates[crate.id] is null || Crate.AllCrates[crate.id].IsOpening))
             {
                 Recruit = null;
             }
 
             #region ModelAnimationAndVisuals
 
-            Vector2 forward = Vector2.Normalize(Velocity).Rotate(-DroneRotation);
+            Vector2 forward = Vector2.Normalize(Velocity).RotatedBy(-DroneRotation);
             if (!forward.IsValid()) forward = Vector2.Zero;
             float xRot = MathF.Cos(forward.X) * Velocity.Length() / UNITS_TO_METERS - HoverSpeed / 50f;
             float yRot = MathF.Sin(forward.Y) * Velocity.Length() / UNITS_TO_METERS;
@@ -491,13 +590,12 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             Model!.Root.Transform = World;
             Model!.CopyAbsoluteBoneTransformsTo(_boneTransforms);
 
-            if (droneOwner is AITank ai && ai.ModdedData is ModTank modTank &&
-                modTank.Mod.InternalName == "AdditionalTanksMarble" && modTank.Name.GetLocalizedString(LangCode.English) == "Marble")
+            if (TankID.Collection.GetKey(TankRelation) == "Marble")
             {
 
                 float hue = testtimer * 80;
 
-                var tierName = TankID.Collection.GetKey(ai.AiTankType)!.ToLower();
+                var tierName = TankID.Collection.GetKey(TankRelation)!.ToLower();
                     var colors = new Color[Tank.Assets[$"tank_" + tierName].Width * Tank.Assets[$"tank_" + tierName].Height];
                     Tank.Assets[$"tank_" + tierName].GetData(colors);
                     CustomPaint = true;
@@ -505,21 +603,43 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
                     NeonPaint = ColorUtils.HsvToRgb(hue % 360, 1, 1);
                     AccentPaint = Color.Lerp(NeonPaint, Color.Black, 0.5f);
-
-                    CA_Main.Tank_CustomPaint!.GetData(colors);
+                var t = new Texture2D(TankGame.Instance.GraphicsDevice, Tank.Assets[$"tank_" + tierName].Width, Tank.Assets[$"tank_" + tierName].Height);
+                CA_Main.Tank_CustomPaint!.GetData(colors);
 
                     for (int i = 0; i < colors.Length; i++)
                     {
                         colors[i].Deconstruct(out byte r, out byte g, out byte b);
-                        colors[i] = Color.Lerp(Color.Black, ai.AiTankType != TankID.Obsidian ? BodyPaint : NeonPaint, r / 255f);
-                        colors[i] = Color.Lerp(colors[i], ai.AiTankType == TankID.Obsidian ? BodyPaint : NeonPaint, b / 255f * (ai.AiTankType == MathHelper.Clamp(ai.AiTankType, TankID.Bronze, TankID.Obsidian) ? 3f : 1f));
+                        colors[i] = Color.Lerp(Color.Black, TankRelation != TankID.Obsidian ? BodyPaint : NeonPaint, r / 255f);
+                        colors[i] = Color.Lerp(colors[i], TankRelation == TankID.Obsidian ? BodyPaint : NeonPaint, b / 255f * (TankRelation == MathHelper.Clamp(TankRelation, TankID.Bronze, TankID.Obsidian) ? 3f : 1f));
                         colors[i] = Color.Lerp(colors[i], AccentPaint, g / 255f);
                     }
-                    _droneTexture!.SetData(colors);
+                    t!.SetData(colors);
+                    _droneTexture = t;
               }
-            
+
+            if(Shadow is null)
+            {
+                Shadow = GameHandler.Particles.MakeParticle(Position.ExpandZ(), GameResources.GetGameResource<Texture2D>("Assets/textures/mine/mine_shadow"));
+                Shadow.Scale = new(0.9f);
+                Shadow.Color = Color.Black;
+                Shadow.HasAdditiveBlending = false;
+                
+                // shadow.Roll = -MathHelper.PiOver2;
+                Shadow.Pitch = MathHelper.PiOver2;
+                Shadow.UniqueBehavior = (a) => {
+                    Shadow.Position = Position.ExpandZ();
+                    Shadow.Position.Y = 0.16f;
+                    Shadow.Alpha = MathUtils.InverseLerp(250, 7, Position3D.Y, true) * 0.5f * (Parameters.HasCamo ? 1f - MorphGhostMode : 1f);
+                };
+            }
+
 
             #endregion
+
+            if (_parrytimer > 0)
+            {
+                _parrytimer -= RuntimeData.DeltaTime;
+            }
 
             //in the case of a drone doesn't spawn in with an owner
             if (droneOwner is null)
@@ -542,6 +662,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     }
                 }
                 droneOwner = target;
+               
                 return;
             }
 
@@ -549,23 +670,89 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             {
                 FlySound.Instance.Pitch = -0.5f + MathF.Min(1f,MathF.Max(0,(Velocity3D * new Vector3(1f,0.5f,1f)).Length() / 4f));
                 FlySound.Volume = MathF.Min(1f, MathF.Max(0, (Velocity3D * new Vector3(1f, 0.5f, 1f)).Length() / 4f)) * 0.2f + 0.03f;
-               
+
+                if (Parameters.SilentEngines) FlySound.Volume *= 0.25f;
             }
             if (EliteFlySound is not null && EliteFlySound.Instance is not null)
             {
                 EliteFlySound.Instance.Pitch = -0.8f + MathF.Min(1f, MathF.Max(0, (Velocity3D * new Vector3(1f, 0.5f, 1f)).Length() / 4f));
                 EliteFlySound.Volume = MathF.Min(1f, MathF.Max(0, (Velocity3D * new Vector3(1f, 0.5f, 1f)).Length() / 4f)) * 0.2f + 0.03f;
+                if (Parameters.SilentEngines) EliteFlySound.Volume *= 0.25f;
             }
 
-          
-
-
-            if (droneOwner.IsDestroyed)
+            if (droneOwner.IsDestroyed || Parameters.Armor < 0)
             {
+                if (Parameters.Armor >= 0 && (Parameters.HitchHikerMode || Parameters.CanBeOrphaned))
+                {
+                    if (Parameters.CanBeOrphaned && !_orphanspitecompleted && Parameters.RecruitGeneral.CanUse )
+                    {
+                        if (Task == DroneTask.Idle && !_orphanspiteactive)
+                        {
+                            _orphanspiteactive = true;
+                            if (Parameters.Elite) foreach (var item in AllDrones)
+                                {
+                                    if (item is null) continue;
+                                    if (!item.Parameters.RecruitGeneral.EnabledViaRelay) continue;
+                                    if (item.Task == DroneTask.Idle)
+                                    {
+                                        var places2 = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
+                                        var angle2 = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
+                                        item.TargetPosition = (new Vector2(angle2.Sin, angle2.Cos) * 800f) + GameScene.Center.FlattenZ();
+                                        item.RecruitRequestPos = places2[Client.ClientRandom.Next(0, places2.Length)].Position.FlattenZ();
+                                        item.Task = DroneTask.Recruit;
+                                    }
+                                }
+                            var places = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
+                            var angle = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
+                            TargetPosition = (new Vector2(angle.Sin, angle.Cos) * 800f) + GameScene.Center.FlattenZ();
+                            RecruitRequestPos = places[Client.ClientRandom.Next(0, places.Length)].Position.FlattenZ();
+                            Task = DroneTask.Recruit;
+                           
+                        }
+                        else if (Task == DroneTask.Idle && _orphanspiteactive) _orphanspitecompleted = true;
+                        goto OrphanHiker;
+                    }
+                    else if(!Parameters.HitchHikerMode)
+                    {
+                        goto OrphanHiker;
+                    }
+
+                    //PERSIST
+                    if (Parameters.HitchHikerMode)
+                    {
+                        ref Tank[] tanks = ref GameHandler.AllTanks;
+
+                        Tank? target = null;
+                        var targetPosition = new Vector2(Parameters.HitchHikerRange);
+                        foreach (var tank in GameHandler.AllTanks)
+                        {
+                            if (tank is not null && !tank.IsDestroyed && (Team == tank.Team || Team == TeamID.NoTeam || tank.Team == TeamID.NoTeam))
+                            {
+                                if (GameUtils.Distance_WiiTanksUnits(tank.Position, Position) < GameUtils.Distance_WiiTanksUnits(targetPosition, Position))
+                                {
+                                    target = tank;
+                                    targetPosition = tank.Position;
+                                }
+                            }
+                        }
+                        if (target is not null)
+                        {
+                            droneOwner = target;
+                            _orphanspiteactive = false;
+                            _orphanspitecompleted = false;
+                            return;
+                        }
+                        else if (Parameters.CanBeOrphaned) goto OrphanHiker;
+                       
+                    }
+                    
+
+                }
+
                 if (Recruit is Crate crate2)
                 {
-                    crate2.velocity = Velocity.ExpandZ() * 0.5f;
-                    crate2.gravity = 4f;
+                    crate2.Velocity = Velocity.ExpandZ() * 0.5f;
+                    crate2.Gravity = 4f;
                     Recruit = null;
                 }
                 if (Task != DroneTask.Die && FlySound is not null && FlySound.Instance is not null) {
@@ -579,6 +766,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     }
                         SoundPlayer.PlaySoundInstance(CA_Main.Drone_Disable!, SoundContext.Effect, 0.4f);
                 }
+
                 Task = DroneTask.Die;
                 FallSpeed += 0.03f * RuntimeData.DeltaTime;
                 Gravity += FallSpeed * RuntimeData.DeltaTime;
@@ -586,13 +774,14 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 if (Position3D.Y < 0)
                 {
                     SoundPlayer.PlaySoundInstance(CA_Main.Drone_Crash[Client.ClientRandom.Next(0, CA_Main.Drone_Crash.Length)]!, SoundContext.Effect, 0.2f);
-                    new Explosion(Position, 4 * (Parameters.Elite? 2 :1), droneOwner, soundPitch: 0.6f);
+                    new Explosion(Position, 4 * (Parameters.Elite? 1.2f :1), droneOwner, soundPitch: 0.6f);
                     Remove();
                 }
 
                 return;
             }
-
+            //Called from a very specific edgecase
+            OrphanHiker:
 
             HoverAbove = DRN_BASEHOVER;
 
@@ -613,12 +802,12 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             {
                 if (CurrentState == TaskState.During)
                 {
-                    Recruit!.position = Position3D - new Vector3(0, 12, 0);
-                    Recruit.gravity = 0f;
+                    Recruit!.Position = Position3D - new Vector3(0, 12, 0);
+                    Recruit.Gravity = 0f;
                 }
                 else
                 {
-                    Recruit.gravity = 2f;
+                    Recruit.Gravity = 2f;
                 }
             }
 
@@ -678,27 +867,22 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 if (OwnedShells[i] is Shell s && Shell.AllShells[s.Id] is null) OwnedShells[i] = null;
         }
 
-        // public Tank? TryOverrideTarget()
-        //  {
-        //     Tank? target = TargetTank;
-        //     if (GameHandler.AllPlayerTanks.Any(x => x is not null && x.Team == droneOwner!.Team))
-        //     {
-        //          foreach (var ping in IngamePing.AllIngamePings)
-        //          {
-        //             if (ping is null) break;
-        //            
-        //         }
-        //     }
-        //     return target;
-        //  }
         #region Drone Behavior
+
         public void DroneAI()
         {
-            if (Task == DroneTask.Die) return;
-            //Commanding where the drone to go
+            //Do nothing if dying or dead
+            if (Task == DroneTask.Die) { EnemyMemory = null; return; }
+
+            //Commanding where the drone to go. Skip to behaviour switch if not idling
             if (Task != DroneTask.Idle) goto skip;
+
             if (droneOwner is AITank aiBuddy)
             {
+                if (aiBuddy.TargetTank is not null) EnemyMemory = aiBuddy.TargetTank;
+                else if (EnemyMemory is not null && EnemyMemory.IsDestroyed) EnemyMemory = null;
+                if (EnemyMemory is null) goto skip; //skip to behaviour switch (weird ass edge-casing)
+                //Enemy AI
                 if (AssignmentPersistance > 0)
                 {
                     AssignmentPersistance -= RuntimeData.DeltaTime;
@@ -708,176 +892,160 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     AISeed = Client.ClientRandom.NextFloat(0f, 1f); //it's handled completly by the host
                     AssignmentPersistance = 5f;
                 }
+               
 
-                if (aiBuddy.TargetTank is null) goto skip;
-                var tanks = GetTanksInPath(Vector2.Normalize(aiBuddy.Position.DirectionTo(aiBuddy.TargetTank.Position)) * new Vector2(1f, -1f), out var ricP, out var tnkCol, false, default, considersRicos: false, missDist: aiBuddy.Parameters.AimOffset, start: droneOwner.Position);
+
+                var tanks = GetTanksInPath(Vector2.Normalize(aiBuddy.Position.DirectionTo(EnemyMemory.Position)) * new Vector2(1f, -1f), out var ricP, out var tnkCol, false, default, considersRicos: false, missDist: aiBuddy.Parameters.AimOffset, start: droneOwner.Position);
+
                 var findsEnemy2 = tanks.Any(tnk => tnk is not null && (tnk.Team != droneOwner.Team || tnk.Team == TeamID.NoTeam) && tnk != droneOwner);
-
+                
+                //Distance
                 Vector2 A = aiBuddy.Position;
-                Vector2 B = aiBuddy.TargetTank.Position;
-                Vector2.Distance(ref A, ref B, out float C);
+                Vector2 B = EnemyMemory.Position;
+                Vector2.Distance(ref A, ref B, out float targetDistance);
 
-                float seedRange = AISeed;
-                if (Parameters.TrapsGeneral.CanUse) Parameters.TrapsGeneral.curCooldown -= RuntimeData.DeltaTime;
-                if (Parameters.TrapsGeneral.ReadyForUse && (findsEnemy2 || Parameters.TrapsGeneral.GlobalSkill) && C == MathHelper.Clamp(C, Parameters.TrapsGeneral.Minimum, Parameters.TrapsGeneral.Maximum)
-                    && seedRange >= 0 && seedRange < Parameters.TrapsGeneral.ChanceToActivate)
+                //only needs to be called once
+
+                IEnumerable<CA_Drone> GetRelayCandidates(Func<CA_Drone, bool> extraFilter)
                 {
-                    if (Parameters.TrapsGeneral.RelayTaskToOthers)
+                    return AllDrones.Where(d =>
+                        d is not null &&
+                        d != this &&
+                        d.Task == DroneTask.Idle &&
+                        d.droneOwner is AITank &&
+                        d.droneOwner!.Team != TeamID.NoTeam &&
+                        d.droneOwner.Team == droneOwner!.Team &&
+                        extraFilter(d));
+                }
+                var oldcollision = new Rectangle((int)(Position.X - DRN_WIDTH / 2 + 3), (int)(Position.Y - DRN_WIDTH / 2 + 2),
+           (int)DRN_HEIGHT - 8, (int)DRN_HEIGHT - 4);
+
+
+                bool AttemptTask(ref DroneParameters.Skill paramSkill,Func<CA_Drone,bool> taskPrepare, Func<CA_Drone, bool> relayCheck, Func<CA_Drone,DroneParameters.Skill> relayParams,bool IngnoreSignalFalloff = false)
+                {
+                    if (paramSkill.CanUse) paramSkill.curCooldown -= RuntimeData.DeltaTime;
+                    if (paramSkill.ReadyForUse && (findsEnemy2 || paramSkill.GlobalSkill) && targetDistance == MathHelper.Clamp(targetDistance, paramSkill.Minimum, paramSkill.Maximum)
+                        && AISeed >= 0 && AISeed < paramSkill.ChanceToActivate)
                     {
-                        var CalledDrones = AllDrones.Where(x => x is not null && x != this && x.Task == DroneTask.Idle && x.droneOwner is AITank && x.droneOwner!.Team != TeamID.NoTeam && x.droneOwner!.Team == droneOwner.Team && x.Parameters.TrapsGeneral.EnabledViaRelay);
-                        foreach (var item in CalledDrones)
-                        {
-                            if (Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) > Parameters.TrapsGeneral.RelayTaskRange) continue;
-                            var signalStrength = Client.ClientRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.TrapsGeneral.RelayTaskRange,0,1);
-                            if (signalStrength - 1f < 0f && item.droneOwner is AITank ai && ai.TargetTank is Tank && item.Parameters.TrapsGeneral.curCooldown < 0)
+                        
+                        if (paramSkill.RelayTaskToOthers)
+                        { //relay code
+                            foreach (var drone in GetRelayCandidates(d => relayCheck(d)))
                             {
-                                item.TargetPosition = Vector2.Lerp(item.droneOwner!.Position, ai.TargetTank.Position, 0.99f);
-                                item.TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau)* item.Parameters.TrapsGeneral.Inaccuracy;
-                                var dummy = item.TargetPosition;
-                                var dummybox = new Rectangle(new Point((int)(item.TargetPosition.X / UNITS_TO_METERS), (int)(item.TargetPosition.Y / UNITS_TO_METERS)),item.CollisionBox.Size);
-                                Collision.HandleCollisionSimple_ForBlocks(dummybox,Vector2.Zero, ref dummy, out var dir, out var block, out bool corner,false);
-                                if (block is Block) break;
-                                item.Task = DroneTask.SetTrap;
-                                item.Parameters.TrapsGeneral.curCooldown = item.Parameters.TrapsGeneral.Cooldown;
-                                Parameters.TrapsGeneral.curCooldown = Parameters.TrapsGeneral.Cooldown;
-                                break;
+                                var reParams = relayParams(drone);
+
+                                if (Vector2.Distance(drone.droneOwner!.Position, droneOwner!.Position) > paramSkill.RelayTaskRange) continue;
+                                
+                                var signalStrength = (IngnoreSignalFalloff ? 1f : Client.ClientRandom.NextFloat(0, 1f)) * MathHelper.Clamp(1f - Vector2.Distance(drone.droneOwner!.Position, droneOwner!.Position) / paramSkill.RelayTaskRange, 0, 1);
+                                
+                                if (signalStrength - 1f < 0f && drone.droneOwner is AITank ai && ai.TargetTank is Tank && reParams.curCooldown < 0)
+                                {
+                                    taskPrepare(drone);
+                                }
                             }
                         }
+                        if (paramSkill.Enabled) //self use code. despite the name, enabled being set to false doesn't completly disable it if either RelayTaskToOthers or EnabledViaRelay are true.
+                        {
+                            if (!taskPrepare(this)) return false;
+                        }
+                       
 
-                        goto skip;
                     }
-                    TargetPosition = Vector2.Lerp(aiBuddy.Position, aiBuddy.TargetTank.Position, 0.99f);
-                    if (CanIWorkHere())
-                    {
-                        TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * Parameters.TrapsGeneral.Inaccuracy;
-                        var dummy = TargetPosition;
-                        var dummybox = new Rectangle(new Point((int)(TargetPosition.X / UNITS_TO_METERS), (int)(TargetPosition.Y / UNITS_TO_METERS)), CollisionBox.Size);
-                        Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
-                        if (block is Block) goto skip;
-                        Task = DroneTask.SetTrap;
-                        Parameters.TrapsGeneral.curCooldown = Parameters.TrapsGeneral.Cooldown;
-                    }
-                    
+                    return true;
                 }
 
-                seedRange = AISeed;
-                if (Parameters.RecruitGeneral.CanUse) Parameters.RecruitGeneral.curCooldown -= RuntimeData.DeltaTime;
-                if (Parameters.RecruitGeneral.ReadyForUse && (findsEnemy2 || Parameters.RecruitGeneral.GlobalSkill) && C == MathHelper.Clamp(C, Parameters.RecruitGeneral.Minimum, Parameters.RecruitGeneral.Maximum)
-                    && seedRange >= 0 && seedRange < Parameters.RecruitGeneral.ChanceToActivate)
+                //Trap Task
+                if(Parameters.TrapsGeneral.Enabled || Parameters.TrapsGeneral.RelayTaskToOthers) AttemptTask(ref Parameters.TrapsGeneral, drone =>
                 {
-                    if (Parameters.RecruitGeneral.RelayTaskToOthers)
+                    drone.TargetPosition = Vector2.Lerp(aiBuddy.Position, EnemyMemory.Position, 0.99f);
+                    drone.TargetPosition += Vector2.UnitY.RotatedBy(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * drone.Parameters.TrapsGeneral.Inaccuracy;
+                    if (CanIWorkHere())
                     {
-                        var CalledDrones = AllDrones.Where(x => x is not null && x != this && x.Task == DroneTask.Idle && x.droneOwner is AITank && x.droneOwner!.Team != TeamID.NoTeam && x.droneOwner!.Team == droneOwner.Team && x.Parameters.RecruitGeneral.EnabledViaRelay);
-                        foreach (var item in CalledDrones)
-                        {
-                            if (Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) > Parameters.RecruitGeneral.RelayTaskRange) continue;
-                            var signalStrength = Client.ClientRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.RecruitGeneral.RelayTaskRange, 0, 1);
-                            if (signalStrength * 2 > 1f - item.Parameters.RecruitGeneral.ChanceToActivate * 1.25f && item.droneOwner is AITank ai && ai.TargetTank is Tank && item.Parameters.RecruitGeneral.curCooldown < 0)
-                            {
-                                var places1 = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
-                                var angle1 = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
-                                item.TargetPosition = (new Vector2(angle1.Sin, angle1.Cos) * 800f) + GameScene.Center.FlattenZ();
-                                item.RecruitRequestPos = places1[Client.ClientRandom.Next(0, places1.Length)].Position.FlattenZ();
-                                var dummy = item.TargetPosition;
-                                var dummybox = new Rectangle(new Point((int)(item.TargetPosition.X / UNITS_TO_METERS), (int)(item.TargetPosition.Y / UNITS_TO_METERS)), item.CollisionBox.Size);
-                                Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
-                                if (block is Block) break;
-                                item.Parameters.RecruitGeneral.curCooldown = item.Parameters.RecruitGeneral.Cooldown;
-                                Parameters.RecruitGeneral.curCooldown = Parameters.RecruitGeneral.Cooldown;
-                                item.Task = DroneTask.Recruit;
-
-                            }
-                        }
-
-                        goto skip;
+                        var dummy = drone.TargetPosition;
+                        var dummybox = new Rectangle(new Point((int)(drone.TargetPosition.X / UNITS_TO_METERS), (int)(drone.TargetPosition.Y / UNITS_TO_METERS)), oldcollision.Size);
+                        Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
+                        if (block is Block) return false;
+                        drone.Task = DroneTask.SetTrap;
+                        drone.Parameters.TrapsGeneral.curCooldown = drone.Parameters.TrapsGeneral.Cooldown;
+                        return true;
                     }
+                    return false;
+                }, d => d.Parameters.TrapsGeneral.EnabledViaRelay, d => d.Parameters.TrapsGeneral);
+
+                //Recruit Task
+                if (Parameters.RecruitGeneral.Enabled || Parameters.RecruitGeneral.RelayTaskToOthers) AttemptTask(ref Parameters.RecruitGeneral, drone =>
+                {
                     var places = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
                     var angle = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
-                    TargetPosition = (new Vector2(angle.Sin, angle.Cos) * 800f) + GameScene.Center.FlattenZ();
-                    RecruitRequestPos = places[Client.ClientRandom.Next(0, places.Length)].Position.FlattenZ();
-                    if (CanIWorkHere())
+                    drone.TargetPosition = (new Vector2(angle.Sin, angle.Cos) * 800f) + GameScene.Center.FlattenZ();
+                    drone.RecruitRequestPos = places[Client.ClientRandom.Next(0, places.Length)].Position.FlattenZ();
+                    if (CanIWorkHere(true))
                     {
-                        Parameters.RecruitGeneral.curCooldown = Parameters.RecruitGeneral.Cooldown;
-                        Task = DroneTask.Recruit;
+                        drone.Parameters.RecruitGeneral.curCooldown = drone.Parameters.RecruitGeneral.Cooldown;
+                        drone.Task = DroneTask.Recruit;
+                        return true;
                     }
+                    return false;
 
-                }
+                }, d => d.Parameters.RecruitGeneral.EnabledViaRelay, d => d.Parameters.RecruitGeneral);
 
-                seedRange = AISeed;
-                if (Parameters.HoldGeneral.CanUse) Parameters.HoldGeneral.curCooldown -= RuntimeData.DeltaTime;
-                if (Parameters.HoldGeneral.ReadyForUse && (findsEnemy2 || Parameters.HoldGeneral.GlobalSkill) && C == MathHelper.Clamp(C, Parameters.HoldGeneral.Minimum, Parameters.HoldGeneral.Maximum) 
-                    && seedRange >= 0 && seedRange < Parameters.HoldGeneral.ChanceToActivate)
+                //Hold Task
+                if (Parameters.HoldGeneral.Enabled || Parameters.HoldGeneral.RelayTaskToOthers) AttemptTask(ref Parameters.HoldGeneral, drone =>
                 {
-                    if (Parameters.HoldGeneral.RelayTaskToOthers)
-                    {
-                        var CalledDrones = AllDrones.Where(x => x is not null && x != this && x.Task == DroneTask.Idle && x.droneOwner is AITank && x.droneOwner!.Team != TeamID.NoTeam && x.droneOwner!.Team == droneOwner.Team && x.Parameters.HoldGeneral.EnabledViaRelay);
-                        foreach (var item in CalledDrones)
-                        {
-                            if (Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) > Parameters.HoldGeneral.RelayTaskRange) continue;
-                            var signalStrength = Client.ClientRandom.NextFloat(0, 1f) * MathHelper.Clamp(1f - Vector2.Distance(item.droneOwner!.Position, droneOwner!.Position) / Parameters.HoldGeneral.RelayTaskRange, 0, 1);
-                            if (signalStrength * 2 > 1f - item.Parameters.HoldGeneral.ChanceToActivate * 1.25f && item.droneOwner is AITank ai && ai.TargetTank is Tank && item.Parameters.HoldGeneral.curCooldown < 0)
-                            {
-                                item.TargetPosition = Vector2.Lerp(item.droneOwner!.Position, ai.TargetTank.Position, 0.99f);
-                                if (CanIWorkHere())
-                                {
-                                    item.TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * item.Parameters.HoldGeneral.Inaccuracy;
-                                    var dummy = item.TargetPosition;
-                                    var dummybox = new Rectangle(new Point((int)(item.TargetPosition.X / UNITS_TO_METERS), (int)(item.TargetPosition.Y / UNITS_TO_METERS)), item.CollisionBox.Size);
-                                    Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
-                                    if (block is Block) break;
-                                    item.Parameters.HoldGeneral.curCooldown = item.Parameters.HoldGeneral.Cooldown;
-                                    Parameters.HoldGeneral.curCooldown = Parameters.HoldGeneral.Cooldown;
-                                    item.Task = DroneTask.Hold;
-                                    break;
-                                }
-
-                            }
-                        }
-
-                        goto skip;
+                    TargetPosition = Vector2.Lerp(aiBuddy.Position, EnemyMemory.Position, 1f);
+                    drone.TargetPosition += Vector2.UnitY.RotatedBy(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * drone.Parameters.HoldGeneral.Inaccuracy;
+                    if (CanIWorkHere())
+                    {   
+                        var dummy = drone.TargetPosition;
+                        var dummybox = new Rectangle(new Point((int)(drone.TargetPosition.X / UNITS_TO_METERS), (int)(drone.TargetPosition.Y / UNITS_TO_METERS)), oldcollision.Size);
+                        Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
+                        if (block is Block) return false;
+                        drone.Task = DroneTask.Hold;
+                        drone.Parameters.HoldGeneral.curCooldown = drone.Parameters.HoldGeneral.Cooldown;
+                        return true;
                     }
-                    TargetPosition = Vector2.Lerp(aiBuddy.Position, aiBuddy.TargetTank.Position, 1f);
+                    return true;
+                }, d => d.Parameters.HoldGeneral.EnabledViaRelay, d => d.Parameters.HoldGeneral);
+
+                //Smoke bomb
+                if (Parameters.SmokeBomberGeneral.Enabled || Parameters.SmokeBomberGeneral.RelayTaskToOthers) AttemptTask(ref Parameters.SmokeBomberGeneral, drone =>
+                {
+                    TargetPosition = Vector2.Lerp(aiBuddy.Position, EnemyMemory.Position, Client.ClientRandom.NextFloat(0f, 1f));
+                    drone.TargetPosition += Vector2.UnitY.RotatedBy(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * drone.Parameters.SmokeBomberGeneral.Inaccuracy;
+                    if (CanIWorkHere(true))
+                    {
+                        
+                        var dummy = drone.TargetPosition;
+                        var dummybox = new Rectangle(new Point((int)(drone.TargetPosition.X / UNITS_TO_METERS), (int)(drone.TargetPosition.Y / UNITS_TO_METERS)), oldcollision.Size);
+                        Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
+                        if (block is Block) return false;
+                        drone.Task = DroneTask.Smoke;
+                        drone.Parameters.SmokeBomberGeneral.curCooldown = drone.Parameters.SmokeBomberGeneral.Cooldown;
+                        return true;
+                    }
+                    return true;
+                }, d => d.Parameters.SmokeBomberGeneral.EnabledViaRelay, d => d.Parameters.SmokeBomberGeneral);
+
+                //nightshade bomb
+                if (Parameters.NightBomberGeneral.Enabled || Parameters.NightBomberGeneral.RelayTaskToOthers) AttemptTask(ref Parameters.NightBomberGeneral, drone =>
+                {
+                    Tank[] validBuddies = GameHandler.AllTanks.Where(tank => tank is not null && !tank.IsDestroyed && tank.Team == drone.droneOwner!.Team && !CA_Main.PoisonedTanks.Contains(tank)).ToArray();
+                    if (validBuddies.Length == 0) return false;
+                    TargetPosition = validBuddies[Client.ClientRandom.Next(0,validBuddies.Length)].Position;
+                    drone.TargetPosition += Vector2.UnitY.RotatedBy(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * drone.Parameters.NightBomberGeneral.Inaccuracy;
                     if (CanIWorkHere())
                     {
-                        TargetPosition += Vector2.UnitY.Rotate(Client.ClientRandom.NextFloat(-1f, 1f) * MathF.Tau) * Parameters.HoldGeneral.Inaccuracy;
-                        var dummy = TargetPosition;
-                        var dummybox = new Rectangle(new Point((int)(TargetPosition.X / UNITS_TO_METERS), (int)(TargetPosition.Y / UNITS_TO_METERS)), CollisionBox.Size);
+                        var dummy = drone.TargetPosition;
+                        var dummybox = new Rectangle(new Point((int)(drone.TargetPosition.X / UNITS_TO_METERS), (int)(drone.TargetPosition.Y / UNITS_TO_METERS)), oldcollision.Size);
                         Collision.HandleCollisionSimple_ForBlocks(dummybox, Vector2.Zero, ref dummy, out var dir, out var block, out bool corner, false);
-                        if (block is Block) goto skip;
-                        Task = DroneTask.Hold;
-                        Parameters.HoldGeneral.curCooldown = Parameters.HoldGeneral.Cooldown;
+                        if (block is Block) return false;
+                        drone.Task = DroneTask.NightShade;
+                        drone.Parameters.NightBomberGeneral.curCooldown = drone.Parameters.NightBomberGeneral.Cooldown;
+                        return true;
                     }
-                }
+                    return true;
+                }, d => d.Parameters.NightBomberGeneral.EnabledViaRelay, d => d.Parameters.NightBomberGeneral);
 
-                /*
-                                //if (findsEnemy2 && AssignmentPersistance <= 0f && (aiBuddy.AiTankType == TankID.Obsidian || aiBuddy.AiTankType == TankID.Emerald || aiBuddy.AiTankType == TankID.Black))
-                                //{
-                                //    AssignmentPersistance = aiBuddy.AiTankType == TankID.Emerald ? 900 : 300f;
-                                //    Task = DroneTask.SetTrap;
-                                //    TargetPosition = aiBuddy.TargetTank.Position + aiBuddy.TargetTank.Velocity*12f;
-                                //}
-
-                                ////Bronze will start calling in back up anyways
-
-                                //if ((aiBuddy.SeesTarget || aiBuddy.AiTankType == TankID.Bronze) && AssignmentPersistance <= 0f && (aiBuddy.AiTankType == TankID.Pink || aiBuddy.AiTankType == TankID.White || aiBuddy.AiTankType == TankID.Gold))
-                                //    {
-                                //    AssignmentPersistance = 2000f;
-                                //    Task = DroneTask.Recruit;
-                                //    var places = PlacementSquare.Placements.Where(x => x.BlockId == -1).ToArray();
-                                //    var angle = MathF.SinCos((Client.ClientRandom.NextFloat(0, 1) * MathF.Tau));
-                                //    TargetPosition = (new Vector2(angle.Sin,angle.Cos) * 800f) + GameScene.Center.FlattenZ();
-                                //    RecruitRequestPos = places[Client.ClientRandom.Next(0,places.Length)].Position.FlattenZ();
-                                //}
-
-                                //if (aiBuddy.SeesTarget && AssignmentPersistance <= 0f && (aiBuddy.AiTankType == TankID.Green || aiBuddy.AiTankType == TankID.Violet || aiBuddy.AiTankType == TankID.Ruby || aiBuddy.AiTankType == TankID.Sapphire))
-                                //{
-                                //    AssignmentPersistance = 1800f;
-                                //    Task = DroneTask.Hold;
-                                //    TargetPosition = Vector2.Lerp(aiBuddy.Position, aiBuddy.TargetTank.Position, 1f);
-                                //}
-                */
-
-               
 
             }
             else//You have a better Plyr companion in every way with the drone (you could say they have a friend inside me...)
@@ -963,6 +1131,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 case DroneTask.SetTrap: BehaviorSetTrap(); break;
                 case DroneTask.Recruit: BehaviorRecruit(); break;
                 case DroneTask.Hold: BehaviorPatrol(); break;
+                case DroneTask.Smoke: BehaviorSmokeBomb(); break;
+                case DroneTask.NightShade: BehaviorNightShade(); break;
             }
         }
 
@@ -981,8 +1151,6 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             HoverSoftness = 200f;
             HoverStrength = 0.04f;
             HoverAbove = 4f;
-
-
             if (CurrentState == TaskState.Start)
             {
                 if (Vector2.Distance(Position, TargetPosition) <= HoverDistance && MathF.Abs(Position3D.Y - HoverTarget) < 2f) CurrentState = TaskState.During;
@@ -999,12 +1167,55 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         }
 
+        public void BehaviorSmokeBomb()
+        {
+            HoverDistance = 6f;
+            HoverSoftness = 200f;
+            HoverStrength = 0.01f;
+            HoverAbove = 42f;
+            if (CurrentState == TaskState.Start)
+            {
+                if (Vector2.Distance(Position, TargetPosition) <= HoverDistance && MathF.Abs(Position3D.Y - HoverTarget) < 2f) CurrentState = TaskState.During;
+                return;
+            }
+            if (CurrentState == TaskState.During)
+            {
+                ParticleGameplay.CreateSmokeGrenade(GameHandler.Particles, Position3D - Vector3.UnitY * 20f, Vector3.Zero);
+                CurrentState = TaskState.Finishing;
+                return;
+            }
+            if (CurrentState == TaskState.Finishing) Task = DroneTask.Idle;
+
+        }
+
+        public void BehaviorNightShade()
+        {
+            HoverDistance = 6f;
+            HoverSoftness = 200f;
+            HoverStrength = 0.01f;
+            HoverAbove = 42f;
+            if (CurrentState == TaskState.Start)
+            {
+                if (Vector2.Distance(Position, TargetPosition) <= HoverDistance && MathF.Abs(Position3D.Y - HoverTarget) < 2f) CurrentState = TaskState.During;
+                return;
+            }
+            if (CurrentState == TaskState.During)
+            {
+                CA_Utils.CreateNightShadeGrenade(GameHandler.Particles, Position3D - Vector3.UnitY * 20f, Vector3.Zero, droneOwner!.Team);
+                CurrentState = TaskState.Finishing;
+                return;
+            }
+            if (CurrentState == TaskState.Finishing) Task = DroneTask.Idle;
+
+        }
+
+
         public void BehaviorPatrol()
         {
             HoverDistance = 1f;
             HoverSoftness = 15f;
             HoverStrength = Vector2.Distance(Position, TargetPosition) / Vector2.Distance(droneOwner!.Position, TargetPosition) > 0.5f ? 0.03f : 0.06f;
-            HoverAbove = 11f;
+            HoverAbove = 10f;
             if (CurrentState == TaskState.Start)
             {
 
@@ -1019,7 +1230,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             if (CurrentState == TaskState.During)
             {
                 if (TimeInTask > 15f) { CurrentState = TaskState.Finishing; return; }
-                var tanks = GetTanksInPath(Vector2.UnitY.Rotate(SeekingRotation), out var ricP, out var tnkCol, false, default, considersRicos: droneOwner is AITank a && a.AiTankType == TankID.Green);
+                var tanks = GetTanksInPath(Vector2.UnitY.RotatedBy(SeekingRotation), out var ricP, out var tnkCol, false, default, considersRicos: droneOwner is AITank a && a.AiTankType == TankID.Green);
                 var findsEnemy2 = tanks.Any(tnk => tnk is not null && (tnk.Team != droneOwner.Team || tnk.Team == TeamID.NoTeam) && tnk != droneOwner);
                 // var findsSelf2 = tanks.Any(tnk => tnk is not null && tnk == this);
                 // var findsFriendly2 = tanks.Any(tnk => tnk is not null && (tnk.Team == Team && tnk.Team != TeamID.NoTeam));
@@ -1033,13 +1244,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     var EmptyMag = OwnedShells.All(shl => shl is not null);
                     if (EmptyMag)
                     {
-                        CurShootCooldown = droneOwner is PlayerTank ? 80 : Properties.ShellCooldown * 2f;
+                        CurShootCooldown = droneOwner is PlayerTank ? 80 : Properties!.ShellCooldown * 2f;
                     }
                     if (CurShootCooldown < 0)
                     {
-                        CurShootCooldown = droneOwner is PlayerTank ? 50 : Properties.ShellCooldown;
-                        var new2d = Vector2.UnitY.Rotate(TurretRotation);
-                        var shell = new Shell(TurretPosition, new Vector2(-new2d.X, new2d.Y) * Properties.ShellSpeed,
+                        CurShootCooldown = droneOwner is PlayerTank ? 50 : Properties!.ShellCooldown;
+                        var new2d = Vector2.UnitY.RotatedBy(TurretRotation);
+                        var shell = new Shell(TurretPosition, new Vector2(-new2d.X, new2d.Y) * Properties!.ShellSpeed,
                         Properties.ShellType, null, Properties.RicochetCount, homing: Properties.ShellHoming, playSpawnSound: true);
                         Velocity = new Vector2(-new2d.X, new2d.Y) * Properties.ShellSpeed * -0.9f;
                         shell.ShootSound!.Instance.Pitch = MathHelper.Clamp(Properties.ShootPitch + 0.3f, -1f, 1f);
@@ -1087,11 +1298,11 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                         var CallableRecruits = PlayerTank.TankKills.Where((a, b) => b > 0).ToArray();
                         Recruit.TankToSpawn = new TankTemplate()
                         {
-                            AiTier = droneOwner is AITank ai && !Difficulties.Types["RandomizedTanks"] ?
-                            CallableRecruits.Length > 0 ? Difficulties.Types["MasterModBuff"] ? (CallableRecruits[Client.ClientRandom.Next(0, CallableRecruits.Length)].Key - 1) % 9 + 1 :
+                            AiTier = droneOwner is AITank ai && !Modifiers.Map[Modifiers.RANDOM_ENEMY] ?
+                            CallableRecruits.Length > 0 ? Modifiers.Map[Modifiers.MASTER] ? (CallableRecruits[Client.ClientRandom.Next(0, CallableRecruits.Length)].Key - 1) % 9 + 1 :
                             CallableRecruits[Client.ClientRandom.Next(0, CallableRecruits.Length)].Key :
                             TankID.Brown :
-                            Difficulties.Types["MasterModBuff"] ? Client.ClientRandom.Next(TankID.Brown, TankID.Black + 1) : Client.ClientRandom.Next(TankID.Brown, TankID.Obsidian + 1),
+                            Modifiers.Map[Modifiers.MASTER] ? Client.ClientRandom.Next(TankID.Brown, TankID.Black + 1) : Client.ClientRandom.Next(TankID.Brown, TankID.Obsidian + 1),
                             IsPlayer = false,
                             Team = droneOwner!.Team
                         };
@@ -1113,11 +1324,17 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             HoverStrength = 0.02f;
             if (CurrentState == TaskState.During)
             {
-                Recruit!.position = Position3D - new Vector3(0, 12, 0);
+                if (Recruit is null)
+                {
+                    CurrentState = TaskState.Finishing;
+                    return;
+                }
+
+                Recruit!.Position = Position3D - new Vector3(0, 12, 0);
                 TargetPosition = RecruitRequestPos;
                 if (Vector2.Distance(Position, TargetPosition) <= HoverDistance)
                 {
-                    Recruit.gravity = 2f;
+                    Recruit.Gravity = 2f;
                     CurrentState = TaskState.Finishing;
                 }
                 return;
@@ -1132,7 +1349,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         #endregion
         public void DoShootParticles()
         {
-            if (!CameraGlobals.IsUsingFirstPresonCamera)
+            if (!CameraGlobals.IsUsingFirstPersonCamera)
             {
                 var hit = GameHandler.Particles.MakeParticle(TurretPosition3D,
                     GameResources.GetGameResource<Texture2D>("Assets/textures/misc/bot_hit"));
@@ -1151,7 +1368,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             }
             Particle smoke;
 
-            if (CameraGlobals.IsUsingFirstPresonCamera)
+            if (CameraGlobals.IsUsingFirstPersonCamera)
             {
                 smoke = GameHandler.Particles.MakeParticle(TurretPosition3D,
                     ModelGlobals.Smoke.Asset,
@@ -1211,7 +1428,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             pattern ??= c => c.Properties.IsSolid || c.Type == BlockID.Teleporter;
 
             var whitePixel = TextureGlobals.Pixels[Color.White];
-            Vector2 pathPos = (start is Vector2 s ? s : Position) + offset.Rotate(-TurretRotation);
+            Vector2 pathPos = (start is Vector2 s ? s : Position) + offset.RotatedBy(-TurretRotation);
             pathDir.Y *= -1;
             pathDir *= PATH_UNIT_LENGTH;
 
@@ -1317,8 +1534,8 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                             tanks.Add(enemy);
                     }
 
-                    var pathCircle = new Circle { Center = pathPos, Radius = 4 };
-                    if (enemy.CollisionCircle.Intersects(pathCircle))
+                    var pathCircle = new BoundingSphere { Center = pathPos.ExpandZ(), Radius = 4 };
+                    if (enemy.Hurtbox.Intersects(pathCircle))
                     {
                         tnkPoints.Add(pathPos);
                         tanks.Add(enemy);
@@ -1359,6 +1576,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
 
         public void Remove()
         {
+            Shadow?.Destroy();
             if (DroneCollisions.BodyList.Contains(Body))
             {
                 DroneCollisions.Remove(Body);
@@ -1368,14 +1586,13 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             FlySound = null;
             EliteFlySound?.Instance?.Stop();
             EliteFlySound = null;
-
             AllDrones[Id] = null;
         }
 
 
         internal void Render()
         {
-            if (!GameScene.ShouldRenderAll)
+            if (!GameScene.UpdateAndRender)
                 return;
             
             TankGame.Instance.GraphicsDevice.DepthStencilState = RenderGlobals.DefaultStencilState;
@@ -1386,7 +1603,19 @@ namespace CobaltsArmada.Script.Tanks.Class_T
             TankGame.SpriteRenderer.GraphicsDevice.BlendState = BlendState.AlphaBlend;
             //  ChatSystem.SendMessage("Bepis", Color.SkyBlue);
 
-            MorphGhostMode += RuntimeData.DeltaTime * (droneOwner!.Properties.Invisible && Task == DroneTask.Idle ? 1f : -1f) / 80f;
+            //ADAPT!
+            if (droneOwner!.Properties.Invisible && !Parameters.HasCamo && Parameters.Elite) Parameters.HasCamo = true;
+
+            float MorphGhostTarget = Parameters.Elite ? (Task == DroneTask.Idle ? 1f : 
+                CurrentState == TaskState.During ? Task == DroneTask.Recruit ? 0 : 
+                0.5f : 0.9f) : Task == DroneTask.Idle? 1f : 0f; 
+           
+            bool WasEqualOrLower = MorphGhostMode <= MorphGhostTarget;
+            MorphGhostMode += RuntimeData.DeltaTime * (Parameters.HasCamo && MorphGhostMode<= MorphGhostTarget ? 1f : -1f) / 80f;
+            if (WasEqualOrLower)
+            {
+                MorphGhostMode = MathF.Min(MorphGhostMode, MorphGhostTarget);
+            }
             if (!CampaignGlobals.InMission) MorphGhostMode = 0f;
 
 
@@ -1411,6 +1640,9 @@ namespace CobaltsArmada.Script.Tanks.Class_T
         internal void DebugRender()
         {
             if (droneOwner is null) return;
+            DebugManager.DrawBoundingBox(CollisionBox, Color.Red, CameraGlobals.GameView, CameraGlobals.GameProjection);
+            DebugManager.DrawBoundingSphere(CollisionCircle, Color.Cyan, CameraGlobals.GameView, CameraGlobals.GameProjection);
+
             if (DebugLevel >= DebugManager.Id.FreeCamTest) return;
 
             //Parameter Toggles
@@ -1523,7 +1755,7 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                 DrawUtils.DrawTextureWithBorder(TankGame.SpriteRenderer, whitePixel, pos, nodecolor, Color.White, new Vector2(120f, 2f).ToResolution(), 0, Anchor.LeftCenter, 0);
                 pos += new Vector2(120f,0).ToResolution();
                 DrawUtils.DrawTextureWithBorder(TankGame.SpriteRenderer, whitePixel, pos, nodecolor, Color.White, new Vector2(16f, 2f).ToResolution(), -MathHelper.PiOver4, Anchor.LeftCenter, 0);
-                pos += new Vector2(16f,0f).Rotate(-MathHelper.PiOver4).ToResolution();
+                pos += new Vector2(16f,0f).RotatedBy(-MathHelper.PiOver4).ToResolution();
                 for (int i = 0; i < drawInfo.Count; i++)
                 {
                     var info = drawInfo.ElementAt(i);

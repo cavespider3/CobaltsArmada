@@ -8,6 +8,7 @@ using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
+using TanksRebirth.GameContent.Systems.TankSystem;
 
 namespace CobaltsArmada
 {
@@ -23,18 +24,18 @@ namespace CobaltsArmada
             [LangCode.English] = "Carnation"
         });
 
+        public float FearCooldown = 0f;
+        public float FearMult = 0f;
+
+
         public override string Texture => "assets/textures/tank_carnation";
         public override int Songs => 2;
         public override Color AssociatedColor => Color.Fuchsia;
         public override void PostApplyDefaults()
         {
             base.PostApplyDefaults();
-            Array.Resize(ref AITank.SpecialBehaviors, 3);
-            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
-            {
-                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
-            }
-            AITank.Scaling = Vector3.One * 1.25f;
+            
+            AITank.DrawParams.Scaling = Vector3.One * 1.25f;
             var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
@@ -95,26 +96,26 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
-            if (AITank.SpecialBehaviors.Length < 0) return;
-            AITank.Properties.MaxSpeed = 2f+MathF.Min(1f, AITank.SpecialBehaviors[0].Value/60f/2f)*2.6f;
-            AITank.Properties.TreadPitch = MathHelper.Lerp(-0.8f,0.9f, MathHelper.Clamp((AITank.Properties.MaxSpeed-2f)/2.6f,0f,1f));
+           
+            AITank.Properties.MaxSpeed = 2f + MathF.Min(1f, FearMult / 60f / 2f) * 2.6f;
+            AITank.Properties.TreadPitch = MathHelper.Lerp(-0.8f, 0.9f, MathHelper.Clamp((AITank.Properties.MaxSpeed - 2f) / 2.6f, 0f, 1f));
 
             //   AITank.Properties.TurningSpeed = 0.06f + MathF.Min(1f, AITank.SpecialBehaviors[0].Value)*0.055f;
             //  AITank.Properties.MaximalTurn = MathHelper.ToRadians(30+ MathF.Min(1f, AITank.SpecialBehaviors[0].Value)*45f);
 
-            if (AITank.SpecialBehaviors[0].Value > 0f) { AITank.SpecialBehaviors[0].Value -= RuntimeData.DeltaTime; }
-            else { AITank.SpecialBehaviors[0].Value = 0f; }
+            if (FearMult> 0f) { FearMult -= RuntimeData.DeltaTime; }
+            else { FearMult = 0f; }
 
-            AITank.SpecialBehaviors[1].Value -= RuntimeData.DeltaTime;
+            FearCooldown -= RuntimeData.DeltaTime;
         }
 
         public override void DangerDetected()
         {
             base.DangerDetected();
-            if (AITank.ClosestDanger!.Team != AITank.Team && AITank.SpecialBehaviors[1].Value <0.1f)
+            if (AITank.ClosestDanger!.Team != AITank.Team && FearCooldown < 0.1f)
             {
-                AITank.SpecialBehaviors[0].Value = 2.06f*60f;
-                AITank.SpecialBehaviors[1].Value = 2.6f * 60f;
+                FearMult = 2.06f * 60f;
+                FearCooldown = 2.6f * 60f;
             }
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)

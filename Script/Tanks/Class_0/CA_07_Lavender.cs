@@ -1,10 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Script.Tanks;
+using Microsoft.Xna.Framework;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Localization;
-using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
@@ -23,8 +24,8 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
             base.PostApplyDefaults();
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 1.1f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One * 1.1f;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
             AITank.Parameters.RandomTimerMaxMove = 50;
@@ -47,7 +48,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 180;
             AITank.Properties.ShellLimit = 1;
             AITank.Properties.ShellSpeed = 5f;
-            AITank.Properties.ShellType = ModContent.GetSingleton<CA_ShatterShell>().Type;
+            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_ShatterShell>().Type;
             AITank.Properties.RicochetCount = 0;
 
             AITank.Properties.Invisible = false;
@@ -85,7 +86,7 @@ namespace CobaltsArmada
                 if (context.Source is AITank ai && shellcontext.Shell.Owner is not null)
                 {
                     if (ai.AiTankType == Type ||
-                        ai.AiTankType == ModContent.GetSingleton<CA_05_Poppy>().Type) return;
+                        ai.AiTankType == ModSingletonRegistry.GetSingleton<CA_05_Poppy>().Type) return;
                 }
             
             CA_Main.Fire_AbstractShell_Tank(AITank, 8, context, 1, 0, 5f);

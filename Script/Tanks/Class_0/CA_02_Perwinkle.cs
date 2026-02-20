@@ -6,6 +6,7 @@ using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
 using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Systems.TankSystem.AI;
 
 namespace CobaltsArmada
 {
@@ -28,18 +29,18 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
             base.PostApplyDefaults();
-           // Periwinkles are probably the most generic AITank of the mod
-
+            // Periwinkles are probably the most generic AITank of the mod
+   
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile!;
+           
 
             AIParameters aiParams = AITank.Parameters;
             TankProperties properties = AITank.Properties;
 
             //## Visuals ##//
 
-            AITank.Scaling = Vector3.One;
+        
             properties.Invisible = false; //1
 
             //## Mines ##//
@@ -59,7 +60,7 @@ namespace CobaltsArmada
             properties.Acceleration = 0.04f; //11
             properties.Deceleration = 0.01f; //12
             aiParams.MaxAngleRandomTurn = MathHelper.ToRadians(60); //13
-            aiParams.RedirectAngle = MathHelper.ToRadians(4); //13
+        
             aiParams.RandomTimerMaxMove = 30; //14
             aiParams.RandomTimerMinMove = 10; //15
             aiParams.AwarenessFriendlyMine = 0; //16

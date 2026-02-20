@@ -31,7 +31,7 @@ namespace CobaltsArmada
         {
             base.OnCreate();
         
-            Shell.Model = CA_Main.Shell_Beam;
+            Shell.DrawParamsShell.Model = CA_Main.Shell_Beam;
             Shell.Properties.IsDestructible = false;
             //SLOOWWWW
             Shell.Velocity = Vector2.Normalize(Shell.Velocity)*0.001f;
@@ -59,7 +59,7 @@ namespace CobaltsArmada
                 var tank = Unsafe.Add(ref tankSSpace, i);
                 if (tank == null || tank.IsDestroyed) continue;
                
-                if (Vector2.Distance(tank.Position, Center) - tank.CollisionCircle.Radius > Radius) continue;
+                if (Vector2.Distance(tank.Position, Center) - Tank.TNK_WIDTH * tank.DrawParams.Scaling.Y > Radius) continue;
                
                 tank.Damage(new TankHurtContextShell(shell),true);
             }
@@ -70,7 +70,7 @@ namespace CobaltsArmada
             {
                 ref var bullet = ref Unsafe.Add(ref bulletSSpace, i);
                 if (bullet == null || bullet == shell) continue;
-                if (Vector2.Distance(bullet.Position, Center)-bullet.HitCircle.Radius > Radius) continue;
+                if (Vector2.Distance(bullet.Position, Center)-bullet.HitSphereSize > Radius) continue;
                 if (bullet.Properties.IsDestructible)
                     bullet.Destroy(DestructionContext.WithShell);
                 // if two indestructible bullets come together, destroy them both. too powerful!
@@ -94,7 +94,7 @@ namespace CobaltsArmada
 
             var pathDir = MathUtils.DirectionTo(start, destination).ToRotation();
 
-            var pathPos = start + Vector2.Zero.Rotate(pathDir);
+            var pathPos = start + Vector2.Zero.RotatedBy(pathDir);
 
             pathDir *= PATH_UNIT_LENGTH;
 
@@ -173,10 +173,10 @@ namespace CobaltsArmada
                 float dur = 1.5f;
 
                 float scaletimer = LaserLerp(MathF.Max(0f, -MathF.Cos(BEW / dur) / 2f + 0.5f), 0.3f);
-                float laser_Magnify = Difficulties.Types["PieFactory"] ? 4.4f : 2.1f;
+                float laser_Magnify = Modifiers.Map[Modifiers.BIG_MINES] ? 4.4f : 2.1f;
 
                 float reacher = 1.075f;
-                Shell.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-Shell.Rotation, 0, 0)
+                Shell.DrawParams.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-Shell.Rotation, 0, 0)
                     * Matrix.CreateTranslation(Shell.Position3D) * Matrix.CreateTranslation(Vector3.Normalize(Shell.Velocity3D) * Laser_length / 2f * reacher);
                 if (scaletimer > 0.2) DoKillcast(Shell, laser_Magnify * 1.25f, scaletimer>=0.95f);
 

@@ -32,8 +32,8 @@ namespace CobaltsArmada
         {
             base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+          
             var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
@@ -80,7 +80,7 @@ namespace CobaltsArmada
         public override void PreUpdate()
         {
             base.PreUpdate();
-            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.ShouldRenderAll || !CampaignGlobals.InMission) return;
+            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.UpdateAndRender || !CampaignGlobals.InMission) return;
             var properties = AITank.Properties;
             if (AITank.TargetTank is not null && AITank.SeesTarget)
             {

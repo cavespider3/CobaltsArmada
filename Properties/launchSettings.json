@@ -2,8 +2,8 @@
   "profiles": {
     "Test Mod": {
       "commandName": "Executable",
-      "executablePath": "C:\\Users\\caves\\Games\\tanks_rebirth\\TanksRebirth.exe",
-      "workingDirectory": "C:\\Users\\caves\\Games\\tanks_rebirth"
+      "executablePath": "C:\\Users\\caves\\AppData\\Local\\Tanks Rebirth\\TanksRebirth.exe",
+      "workingDirectory": "C:\\Users\\caves\\AppData\\Local\\Tanks Rebirth"
     }
   }
 }

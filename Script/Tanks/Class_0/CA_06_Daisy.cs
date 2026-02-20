@@ -1,9 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Script.Tanks;
+using Microsoft.Xna.Framework;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
+using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Localization;
-using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
@@ -25,7 +26,7 @@ namespace CobaltsArmada
         public override void PostApplyDefaults()
         {
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Stationary;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Stationary;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
      
@@ -50,7 +51,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 300;
             AITank.Properties.ShellLimit = 1;
             AITank.Properties.ShellSpeed = 5f;
-            AITank.Properties.ShellType = ModContent.GetSingleton<CA_ShatterBouncer>().Type;
+            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_ShatterBouncer>().Type;
             AITank.Properties.RicochetCount = 2;
             AITank.Parameters.SmartRicochets =true;
 

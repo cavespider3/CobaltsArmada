@@ -35,6 +35,8 @@ namespace CobaltsArmada
 
         public override int Songs => 2;
 
+        public float TetherDistance = 0;
+        public int TetherLimit = 1;
 
         public override string Texture => "assets/textures/tank_forget";
 
@@ -42,30 +44,26 @@ namespace CobaltsArmada
         public override Color AssociatedColor => Color.AliceBlue;
         public override void PostApplyDefaults()
         {
-            Array.Resize(ref AITank.SpecialBehaviors, AITank.SpecialBehaviors.Length + 4);
-            for (int i = 0; i < AITank.SpecialBehaviors.Length; i++)
-            {
-                AITank.SpecialBehaviors[i] = new TanksRebirth.GameContent.GameMechanics.AiBehavior();
-            }
+
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.SpecialBehaviors[0].Value = (
+            TetherDistance = (
       CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
       CA_Main.modifier_Difficulty > ModDifficulty.Lunatic ?
       CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
        150f : 105f : 75f : 60f) * 2.25f;
-            AITank.SpecialBehaviors[1].Value = 
+            TetherLimit =( 
      CA_Main.modifier_Difficulty > ModDifficulty.Normal ?
      CA_Main.modifier_Difficulty > ModDifficulty.Extra ?
-        3f : 2f : 1f ;
+        3 : 2 : 1 );
 
-            if (Difficulties.Types["CobaltArmada_P2"])
+            if (Modifiers.Map[M_IDOL])
             {
-                AITank.SpecialBehaviors[0].Value =900f;
+                TetherDistance =900f;
             }
 
-                AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 0.95f;
+                AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One * 0.95f;
             var Parameters = AITank.Parameters;
             var properties = AITank.Properties;
             Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(40);
@@ -119,7 +117,7 @@ namespace CobaltsArmada
             base.PostUpdate();
 
             if (LevelEditorUI.IsActive || !CampaignGlobals.InMission) return;
-            if (AITank.IsDestroyed || !GameScene.ShouldRenderAll) return;
+            if (AITank.IsDestroyed || !GameScene.UpdateAndRender) return;
 
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
@@ -130,7 +128,7 @@ namespace CobaltsArmada
 
                     //removing the tether limit for FMN tanks
 
-                    //if (Vector2.Distance(ai.Position, AITank.Position) > AITank.SpecialBehaviors[0].Value * 3f)
+                    //if (Vector2.Distance(ai.Position, AITank.Position) > TetherDistance * 3f)
                     //{
                     //    Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && x.bindTarget == ai && !x.Inverse)?.Remove();        
                     //    continue;
@@ -139,7 +137,7 @@ namespace CobaltsArmada
 
                     if (Array.Find(CA_Idol_Tether.AllTethers, x => x is not null && x.bindTarget == ai && !x.Inverse) is null)
                     {
-                        if ((AITank.Team == TeamID.NoTeam || ai.Team == AITank.Team) && Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && !x.Inverse).Length < AITank.SpecialBehaviors[1].Value)
+                        if ((AITank.Team == TeamID.NoTeam || ai.Team == AITank.Team) && Array.FindAll(CA_Idol_Tether.AllTethers, x => x is not null && x.bindHost == AITank && !x.Inverse).Length < TetherLimit)
                             _ = new CA_Idol_Tether(AITank, ai);
 
                     }

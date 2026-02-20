@@ -11,6 +11,7 @@ using static TanksRebirth.GameContent.Shell;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Systems.TankSystem;
 
 
 namespace CobaltsArmada
@@ -35,12 +36,12 @@ namespace CobaltsArmada
             if (Shell.Owner is null) return;
             int vibecheck = 0;
             if (Shell.Owner is PlayerTank) vibecheck = PlayerTank.ClientTank.PlayerType; else vibecheck = ((AITank)Shell.Owner).AiTankType;
-            if (vibecheck == ModContent.GetSingleton<CA_05_Poppy>().Type) BurstSize=4;
-            if (vibecheck == ModContent.GetSingleton<CA_07_Lavender>().Type) BurstSize = 6;
+            if (vibecheck == ModSingletonRegistry.GetSingleton<CA_05_Poppy>().Type) BurstSize=4;
+            if (vibecheck == ModSingletonRegistry.GetSingleton<CA_07_Lavender>().Type) BurstSize = 6;
 
         }
         int BurstSize = 4;
-        uint BurstBounces = 0;
+        int BurstBounces = 0;
 
         public override void OnDestroy(DestructionContext context, ref bool playSound)
         {

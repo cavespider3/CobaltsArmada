@@ -16,6 +16,7 @@ using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Internals.Common.Framework.Collisions;
 using TanksRebirth.GameContent.ID;
+using TanksRebirth.GameContent.Systems.TankSystem.AI;
 
 
 namespace CobaltsArmada
@@ -136,7 +137,7 @@ namespace CobaltsArmada
 
         internal void Update()
         {
-            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.IsActive))
+            if (!GameScene.UpdateAndRender || (!CampaignGlobals.InMission && !MainMenuUI.IsActive))
                 return;
 
             float Ani_ObliterateScale = MathF.Max(0, (LifeTime - WarningTime) / 60 * MathF.PI * 2f);
@@ -291,7 +292,7 @@ namespace CobaltsArmada
                 if (context == TeamkillContext.NotMyself && tank == Owner) continue;
                 if (context == TeamkillContext.OnlyMyself && tank != Owner) continue;
                 
-                if (Vector2.Distance(tank.Position, Position) - tank.CollisionCircle.Radius > Radius) continue;
+                if (Vector2.Distance(tank.Position, Position) - Tank.TNK_WIDTH * tank.DrawParams.Scaling.Y > Radius) continue;
                
                 tank.Damage(new TankHurtContextOther(tank,TankHurtContextOther.HurtContext.FromIngame,"JUDGED"),true);
             }
@@ -306,7 +307,7 @@ namespace CobaltsArmada
                 if (context == TeamkillContext.OnlyTeam && bullet.Owner?.Team != Owner?.Team) continue;
                 if (context == TeamkillContext.NotMyself && bullet.Owner == Owner) continue;
                 if (context == TeamkillContext.OnlyMyself && bullet.Owner != Owner) continue;
-                if (Vector2.Distance(bullet.Position, Position) -bullet.HitCircle.Radius > Hitbox.Radius) continue;
+                if (Vector2.Distance(bullet.Position, Position) -bullet.HitSphereSize > Hitbox.Radius) continue;
                 bullet?.Remove();
 
 

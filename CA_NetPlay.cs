@@ -212,8 +212,8 @@ namespace CobaltsArmada
             message.Put(drone.Id);
             message.Put(crate.TankToSpawn.AiTier);
             message.Put(crate.TankToSpawn.Team);
-            message.Put(crate.position);
-            message.Put(crate.gravity);
+            message.Put(crate.Position);
+            message.Put(crate.Gravity);
             NetClient.Send(message, LiteNetLib.DeliveryMethod.ReliableOrdered);
         }
 

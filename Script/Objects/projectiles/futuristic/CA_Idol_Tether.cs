@@ -51,7 +51,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
             {
                 float a = MathF.PI / 6 * i;
                 float h = 5f;
-                Vector3 path = (Vector2.UnitY.Rotate(a)*target.CollisionCircle.Radius*1.1f).ExpandZ()+ Vector3.UnitY * h;
+                Vector3 path = (Vector2.UnitY.RotatedBy(a)* target.DrawParams.Scaling.X * 25f * 1.1f).ExpandZ()+ Vector3.UnitY * h;
                 var p = GameHandler.Particles.MakeParticle(path, TextureGlobals.Pixels[Inverse? Color.Crimson :Color.Blue]);
                 p.Scale = new(3f);
                 p.Yaw = MathHelper.PiOver4+ a;
@@ -79,7 +79,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
         }
         internal void Update()
         {
-            if (!GameScene.ShouldRenderAll || (!CampaignGlobals.InMission && !MainMenuUI.IsActive))
+            if (!GameScene.UpdateAndRender || (!CampaignGlobals.InMission && !MainMenuUI.IsActive))
                 return;
             if (bindHost is null || bindTarget is null) { Remove(); return; }
             if (!(Valid(bindHost) && Valid(bindTarget))) { Remove(); return; }
@@ -132,7 +132,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
             {
                 float a = (MathF.PI / vfx_shield.Count * i * 2f) + (vfx_shield[i].LifeTime / 60f * MathHelper.PiOver2);
                 float h = 5f;
-                Vector3 path = (Vector2.UnitY.Rotate(a) * bindTarget.CollisionCircle.Radius * 1.1f).ExpandZ() + Vector3.UnitY * h;
+                Vector3 path = (Vector2.UnitY.RotatedBy(a) * bindTarget.DrawParams.Scaling.X * 25f * 1.1f).ExpandZ() + Vector3.UnitY * h;
                 vfx_shield[i].Position = path+ bindTarget.Position3D;
                 vfx_shield[i].Yaw = -a;
             }
@@ -164,7 +164,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
 
             if (bindHost is not null && bindHost.IsDestroyed && bindTarget is not null && !Inverse)
             {
-                if (bindHost is AITank ai && ai.AiTankType == ModContent.GetSingleton<CA_X3_ForgetMeNot>().Type)
+                if (bindHost is AITank ai && ai.AiTankType == ModSingletonRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type)
                 {
                     if (bindTarget is AITank _AITank && CA_Main.PoisonedTanks.Find(x => x == bindTarget) is null && CA_Main.PoisonedTanks.Find(x => x == ai) is not null)
                     {

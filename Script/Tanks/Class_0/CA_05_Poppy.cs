@@ -23,8 +23,8 @@ namespace CobaltsArmada
         {
             base.PostApplyDefaults();
             AITank.UsesCustomModel = true;
-            AITank.Model = CA_Main.Neo_Mobile;
-            AITank.Scaling = Vector3.One * 1.05f;
+            AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+            AITank.DrawParams.Scaling = Vector3.One * 1.05f;
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);
             AITank.Parameters.RandomTimerMinMove = 10;
             AITank.Parameters.RandomTimerMaxMove = 30;
@@ -47,7 +47,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 180;
             AITank.Properties.ShellLimit = 1;
             AITank.Properties.ShellSpeed = 5f;
-            AITank.Properties.ShellType = ModContent.GetSingleton<CA_ShatterShell>().Type;
+            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_ShatterShell>().Type;
             AITank.Properties.RicochetCount = 0;
 
             AITank.Properties.Invisible = false;

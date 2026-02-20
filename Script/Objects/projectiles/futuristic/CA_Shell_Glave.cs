@@ -44,7 +44,7 @@ namespace CobaltsArmada
         {
             base.OnCreate();
 
-            Shell.Model = CA_Main.Shell_Glaive;
+            Shell.DrawParamsShell.Model = CA_Main.Shell_Glaive;
             Shell.LifeTime = 0f;
             if (Shell.Owner is null) return;
             Shell.Properties.EmitsSmoke = false;
@@ -53,7 +53,7 @@ namespace CobaltsArmada
         }
         public override void PostUpdate()
         {
-           Shell.World = Matrix.CreateScale(2.4f) * Matrix.CreateFromYawPitchRoll(MathHelper.PiOver2 * Shell.LifeTime / 15f * (Shell.RicochetsRemaining % 2 == 1 ? 1f : -1f) * Shell.Velocity.Length()/1.2f, 0, 0) * Matrix.CreateTranslation(Shell.Position3D);
+           Shell.DrawParams.World = Matrix.CreateScale(2.4f) * Matrix.CreateFromYawPitchRoll(MathHelper.PiOver2 * Shell.LifeTime / 15f * (Shell.RicochetsRemaining % 2 == 1 ? 1f : -1f) * Shell.Velocity.Length()/1.2f, 0, 0) * Matrix.CreateTranslation(Shell.Position3D);
 
             base.PostUpdate();
 
@@ -70,7 +70,7 @@ namespace CobaltsArmada
             //var numToAdd
 
             var p = GameHandler.Particles.MakeParticle(
-               shell.Position3D, shell.Model, TextureGlobals.Pixels[Color.White]);
+               shell.Position3D, shell.DrawParamsShell.Model, TextureGlobals.Pixels[Color.White]);
             p.Yaw = shell.Rotation;
             p.Color = shell.Properties.FlameColor;
             p.HasAdditiveBlending = true;
@@ -101,11 +101,11 @@ namespace CobaltsArmada
                 {
                     var effect = (BasicEffect)mesh.Effects[j];
                     effect.World =
-                        Shell.World;
+                        Shell.DrawParams.World;
                       
 
-                    effect.View = Shell.View;
-                    effect.Projection = Shell.Projection;
+                    effect.View = Shell.DrawParams.View;
+                    effect.Projection = Shell.DrawParams.Projection;
                     effect.TextureEnabled = true;
 
                     effect.SetDefaultGameLighting_IngameEntities();
@@ -113,9 +113,9 @@ namespace CobaltsArmada
                 }
             }
 
-            for (var i = 0; i < Shell.Model.Meshes.Count; i++)
+            for (var i = 0; i < Shell.DrawParamsShell.Model.Meshes.Count; i++)
             {
-                var mesh = Shell.Model.Meshes[i];
+                var mesh = Shell.DrawParamsShell.Model.Meshes[i];
                 RenderMeshEffects(0, mesh);
                 mesh.Draw();
             }

@@ -61,12 +61,12 @@ namespace CobaltsArmada.Script.UI
 
             PopupAnimation = Animator.Create()
                 // id = 0
-                .WithFrame(new(position2d: Vector2.Zero, duration: TimeSpan.FromSeconds(0), easing: EasingFunction.Linear)) //delay
-                .WithFrame(new(position2d: Vector2.Zero, duration: TimeSpan.FromSeconds(StartDelay), easing: EasingFunction.OutExpo)) //delay
-                .WithFrame(new(position2d: Vector2.UnitX * WindowUtils.WindowWidth * -0.22f, duration: TimeSpan.FromSeconds(0.05), easing: EasingFunction.OutExpo)) //delay
-                .WithFrame(new(position2d: Vector2.UnitX * WindowUtils.WindowWidth * -0.22f, duration: TimeSpan.FromSeconds(WaitTime), easing: EasingFunction.OutExpo)) //move it in
+                .WithFrame(new(position: Vector3.Zero, duration: TimeSpan.FromSeconds(0), easing: EasingFunction.Linear)) //delay
+                .WithFrame(new(position: Vector3.Zero, duration: TimeSpan.FromSeconds(StartDelay), easing: EasingFunction.OutExpo)) //delay
+                .WithFrame(new(position: Vector3.UnitX * WindowUtils.WindowWidth * -0.22f, duration: TimeSpan.FromSeconds(0.05), easing: EasingFunction.OutExpo)) //delay
+                .WithFrame(new(position: Vector3.UnitX * WindowUtils.WindowWidth * -0.22f, duration: TimeSpan.FromSeconds(WaitTime), easing: EasingFunction.OutExpo)) //move it in
 
-                .WithFrame(new(position2d: Vector2.UnitX * WindowUtils.WindowWidth * 0.2f, duration: TimeSpan.FromSeconds(0.4), easing: EasingFunction.InBack))
+                .WithFrame(new(position: Vector3.UnitX * WindowUtils.WindowWidth * 0.2f, duration: TimeSpan.FromSeconds(0.4), easing: EasingFunction.InBack))
                 .WithFrame(new());
             ;
             PopupAnimation.OnKeyFrameFinish += PopupAnimation_OnKeyFrameFinish;
@@ -81,7 +81,7 @@ namespace CobaltsArmada.Script.UI
             PopupAnimation.OnKeyFrameFinish -= PopupAnimation_OnKeyFrameFinish;         
         }
       
-        private void PopupAnimation_OnKeyFrameFinish(KeyFrame frame)
+        private void PopupAnimation_OnKeyFrameFinish(int frame)
         {
             var frameId = PopupAnimation.KeyFrames.FindIndex(f => f.Equals(frame));
             if (frameId == 3 && Id==0 && this is Modifieralert)
@@ -97,7 +97,7 @@ namespace CobaltsArmada.Script.UI
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             
-            barPos = new Vector2(WindowUtils.WindowWidth - PopupAnimation.CurrentPosition2D.X, (BannerTexture.Height / scale_shrink + 4) * Id  + BannerTexture.Height / scale_shrink);
+            barPos = new Vector2(WindowUtils.WindowWidth - PopupAnimation.CurrentPosition.X, (BannerTexture.Height / scale_shrink + 4) * Id  + BannerTexture.Height / scale_shrink);
             DrawUtils.DrawTextureWithShadow(spriteBatch, BannerTexture, barPos.ToResolution(),
                Vector2.UnitY, BannerColor, Vector2.One.ToResolution() / scale_shrink, 1f, Anchor.LeftCenter, shadowDistScale: 0.5f);
             if (Gradient is not null)
