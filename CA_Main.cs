@@ -164,7 +164,7 @@ public class CA_Main : TanksMod {
     /// <summary>
     /// A list of tanks affected by the nightshade buff
     /// </summary>
-    public static List<Tank> PoisonedTanks = new List<Tank>();
+    public static List<Tank> PoisonedTanks = [];
 
     //It's probably overkill and poor coding, but if it works, then it works!
     public static int[] FutureSpawns = Array.Empty<int>();
@@ -186,50 +186,50 @@ public class CA_Main : TanksMod {
 
     #region TankIds
     #region NormalTanks
-    public static int Dandelion => ModSingletonRegistry.GetSingleton<CA_01_Dandelion>().Type;
+    public static int Dandelion => ModRegistry.GetSingleton<CA_01_Dandelion>().Type;
 
-    public static int Periwinkle => ModSingletonRegistry.GetSingleton<CA_02_Perwinkle>().Type;
+    public static int Periwinkle => ModRegistry.GetSingleton<CA_02_Perwinkle>().Type;
 
-    public static int Pansy => ModSingletonRegistry.GetSingleton<CA_03_Pansy>().Type;
+    public static int Pansy => ModRegistry.GetSingleton<CA_03_Pansy>().Type;
 
-    public static int SunFlower => ModSingletonRegistry.GetSingleton<CA_04_Sunflower>().Type;
+    public static int SunFlower => ModRegistry.GetSingleton<CA_04_Sunflower>().Type;
 
-    public static int Poppy => ModSingletonRegistry.GetSingleton<CA_05_Poppy>().Type;
+    public static int Poppy => ModRegistry.GetSingleton<CA_05_Poppy>().Type;
     public static int Rose => Poppy;
 
-    public static int Daisy => ModSingletonRegistry.GetSingleton<CA_06_Daisy>().Type;
+    public static int Daisy => ModRegistry.GetSingleton<CA_06_Daisy>().Type;
 
-    public static int Lavender => ModSingletonRegistry.GetSingleton<CA_07_Lavender>().Type;
+    public static int Lavender => ModRegistry.GetSingleton<CA_07_Lavender>().Type;
 
-    public static int Eryngium => ModSingletonRegistry.GetSingleton<CA_08_Eryngium>().Type;
+    public static int Eryngium => ModRegistry.GetSingleton<CA_08_Eryngium>().Type;
     public static int SeaHolly => Eryngium;
 
-    public static int Carnation => ModSingletonRegistry.GetSingleton<CA_09_Carnation>().Type;
+    public static int Carnation => ModRegistry.GetSingleton<CA_09_Carnation>().Type;
 
     #endregion
     #region SpecialTanks
 
-    public static int Kudzu => ModSingletonRegistry.GetSingleton<CA_X1_Kudzu>().Type;
+    public static int Kudzu => ModRegistry.GetSingleton<CA_X1_Kudzu>().Type;
 
-    public static int CorpseFlower => ModSingletonRegistry.GetSingleton<CA_X2_CorpseFlower>().Type;
+    public static int CorpseFlower => ModRegistry.GetSingleton<CA_X2_CorpseFlower>().Type;
 
-    public static int ForgetMeNot => ModSingletonRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type;
+    public static int ForgetMeNot => ModRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type;
 
-    public static int Allium => ModSingletonRegistry.GetSingleton<CA_X4_Allium>().Type;
+    public static int Allium => ModRegistry.GetSingleton<CA_X4_Allium>().Type;
 
-    public static int Lily => ModSingletonRegistry.GetSingleton<CA_X5_LilyValley>().Type;
+    public static int Lily => ModRegistry.GetSingleton<CA_X5_LilyValley>().Type;
 
     #endregion
     #region BossTanks
-    public static int Lotus => ModSingletonRegistry.GetSingleton<CA_Y1_Lotus>().Type;
+    public static int Lotus => ModRegistry.GetSingleton<CA_Y1_Lotus>().Type;
 
-    public static int NightShade => ModSingletonRegistry.GetSingleton<CA_Y2_NightShade>().Type;
+    public static int NightShade => ModRegistry.GetSingleton<CA_Y2_NightShade>().Type;
 
-    public static int Peony => ModSingletonRegistry.GetSingleton<CA_Y3_Peony>().Type;
+    public static int Peony => ModRegistry.GetSingleton<CA_Y3_Peony>().Type;
 
-    public static int Orchid => ModSingletonRegistry.GetSingleton<CA_Y4_Orchid>().Type;
+    public static int Orchid => ModRegistry.GetSingleton<CA_Y4_Orchid>().Type;
 
-    public static int Hydrangea => ModSingletonRegistry.GetSingleton<CA_Z9_Hydrangea>().Type;
+    public static int Hydrangea => ModRegistry.GetSingleton<CA_Z9_Hydrangea>().Type;
 
     #endregion
 
@@ -377,11 +377,8 @@ public class CA_Main : TanksMod {
 
     public static Mission[] MissionPool = [];
 
-    public static float difficultyCoEff()
-    {
-        return MathF.Pow(1.08f,MathF.Max(1,CampaignGlobals.LoadedCampaign.CachedMissions.Length - 1)) *
-            (1 + 1.3f * (GameHandler.ActivePlayerTankCount - 1));
-    }
+    public static float DifficultyCoEff() => MathF.Pow(1.08f, MathF.Max(1, CampaignGlobals.LoadedCampaign.CachedMissions.Length - 1)) * (1 + 1.3f * (GameHandler.ActivePlayerTankCount - 1));
+
     /// <summary>
     /// Updates the stats of a tank
     /// </summary>
@@ -473,13 +470,13 @@ public class CA_Main : TanksMod {
            if (PlayerRainRiskInventory[player.PlayerId].Any(x => x is not null && x.Type == item.Type))
             {
                 PlayerRainRiskInventory[player.PlayerId].Find(x => x is not null && x.Type == item.Type)!.Stacks += 1;
-                ChatSystem.SendMessage($"Player'{player.PlayerId}' picked up '{item.Name.GetLocalizedString(LangCode.English)}'('{PlayerRainRiskInventory[player.PlayerId].Find(x => x is not null && x.Type == item.Type)!.Stacks}')!", item.ItemColor);
+                ChatSystem.SendMessage($"Player'{player.PlayerId}' picked up '{item.Name[LangCode.English]}'('{PlayerRainRiskInventory[player.PlayerId].Find(x => x is not null && x.Type == item.Type)!.Stacks}')!", item.ItemColor);
             }
             else
             {
                 item.Stacks = 1;
                 PlayerRainRiskInventory[player.PlayerId].Add(item);
-                ChatSystem.SendMessage($"Player'{player.PlayerId}' picked up '{item.Name.GetLocalizedString(LangCode.English)}'!",item.ItemColor);
+                ChatSystem.SendMessage($"Player'{player.PlayerId}' picked up '{item.Name[LangCode.English]}'!",item.ItemColor);
             }
           
             PlayerRainRiskInventory[player.PlayerId].Sort(ComparePriority);
@@ -491,14 +488,14 @@ public class CA_Main : TanksMod {
                 if (EnemyRainRiskInventory[ai.AITankId].Any(x => x is not null && x.Type == item.Type))
                 {
                     EnemyRainRiskInventory[ai.AITankId].Find(x => x is not null && x.Type == item.Type)!.Stacks += 1;
-                    ChatSystem.SendMessage($"'{TankID.Collection.GetKey((tank as AITank).AiTankType)}''{ai.AITankId}' picked up '{item.Name.GetLocalizedString(LangCode.English)}'('{EnemyRainRiskInventory[ai.AITankId].Find(x => x is not null && x.Type == item.Type)!.Stacks}')!", item.ItemColor);
+                    ChatSystem.SendMessage($"'{TankID.Collection.GetKey((tank as AITank).AiTankType)}''{ai.AITankId}' picked up '{item.Name[LangCode.English]}'('{EnemyRainRiskInventory[ai.AITankId].Find(x => x is not null && x.Type == item.Type)!.Stacks}')!", item.ItemColor);
                 }
                 else
                 {
                     item.Stacks = 1;
                     EnemyRainRiskInventory[ai.AITankId].Add(item);
 
-                    ChatSystem.SendMessage($"'{TankID.Collection.GetKey((tank as AITank).AiTankType)}''{ai.AITankId}' picked up '{item.Name.GetLocalizedString(LangCode.English)}'!", item.ItemColor);
+                    ChatSystem.SendMessage($"'{TankID.Collection.GetKey((tank as AITank).AiTankType)}''{ai.AITankId}' picked up '{item.Name[LangCode.English]}'!", item.ItemColor);
                 }
                 EnemyRainRiskInventory[ai.AITankId].Sort(ComparePriority);
             }
@@ -506,7 +503,7 @@ public class CA_Main : TanksMod {
             {
                 item.Stacks = 1;
                 EnemyRainRiskInventory.Add(ai.AITankId, [item]);
-                ChatSystem.SendMessage($"'{TankID.Collection.GetKey((tank as AITank).AiTankType)}''{ai.AITankId}' picked up '{item.Name.GetLocalizedString(LangCode.English)}'!", item.ItemColor);
+                ChatSystem.SendMessage($"'{TankID.Collection.GetKey((tank as AITank).AiTankType)}''{ai.AITankId}' picked up '{item.Name[LangCode.English]}'!", item.ItemColor);
 
             }
         }
@@ -541,28 +538,33 @@ public class CA_Main : TanksMod {
 
     private static Mission GetNextMission()
     {
+      
+        DirectorBudget = (int)(DifficultyCoEff() * 3 + CampaignGlobals.LoadedCampaign.CachedMissions.Length * 2 + (int)MathF.Floor(CampaignGlobals.LoadedCampaign.CachedMissions.Length / 10) * 5 );
 
-        DirectorBudget = (int)(difficultyCoEff() * 3 + CampaignGlobals.LoadedCampaign.CachedMissions.Length * 2 + (int)MathF.Floor(CampaignGlobals.LoadedCampaign.CachedMissions.Length / 10) * 5 );
-
-        if ((CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1) % 5 == 0) DirectorBudget *= 6;
         if ((CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1) % 10 == 0) DirectorBudget += 1000;
+        else if ((CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1) % 5 == 0) DirectorBudget *= 6;
+       
 
-        Console.WriteLine("---- For Mission "+ (CampaignGlobals.LoadedCampaign.CachedMissions.Length +1).ToString() + " ----");
-        Console.WriteLine("Starting Budget: "+DirectorBudget.ToString());
+        Console.WriteLine("---- For Mission " + (CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1).ToString() + " ----");
+        Console.WriteLine("Starting Budget: " + DirectorBudget.ToString());
+        if ((CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1) % 10 == 0) Console.WriteLine("BOSS MISSION!");
 
         int InitalBudget = DirectorBudget;
-        var selectablemissions = MissionPool.Where(x => x.Tanks.Count(tank => !tank.IsPlayer) > 1 && x.Tanks.Count(tank => !tank.IsPlayer) <= MathF.Min(MathF.Floor(CampaignGlobals.LoadedCampaign.CurrentMissionId / 10) + 2,8)
+        var selectablemissions = MissionPool.Where(x => x.Tanks.Count(tank => !tank.IsPlayer) > (CampaignGlobals.LoadedCampaign.CachedMissions.Length > 4 ? 2 : 1) && x.Tanks.Count(tank => !tank.IsPlayer) <= MathF.Min(MathF.Floor(CampaignGlobals.LoadedCampaign.CachedMissions.Length / 10) + 3, 8)
         && x.Tanks.Count(tank => !tank.IsPlayer) >= MathF.Min(MathF.Max
-        (1,MathF.Floor(CampaignGlobals.LoadedCampaign.CurrentMissionId / 10)),6)).ToArray();
-
+        (2, MathF.Floor(CampaignGlobals.LoadedCampaign.CachedMissions.Length / 10)), 6)).ToArray();
+        if(CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1 == 10)
+        {
+            selectablemissions = MissionPool.Where(x => x.Tanks.Count(tank => !tank.IsPlayer) <= 2).ToArray();
+        }
         //Get the next mission based on a few factors
         var M = selectablemissions[Server.ServerRandom.Next(0, selectablemissions.Length)];
 
-       
 
-        int SpecialistsMax = (int)Math.Clamp(MathF.Floor((CampaignGlobals.LoadedCampaign.CachedMissions.Length+1)/33), 0,3) + CampaignGlobals.LoadedCampaign.CachedMissions.Length > 8 ? 1 : 0;
+
+        int SpecialistsMax = (int)Math.Clamp(MathF.Floor((CampaignGlobals.LoadedCampaign.CachedMissions.Length + 1) / 33), 0, 3) + CampaignGlobals.LoadedCampaign.CachedMissions.Length > 8 ? 1 : 0;
         int SpecialistsSelected = 0;
-        int TanksSelected = 0;
+     
         for (int i = 0; i < M.Tanks.Length; i++)
         {
             ref var T = ref M.Tanks[i];
@@ -575,7 +577,7 @@ public class CA_Main : TanksMod {
                 M2.Remove(T);
                 M.Tanks = M2.ToArray();
                 Console.WriteLine("Unable to afford another tank.");
-                i -=1;
+                i -= 1;
             }
             else
             {
@@ -583,7 +585,7 @@ public class CA_Main : TanksMod {
 
 
                 int Choice = TankID.Brown;
-                int Payment = 0;
+               
                 List<int> weightedChoice = [];
 
                 var Choices = TankCosts.Where(x => x.Value.Catagory == "Common" || (x.Value.Catagory == "Uncommon" && SpecialistsSelected < SpecialistsMax)).ToDictionary();
@@ -783,17 +785,6 @@ public class CA_Main : TanksMod {
         _tank.Properties.ShellCooldown = Math.Max(5, _tank.Properties.ShellCooldown);
 
         _tank.Properties.MaxSpeed *= 1.25f;
-       
-        if (_tank.Properties.Invisible)
-        {
-        //        _tank.Properties.CanLayTread = false;
-        //       _tank.Properties.TreadVolume = 0f;
-        }
-        if (_tank.Properties.Stationary && !_tank.Properties.Invisible)
-        {
-        //        _tank.Properties.Invisible = true;
-        //       _tank.DoInvisibilityGFXandSFX();
-        }
 
         if (_tank is AITank tank)
         {
@@ -817,7 +808,7 @@ public class CA_Main : TanksMod {
                     tank.Parameters.RandomTimerMinShoot /= 2;
                     tank.Parameters.RandomTimerMaxShoot /= 2;
                 }
-            if (tank.AiTankType == ModSingletonRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type)
+            if (tank.AiTankType == ModRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type)
             {
                 tank.Properties.Armor = new TankArmor(tank, 1);
                 tank.Properties.Armor.HideArmor = true;
@@ -894,56 +885,59 @@ public class CA_Main : TanksMod {
         }
         Drone_Disable = new OggAudio(Path.Combine(ModPath, "assets/sfx/drone_deathpt1_01.ogg"));
 
-
-
-        MainMenuUI.OnMenuOpen += Open;
-        MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
-        Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
-        Campaign.OnMissionLoad += Campaign_OnMissionLoad;
-
-        Shell.OnDestroy += Shell_OnDestroy;
-        Shell.OnRicochet += Shell_OnRicochet;
-        Shell.OnRicochetWithBlock += Shell_OnRicochetWithBlock;
-
-        SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;    
-        Mine.OnExplode += Mine_OnExplode;
-        
         GameHandler.OnPostRender += GameHandler_OnPostRender;
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
 
-        CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
+        MainMenuUI.OnMenuOpen += Open;
+        MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
         MainMenuUI.OnCampaignSelected += MainMenuUI_OnCampaignSelected;
+
+        Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
+        Campaign.OnMissionLoad += Campaign_OnMissionLoad;
+
+        CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
         CampaignGlobals.OnMissionEnd += CampaignGlobals_OnMissionEnd;
+
+        SceneManager.OnMissionCleanup += SceneManager_OnMissionCleanup;
+
+        Shell.OnDestroy += Shell_OnDestroy;
+        Shell.OnRicochet += Shell_OnRicochet;
+        
+
         Block.OnDestroy += Block_OnDestroy;
+      
+      
+        Mine.OnExplode += Mine_OnExplode;
 
         Tank.PostApplyDefaults += Tank_PostApplyDefaults;
         Tank.OnPostUpdate += Tank_OnPostUpdate;
-        
+        Tank.OnDamage += AITank_OnDamage;
         Tank.OnFire += Tank_OnFire;
         Tank.OnLayMine += Tank_OnLayMine;
+        AITank.WhileDangerDetected += AITank_WhileDangerDetected;
 
         ModLoader.OnPostModLoad += OnLoad2;
         ModLoader.OnFinishModLoading += ModLoader_OnFinishModLoading;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_04_Sunflower>().Type] = 0.32f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_05_Poppy>().Type] = 0.374f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_06_Daisy>().Type] = 0.43f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_07_Lavender>().Type] = 0.5f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_08_Eryngium>().Type] = 0.63f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_09_Carnation>().Type] = 0.85f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_X1_Kudzu>().Type] = 0.42f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_X2_CorpseFlower>().Type] = 0.21f;
-        DifficultyAlgorithm.TankDiffs[ModSingletonRegistry.GetSingleton<CA_Z9_Hydrangea>().Type] = 1.00f;
 
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_01_Dandelion>().Type] = 0.14f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_02_Perwinkle>().Type] = 0.21f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_03_Pansy>().Type] = 0.21f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_04_Sunflower>().Type] = 0.32f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_05_Poppy>().Type] = 0.374f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_06_Daisy>().Type] = 0.43f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_07_Lavender>().Type] = 0.5f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_08_Eryngium>().Type] = 0.63f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_09_Carnation>().Type] = 0.85f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_X1_Kudzu>().Type] = 0.42f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_X2_CorpseFlower>().Type] = 0.21f;
+        DifficultyAlgorithm.TankDiffs[ModRegistry.GetSingleton<CA_Z9_Hydrangea>().Type] = 1.00f;
+
+       
         Hook_UI.Load();
         TankGame.PreDrawBackBuffer += TankGame_OnPostDraw;
 
         CA_NetPlay.Load();
 
-
-        AITank.OnDamage += AITank_OnDamage;
         IntermissionSystem.IntermissionAnimator.OnKeyFrameFinish += IntermissionAnimator_OnKeyFrameFinish1;
 
         CA_DroneLicenseManager.OnApplyLicense += CA_DroneLicenseManager_OnApplyLicense;
@@ -1049,7 +1043,7 @@ public class CA_Main : TanksMod {
                     if (EnemyRainRiskInventory[i].Count == 0) TankGame.IngameConsole.Log("NOTHING", Color.White);
                     else foreach (var item in EnemyRainRiskInventory[i])
                         {
-                            TankGame.IngameConsole.Log(item.Name.GetLocalizedString(LangCode.English) + " x" + item.Stacks.ToString(), Color.White);
+                            TankGame.IngameConsole.Log(item.Name[LangCode.English] + " x" + item.Stacks.ToString(), Color.White);
                         }
                 }
 
@@ -1060,9 +1054,42 @@ public class CA_Main : TanksMod {
 
 
         }));
+
+        CommandGlobals.Commands.Add(new CommandInput(name: "RItm_add", description: "Adds an item to a tank's inventory."), new CommandOutput(netSync: false, true, (args) =>
+        {
+            if (!Modifiers.Map[M_RAINRISK])
+            {
+                TankGame.IngameConsole.Log("Rogue Mode is not Enabled!", Color.Red);
+                return;
+            }
+            if (args[0].Equals("p", StringComparison.CurrentCultureIgnoreCase))
+            {
+                AddItem(GameHandler.AllPlayerTanks[int.Parse(args[1])], GetRainItem(int.Parse(args[2])),false);
+
+            }else if (args[0].Equals("e", StringComparison.CurrentCultureIgnoreCase))
+            {
+                AddItem(GameHandler.AllAITanks[int.Parse(args[1])], GetRainItem(int.Parse(args[2])), false);
+            }
+
+
+
+
+        }));
     }
 
-    
+    private void Shell_OnRicochet(Shell shell, Block? block)
+    { 
+        if (shell.Owner is not null && CampaignGlobals.InMission && Modifiers.Map[M_RAINRISK])
+            ProcItem(shell.Owner, (item) => item.OnShellRicochet(ref shell));
+    }
+
+    private void AITank_WhileDangerDetected(AITank tank, IAITankDanger danger)
+    {
+
+
+
+    }
+
 
     #region Hooks
 
@@ -1085,15 +1112,7 @@ public class CA_Main : TanksMod {
     }
 
     private void Tank_PostApplyDefaults(Tank tank, TankProperties properties)
-    {
-
-        if (tank is PlayerTank plyer && Modifiers.Map[M_RAINRISK])
-        {
-            foreach (var item in PlayerRainRiskInventory[Math.Max(plyer.PlayerId, 0)])
-            {
-                item.OnStart(ref tank);
-            }
-        }
+    { 
 
     }
 
@@ -1182,16 +1201,6 @@ public class CA_Main : TanksMod {
     #endregion
     
     #region Shell Hooks
-    private void Shell_OnRicochetWithBlock(Block block, Shell shell)
-    {
-
-        Shell_OnRicochet(shell);
-    }
-    private void Shell_OnRicochet(Shell shell)
-    {
-        if (shell.Owner is not null && CampaignGlobals.InMission && Modifiers.Map[M_RAINRISK])
-            ProcItem(shell.Owner, (item) => item.OnShellRicochet(ref shell));
-    }
 
     private void Shell_OnDestroy(Shell shell, Shell.DestructionContext context)
     {
@@ -1219,6 +1228,12 @@ public class CA_Main : TanksMod {
             CA_Drone.DroneCollisions.Remove(block.Physics);
         }
     }
+
+    private void Block_OnRicochet(Block block, Shell shell)
+    {
+
+    }
+
 
     #endregion
 
@@ -1459,7 +1474,7 @@ public class CA_Main : TanksMod {
                 Console.WriteLine(Inv.Key.ToString());
                 foreach (var Item in Inv.Value)
                 {
-                    Console.Write("," + Item.Name.GetLocalizedString(LangCode.English) + "x" + Item.Stacks.ToString());
+                    Console.Write("," + Item.Name[LangCode.English] + "x" + Item.Stacks.ToString());
                 }
                 Console.WriteLine("");
 
@@ -1782,14 +1797,14 @@ public class CA_Main : TanksMod {
 
                 var itemName = modRItem.GetType().Name;
 
-                modRItem.Name ??= new([]);
+                modRItem.Name ??= new();
                 // modRItem.Texture ??= tankName;
 
                 // doesn't insert anything if there is already something for English
-                modRItem.Name.AddLocalization(LangCode.English, $"{mod.InternalName}.{itemName}");
+                modRItem.Name.TryAdd(LangCode.English, $"{mod.InternalName}.{itemName}");
                 modRItem!.Load();
 
-                TankGame.ClientLog.Write($"Loaded rain item '{modRItem.Name.GetLocalizedString(LangCode.English)}'", LogType.Info);
+                TankGame.ClientLog.Write($"Loaded rain item '{modRItem.Name[LangCode.English]}'", LogType.Info);
             }
 
 

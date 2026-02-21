@@ -19,10 +19,14 @@ namespace CobaltsArmada
     {
       
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Carnation"
-        });
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A powerful tank that speeds up to avoid danger, fires fast rockets that ricochet twice, and is immune to mines. Also comes with a drone."
+        };
 
         public float FearCooldown = 0f;
         public float FearMult = 0f;
@@ -66,7 +70,7 @@ namespace CobaltsArmada
 
             properties.Invisible = false;
             properties.Stationary = false;
-            properties.InvulnerableToMines = true;
+            properties.Resistance = ResistanceFlags.All;
 
             properties.TreadPitch = -0.26f;
             properties.Acceleration = 0.4f;

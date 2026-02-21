@@ -35,14 +35,14 @@ namespace CobaltsArmada
         public override string ShootSound => "assets/sfx/touhou_shot.ogg";
         public override string TrailSound => base.TrailSound;
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Rico-Shatter Shell"
-        });
+        };
         public override void OnCreate()
         {
             base.OnCreate();
-            Shell.Properties.IsDestructible = false;
+            Shell.Properties.Penetration = -1;
           
             Shell.LifeTime = 0f;
             if (Shell.Owner is null) return;

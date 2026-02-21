@@ -21,7 +21,7 @@ namespace CobaltsArmada.Script.Objects.items
             tank.Properties.ShellCooldown += (uint)(Stacks * 4);
              tank.Properties.RicochetCount = 0;
 
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
   
         }
 
@@ -36,10 +36,10 @@ namespace CobaltsArmada.Script.Objects.items
         public override Color ItemColor => Color.DarkMagenta;
 
         public override string InternalName => "BoomShells";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Explosive Rockets"
-        });
+        };
 
     }
 

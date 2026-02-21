@@ -23,10 +23,14 @@ namespace CobaltsArmada
     public class CA_01_Dandelion : CA_ArmadaTank 
     {
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Dandelion"
-        });
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A stationary tank that fires orbital strikes instead of shells. Releases a burst of shells upon death."
+        };
        
         public override string Texture => "assets/textures/tank_dandy";
         public override int Songs => 1;
@@ -80,7 +84,7 @@ namespace CobaltsArmada
             if (!destroy || context is TankHurtContextExplosion) return;
             int count = CA_Main.GetValueByDifficulty(Normal: 4, Hard: 6, Lunatic: 8, Extra: 12);
             float speed = CA_Main.GetValueByDifficulty(Normal: 3.1f, Hard: 3.8f, Lunatic: 4.5f, Extra: 7.5f);
-            int rics = CA_Main.GetValueByDifficulty(Normal: 0u, Hard: 1u, Lunatic: 1u, Extra: 0u);
+            int rics = CA_Main.GetValueByDifficulty(Normal: 0, Hard: 1, Lunatic: 1, Extra: 0);
             CA_Main.Fire_AbstractShell_Tank(base.AITank, count, context, 1,rics);
         }
 

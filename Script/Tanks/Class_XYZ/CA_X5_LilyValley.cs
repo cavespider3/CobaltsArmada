@@ -13,10 +13,15 @@ namespace CobaltsArmada
     {
       
    
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Lily"
-        });
+        };
+
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "Inflicts all tanks nearby with nightshade upon death."
+        };
         public override int Songs => 3;
 
         public override string Texture => "assets/textures/tank_medicine";

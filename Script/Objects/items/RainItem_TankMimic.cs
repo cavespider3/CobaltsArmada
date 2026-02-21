@@ -66,8 +66,8 @@ namespace CobaltsArmada.Script.Objects.items
         }
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
-            if (tank is AITank) tank.Team = TeamID.NoTeam;
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
+          //  if (tank is AITank) tank.Team = TeamID.NoTeam;
         }
 
         public override void OnTankDestroy(ref Tank owner, ref Tank victim) {
@@ -106,10 +106,10 @@ namespace CobaltsArmada.Script.Objects.items
         public override Color ItemColor => Color.Blue;
 
         public override string InternalName => "WakeOfVultures";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Sabotaged Blueprints"
-        });
+        };
 
     }
 

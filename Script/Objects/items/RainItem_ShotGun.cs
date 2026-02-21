@@ -15,7 +15,7 @@ namespace CobaltsArmada.Script.Objects.items
     {
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
             tank.Properties.ShellShootCount += 1 * Stacks;
             tank.Properties.ShellSpread =  (tank.Properties.ShellShootCount / 12 ) - 0.01f;
             tank.Properties.ShellLimit += 2 * Stacks;
@@ -24,10 +24,10 @@ namespace CobaltsArmada.Script.Objects.items
         public override Color ItemColor => Color.Orange;
 
         public override string InternalName => "SpreadShot";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Multi-Shot"
-        });
+        };
 
     }
 

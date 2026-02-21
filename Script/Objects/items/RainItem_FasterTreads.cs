@@ -13,16 +13,16 @@ namespace CobaltsArmada.Script.Objects.items
     public class RainItem_FasterTreads : RainItem
     {
         public override void OnStart(ref Tank tank) {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
             tank.Properties.MaxSpeed += 0.08f * Stacks;
         }
         public override Color ItemColor => Color.Red;
 
         public override string InternalName => "SpeedUpBasic";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Finer Traction"
-        });
+        };
 
     }
 

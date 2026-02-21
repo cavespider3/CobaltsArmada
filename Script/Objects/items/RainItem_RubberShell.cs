@@ -14,7 +14,7 @@ namespace CobaltsArmada.Script.Objects.items
     {
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
             tank.Properties.RicochetCount += 1;
         }
 
@@ -23,10 +23,10 @@ namespace CobaltsArmada.Script.Objects.items
 
         public override string InternalName => "ExtraRichochet";
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Rubber Shell"
-        });
+        };
 
     }
 

@@ -1244,16 +1244,16 @@ namespace CobaltsArmada.Script.Tanks.Class_T
                     var EmptyMag = OwnedShells.All(shl => shl is not null);
                     if (EmptyMag)
                     {
-                        CurShootCooldown = droneOwner is PlayerTank ? 80 : Properties!.ShellCooldown * 2f;
+                        CurShootCooldown = droneOwner is PlayerTank ? 80 : Properties!.Value.ShellCooldown * 2f;
                     }
                     if (CurShootCooldown < 0)
                     {
-                        CurShootCooldown = droneOwner is PlayerTank ? 50 : Properties!.ShellCooldown;
+                        CurShootCooldown = droneOwner is PlayerTank ? 50 : Properties!.Value.ShellCooldown;
                         var new2d = Vector2.UnitY.RotatedBy(TurretRotation);
-                        var shell = new Shell(TurretPosition, new Vector2(-new2d.X, new2d.Y) * Properties!.ShellSpeed,
-                        Properties.ShellType, null, Properties.RicochetCount, homing: Properties.ShellHoming, playSpawnSound: true);
-                        Velocity = new Vector2(-new2d.X, new2d.Y) * Properties.ShellSpeed * -0.9f;
-                        shell.ShootSound!.Instance.Pitch = MathHelper.Clamp(Properties.ShootPitch + 0.3f, -1f, 1f);
+                        var shell = new Shell(TurretPosition, new Vector2(-new2d.X, new2d.Y) * Properties!.Value.ShellSpeed,
+                        Properties.Value.ShellType, null, Properties.Value.RicochetCount, homing: Properties.Value.ShellHoming, playSpawnSound: true);
+                        Velocity = new Vector2(-new2d.X, new2d.Y) * Properties.Value.ShellSpeed * -0.9f;
+                        shell.ShootSound!.Instance.Pitch = MathHelper.Clamp(Properties.Value.ShootPitch + 0.3f, -1f, 1f);
                         SoundPlayer.PlaySoundInstance(CA_Main.Drone_Shoot[Client.ClientRandom.Next(0,CA_Main.Drone_Shoot.Length)]!, SoundContext.Effect, 0.2f,pitchOverride:0.5f);
                         DoShootParticles();
                         shell.Owner = droneOwner;

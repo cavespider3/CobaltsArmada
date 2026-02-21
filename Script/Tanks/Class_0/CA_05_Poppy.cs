@@ -11,10 +11,15 @@ namespace CobaltsArmada
     {
     
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Rose"
-        });
+        };
+
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "An aggresive tank that fires shells that split upon hitting a surface."
+        };
 
         public override string Texture => "assets/textures/tank_poppy";
         public override int Songs => 2;
@@ -47,7 +52,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 180;
             AITank.Properties.ShellLimit = 1;
             AITank.Properties.ShellSpeed = 5f;
-            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_ShatterShell>().Type;
+            AITank.Properties.ShellType = ModRegistry.GetSingleton<CA_ShatterShell>().Type;
             AITank.Properties.RicochetCount = 0;
 
             AITank.Properties.Invisible = false;

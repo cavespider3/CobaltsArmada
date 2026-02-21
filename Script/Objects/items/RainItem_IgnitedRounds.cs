@@ -15,7 +15,7 @@ namespace CobaltsArmada.Script.Objects.items
     {
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
         }
 
         public override void OnTankDestroy(ref Tank owner, ref Tank victim)
@@ -28,10 +28,10 @@ namespace CobaltsArmada.Script.Objects.items
         public override Color ItemColor => Color.OrangeRed;
 
         public override string InternalName => "gasoline";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Matchstick Shells"
-        });
+        };
 
     }
 

@@ -22,10 +22,15 @@ namespace CobaltsArmada
         /// </summary
         public override int Songs => 1;
          public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Lotus"
-        });
+        };
+
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A boss tank that fires piercing glaves. Summons a drone at 50% health that seldomly places mines."
+        };
 
         public int Health;
         public float MissileCluster;
@@ -66,7 +71,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = CA_Main.modifier_Difficulty <= CA_Main.ModDifficulty.Extra ? 240u : 360u ;
             AITank.Properties.ShellLimit = 2;
             AITank.Properties.ShellSpeed = 4f;
-            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_Shell_Glaive>().Type;
+            AITank.Properties.ShellType = ModRegistry.GetSingleton<CA_Shell_Glaive>().Type;
             AITank.Properties.RicochetCount = 7;
            
 

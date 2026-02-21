@@ -20,10 +20,15 @@ namespace CobaltsArmada
     {
         
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Pansy"
-        });
+        };
+
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A tank capable of switching between a quick barrage of rockets from a distance, and a powerful, shotgun spread."
+        };
 
         public override string Texture => "assets/textures/tank_pansy";
         public override int Songs => 2;

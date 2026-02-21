@@ -34,11 +34,15 @@ namespace CobaltsArmada
         /// </summary
         public override int Songs => 1;
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Nightshade"
-        });
+        };
 
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A boss tank that inflicts nearby ally tanks with nightshade. Comes with two drones that either bring in backup, or drop nightshade bombs. Has slow natural regeneration, and releases a shockwave when below 50% health."
+        };
 
         public override string Texture => "assets/textures/tank_nightshade";
 

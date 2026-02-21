@@ -23,16 +23,17 @@ namespace CobaltsArmada
         public override string ShootSound => "assets/sfx/pew.ogg";
         public override string TrailSound => base.TrailSound;
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Laser"
-        });
+        };
+
         public override void OnCreate()
         {
             base.OnCreate();
         
             Shell.DrawParamsShell.Model = CA_Main.Shell_Beam;
-            Shell.Properties.IsDestructible = false;
+            Shell.Properties.Penetration = -1;
             //SLOOWWWW
             Shell.Velocity = Vector2.Normalize(Shell.Velocity)*0.001f;
             Shell.LifeTime = 0f;
@@ -71,10 +72,10 @@ namespace CobaltsArmada
                 ref var bullet = ref Unsafe.Add(ref bulletSSpace, i);
                 if (bullet == null || bullet == shell) continue;
                 if (Vector2.Distance(bullet.Position, Center)-bullet.HitSphereSize > Radius) continue;
-                if (bullet.Properties.IsDestructible)
+                if (bullet.Properties.Penetration >=0)
                     bullet.Destroy(DestructionContext.WithShell);
                 // if two indestructible bullets come together, destroy them both. too powerful!
-                if (bullet is { Properties.IsDestructible: true, } || Properties.IsDestructible) continue;
+              
                 // Lasers ignore eachother
                 if (bullet is not null && bullet.Type == shell.Type) continue;
                 // bullet is sometimes null here? so null safety is key

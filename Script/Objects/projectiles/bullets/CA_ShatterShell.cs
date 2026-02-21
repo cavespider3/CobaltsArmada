@@ -23,10 +23,10 @@ namespace CobaltsArmada
         public override string ShootSound => "assets/sfx/touhou_shot.ogg";
         public override string TrailSound => base.TrailSound;
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Shatter Shell"
-        });
+        };
 
         public override void OnCreate()
         {
@@ -36,8 +36,8 @@ namespace CobaltsArmada
             if (Shell.Owner is null) return;
             int vibecheck = 0;
             if (Shell.Owner is PlayerTank) vibecheck = PlayerTank.ClientTank.PlayerType; else vibecheck = ((AITank)Shell.Owner).AiTankType;
-            if (vibecheck == ModSingletonRegistry.GetSingleton<CA_05_Poppy>().Type) BurstSize=4;
-            if (vibecheck == ModSingletonRegistry.GetSingleton<CA_07_Lavender>().Type) BurstSize = 6;
+            if (vibecheck == ModRegistry.GetSingleton<CA_05_Poppy>().Type) BurstSize=4;
+            if (vibecheck == ModRegistry.GetSingleton<CA_07_Lavender>().Type) BurstSize = 6;
 
         }
         int BurstSize = 4;

@@ -84,7 +84,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
             if (bindHost is null || bindTarget is null) { Remove(); return; }
             if (!(Valid(bindHost) && Valid(bindTarget))) { Remove(); return; }
 
-            bindTarget.Properties.Immortal = !(bindTarget.IsDestroyed || Inverse);
+            bindTarget.Properties.Resistance = ResistanceFlags.All;
 
             Ticker += RuntimeData.DeltaTime;
             int bits = (int)Math.Floor(distance() / 8f);
@@ -157,14 +157,14 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
             if (bindHost is not null && bindHost.IsDestroyed && bindTarget is not null && Inverse)
             {
                 ChatSystem.SendMessage("YOU'RE COMING WITH ME",Color.Crimson);
-                    bindTarget.Properties.Immortal = false;
+                    bindTarget.Properties.Resistance = 0;
                     bindTarget.Properties.Armor?.Remove();
                     bindTarget.Damage(new TankHurtContextOther(null, TankHurtContextOther.HurtContext.FromIngame, "Destiny Bonded"), true, Color.Crimson);
-            }else if (bindTarget is not null) bindTarget.Properties.Immortal = false;
+            }else if (bindTarget is not null) bindTarget.Properties.Resistance = 0;
 
             if (bindHost is not null && bindHost.IsDestroyed && bindTarget is not null && !Inverse)
             {
-                if (bindHost is AITank ai && ai.AiTankType == ModSingletonRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type)
+                if (bindHost is AITank ai && ai.AiTankType == ModRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type)
                 {
                     if (bindTarget is AITank _AITank && CA_Main.PoisonedTanks.Find(x => x == bindTarget) is null && CA_Main.PoisonedTanks.Find(x => x == ai) is not null)
                     {

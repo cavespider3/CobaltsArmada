@@ -16,7 +16,7 @@ namespace CobaltsArmada.Script.Objects.items
 
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
             tank.Properties.ShellHoming.Power += MathF.Log(Stacks) * 0.1f + 0.05f;
             tank.Properties.ShellHoming.Radius += MathF.Log(Stacks) * 50f + 40f;
             tank.Properties.ShellHoming.Speed = tank.Properties.ShellSpeed;
@@ -26,10 +26,10 @@ namespace CobaltsArmada.Script.Objects.items
 
         public override string InternalName => "HomingShells";
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Tracking Shells"
-        });
+        };
 
     }
 

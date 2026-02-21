@@ -8,8 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="modrefs\**" />
     <Compile Remove="projrefs\**" />
-    <EmbeddedResource Remove="projrefs\**" />
+    <EmbeddedResource Remove="modrefs\**" />
+
+    <None Remove="modrefs\**" />
     <None Remove="projrefs\**" />
   </ItemGroup>
 
@@ -105,7 +108,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="modrefs\" />
     <Folder Include="Script\Objects\blocks\" />
     <Folder Include="Script\Objects\mines\" />
   </ItemGroup>

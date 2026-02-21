@@ -22,11 +22,14 @@ namespace CobaltsArmada
     {
  
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Kudzu"
-        });
-
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "An absurdly idiotic and aggresive tank that comes equiped with 3 persistant drones that constantly brings in back-up of only itself."
+        };
         public override string Texture => "assets/textures/tank_kudzu";
         public override int Songs => 5;
   

@@ -53,10 +53,10 @@ namespace CobaltsArmada.Script.Objects.items
         /// <summary>
         /// The basic description for what the item does
         /// </summary>
-        public virtual LocalizedString Description { get; internal set; } = new(new()
+        public virtual LocalizedString Description { get; internal set; } = new()
         {
             [LangCode.English] = ""
-        });
+        };
 
         public virtual int Priority { get; set; } = 0;
         public virtual Color ItemColor { get; set; }

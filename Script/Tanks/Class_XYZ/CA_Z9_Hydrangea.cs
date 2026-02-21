@@ -30,10 +30,10 @@ namespace CobaltsArmada
     public class CA_Z9_Hydrangea: CA_ArmadaTank
     {
         public override bool HasSong => false;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Hydrangea"
-        });
+        };
 
         public override string Texture => "assets/textures/tank_zenith";
         public override int Songs => 1;

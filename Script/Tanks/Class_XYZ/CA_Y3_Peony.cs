@@ -20,10 +20,10 @@ namespace CobaltsArmada
 
         public override int Songs => 1;
          public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Peony"
-        });
+        };
 
         public override string Texture => "assets/textures/tank_peony";
         
@@ -67,7 +67,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 500;
             AITank.Properties.ShellLimit = 3;
             AITank.Properties.ShellSpeed = 4f;
-            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_Shell_Glaive>().Type;
+            AITank.Properties.ShellType = ModRegistry.GetSingleton<CA_Shell_Glaive>().Type;
             AITank.Properties.RicochetCount = 7;
 
 

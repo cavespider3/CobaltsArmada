@@ -36,10 +36,10 @@ namespace CobaltsArmada
         public override string ShootSound => "assets/sfx/touhou_shot.ogg";
         public override string TrailSound => base.TrailSound;
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Razor Shell"
-        });
+        };
         public override void OnCreate()
         {
             base.OnCreate();
@@ -47,8 +47,7 @@ namespace CobaltsArmada
             Shell.DrawParamsShell.Model = CA_Main.Shell_Glaive;
             Shell.LifeTime = 0f;
             if (Shell.Owner is null) return;
-            Shell.Properties.EmitsSmoke = false;
-            Shell.Properties.IsDestructible = false;
+            Shell.Properties.Penetration = -1;
             
         }
         public override void PostUpdate()

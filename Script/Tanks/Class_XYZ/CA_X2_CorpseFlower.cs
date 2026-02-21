@@ -23,11 +23,14 @@ namespace CobaltsArmada
     {
       
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Corpse Flower"
-        });
-
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "Explodes upon death."
+        };
         public override string Texture => "assets/textures/tank_corpse";
         public override int Songs => 2;
         public override Color AssociatedColor => Color.OrangeRed;

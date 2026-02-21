@@ -15,10 +15,15 @@ namespace CobaltsArmada
     {
       
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Daisy"
-        });
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "Fires frag-shells that ricochet twice."
+        };
+
 
         public override string Texture => "assets/textures/tank_daisy";
         public override int Songs => 3;
@@ -51,7 +56,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 300;
             AITank.Properties.ShellLimit = 1;
             AITank.Properties.ShellSpeed = 5f;
-            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_ShatterBouncer>().Type;
+            AITank.Properties.ShellType = ModRegistry.GetSingleton<CA_ShatterBouncer>().Type;
             AITank.Properties.RicochetCount = 2;
             AITank.Parameters.SmartRicochets =true;
 

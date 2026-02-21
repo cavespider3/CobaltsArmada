@@ -17,11 +17,14 @@ namespace CobaltsArmada
     {
     
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Periwinkle"
-        });
-
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A slippery tank that weak, homing rockets."
+        };
         public override string Texture => "assets/textures/tank_periwinkle";
         public override int Songs => 2;
         public override Color AssociatedColor => new Color(204, 204, 255);

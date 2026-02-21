@@ -17,7 +17,7 @@ namespace CobaltsArmada.Script.Objects.items
 
         public override void OnStart(ref Tank tank)
         { 
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
             tank.DrawParams.Scaling -= Vector3.One * 0.05f * Math.Clamp(Stacks,0,18);
             tank.Properties.MaxSpeed += 0.05f * Math.Clamp(Stacks,0,18);
             tank.Properties.TurningSpeed += 0.075f * Math.Clamp(Stacks,0,18);
@@ -31,10 +31,10 @@ namespace CobaltsArmada.Script.Objects.items
 
         public override string InternalName => "minimush";
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Compact Plating"
-        });
+        };
 
     }
 

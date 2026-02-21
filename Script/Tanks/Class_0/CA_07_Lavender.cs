@@ -13,11 +13,14 @@ namespace CobaltsArmada
     {
       
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Lavender"
-        });
-
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "An aggresive tank that fires frag-shells, dodges well, and releases a burst upon death."
+        };
         public override string Texture => "assets/textures/tank_lavender";
         public override int Songs => 3;
         public override Color AssociatedColor => Color.Lavender;
@@ -48,7 +51,7 @@ namespace CobaltsArmada
             AITank.Properties.ShellCooldown = 180;
             AITank.Properties.ShellLimit = 1;
             AITank.Properties.ShellSpeed = 5f;
-            AITank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_ShatterShell>().Type;
+            AITank.Properties.ShellType = ModRegistry.GetSingleton<CA_ShatterShell>().Type;
             AITank.Properties.RicochetCount = 0;
 
             AITank.Properties.Invisible = false;
@@ -86,7 +89,7 @@ namespace CobaltsArmada
                 if (context.Source is AITank ai && shellcontext.Shell.Owner is not null)
                 {
                     if (ai.AiTankType == Type ||
-                        ai.AiTankType == ModSingletonRegistry.GetSingleton<CA_05_Poppy>().Type) return;
+                        ai.AiTankType == ModRegistry.GetSingleton<CA_05_Poppy>().Type) return;
                 }
             
             CA_Main.Fire_AbstractShell_Tank(AITank, 8, context, 1, 0, 5f);

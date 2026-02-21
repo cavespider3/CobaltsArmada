@@ -15,7 +15,7 @@ namespace CobaltsArmada.Script.Objects.items
     {
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
             tank.Properties.ShellSpeed += 0.06f * Stacks;
             //tank.Properties.ShellHoming.Power += 0.08f;
             //tank.Properties.ShellHoming.Power *= 0.25f;
@@ -28,10 +28,10 @@ namespace CobaltsArmada.Script.Objects.items
 
         public override string InternalName => "FasterShells";
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Aerodynamic Tips"
-        });
+        };
 
     }
 

@@ -23,7 +23,7 @@ namespace CobaltsArmada.Script.Objects.items
     {
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
         }
 
         public override void OnMinePlaced(ref Tank tank, ref Mine mine)
@@ -120,10 +120,10 @@ namespace CobaltsArmada.Script.Objects.items
         public override Color ItemColor => Color.DarkMagenta;
 
         public override string InternalName => "No";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Void Mines"
-        });
+        };
 
     }
 

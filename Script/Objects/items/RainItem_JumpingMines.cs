@@ -26,14 +26,14 @@ namespace CobaltsArmada.Script.Objects.items
         public bool NatrualImmunity = false;
         public override void OnTankUpdate(ref Tank tank) {
             if (NatrualImmunity) return;
-            tank.Properties.InvulnerableToMines = JumpTime > 0;
+            tank.Properties.Resistance = JumpTime > 0 ? ResistanceFlags.Explosions : 0;
             JumpTime -= RuntimeData.DeltaTime / 60f;
         }
 
         public override void OnStart(ref Tank tank)
         {
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
-            NatrualImmunity = tank.Properties.InvulnerableToMines;
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
+            NatrualImmunity = tank.Properties.Resistance == ResistanceFlags.Explosions;
         }
 
 
@@ -77,10 +77,10 @@ namespace CobaltsArmada.Script.Objects.items
         public override Color ItemColor => Color.DarkMagenta;
 
         public override string InternalName => "rocketjumping";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Sticky Jumper"
-        });
+        };
 
     }
 

@@ -20,10 +20,15 @@ namespace CobaltsArmada
     {
       
 
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Allium"
-        });
+        };
+
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "Tethers to an enemy tank, killing it upon its own death."
+        };
         public override int Songs => 2;
 
         public float MutanyTimer;

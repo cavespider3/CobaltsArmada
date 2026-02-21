@@ -24,10 +24,15 @@ namespace CobaltsArmada
     {
       //Sea Holly
         public override bool HasSong => true;
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Sea Holly"
-        });
+        };
+
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "A tank that switches between a mobile and stationary mode, firing lasers while stationary."
+        };
 
         public float SwitchTimer = 0;
         public float Mode = 0;
@@ -79,7 +84,7 @@ namespace CobaltsArmada
             properties.ShellHoming = new();
             tank.Properties.CanLayTread = true;
             Parameters.SmartRicochets = false;
-            properties.InvulnerableToMines = false;
+            properties.Resistance = 0;
             Parameters.PredictsPositions = true;
             tank.Properties.TrackType = TrackID.Thick;
             properties.TreadPitch = -0.2f;
@@ -127,7 +132,7 @@ namespace CobaltsArmada
             properties.ShellLimit = 1;
             properties.ShellSpeed = 3f;
           
-            tank.Properties.ShellType = ModSingletonRegistry.GetSingleton<CA_Shell_Rail>().Type;
+            tank.Properties.ShellType = ModRegistry.GetSingleton<CA_Shell_Rail>().Type;
             properties.RicochetCount = 0;
             tank.DrawParamsTank.Model = CA_Main.Neo_Stationary;
             tank.InitModelSemantics();
@@ -136,7 +141,7 @@ namespace CobaltsArmada
             properties.Stationary = true;
       
             properties.ShellHoming = new();
-            properties.InvulnerableToMines = true;
+            properties.Resistance = TanksRebirth.GameContent.Systems.TankSystem.ResistanceFlags.Explosions;
             tank.Properties.CanLayTread = false;
             Parameters.PredictsPositions = true;
             tank.Speed = 0f;

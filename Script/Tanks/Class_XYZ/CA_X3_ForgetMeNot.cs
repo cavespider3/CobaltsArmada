@@ -28,11 +28,14 @@ namespace CobaltsArmada
     {
       
    
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Forget-Me-Not"
-        });
-
+        };
+        public override LocalizedString Description => new()
+        {
+            [LangCode.English] = "Protects a tank from being destroyed."
+        };
         public override int Songs => 2;
 
         public float TetherDistance = 0;

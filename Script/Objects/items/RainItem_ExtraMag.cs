@@ -14,16 +14,16 @@ namespace CobaltsArmada.Script.Objects.items
     {
         public override void OnStart(ref Tank tank) {
             tank.Properties.ShellLimit += 1;
-            TankGame.IngameConsole.Log("Activating the power of " + Name.GetLocalizedString(LangCode.English), ItemColor);
+            TankGame.IngameConsole.Log("Activating the power of " + Name[LangCode.English], ItemColor);
         }
         public override Color ItemColor => Color.Aqua;
 
 
         public override string InternalName => "ExtraAmmo";
-        public override LocalizedString Name => new(new()
+        public override LocalizedString Name => new()
         {
             [LangCode.English] = "Additional Mag"
-        });
+        };
 
     }
 
