@@ -46,7 +46,7 @@ public partial struct CentipedeAISystem : IAISystem
     public int GroupID = 0;
     public int SegmentID = 0;
 
-    public int HISTORY_DELAY { get { return Math.Max(5,48 + (int)((1.2f - Tank.Properties.MaxSpeed) * 10)); } }
+    public int HISTORY_DELAY { get { return Math.Max(5,48 + (int)((1.2f - Tank.Properties.MaxSpeed) * 30)); } }
 
     public AITank? CentipedeHead;
     public bool IsHeadSegment { get { return CentipedeHead is null || (CentipedeHead is not null && CentipedeHead.IsDestroyed); } }

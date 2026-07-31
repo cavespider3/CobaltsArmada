@@ -49,6 +49,7 @@ namespace CobaltsArmada
             AITank.Extras.Armor = new TankArmor(AITank, Health);
             AITank.Extras.Armor.HideArmor = true;
             AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
+ 
             AITank.DrawParams.Scaling = Vector3.One * 1.3f;
 
             AITank.Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(30);

@@ -1,22 +1,23 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.AI;
+using CobaltsArmada.Script.Tanks;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Diagnostics.Tracing;
+using System.Threading.Tasks;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
-
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Systems.Coordinates;
-using TanksRebirth.Internals.Common.Framework.Audio;
+using TanksRebirth.GameContent.Tanks;
+using TanksRebirth.GameContent.Tanks.AI;
 using TanksRebirth.Internals;
+using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
-using System.Threading.Tasks;
-using System.Diagnostics.Tracing;
 using TanksRebirth.Net;
-using TanksRebirth.GameContent.Tanks.AI;
-using TanksRebirth.GameContent.Tanks;
-using CobaltsArmada.Script.Tanks;
+using static CobaltsArmada.CA_Main;
 
 namespace CobaltsArmada
 {
@@ -32,7 +33,7 @@ namespace CobaltsArmada
 
         public override LocalizedString Description => new()
         {
-            [LangCode.English] = "A tank that switches between a mobile and stationary mode, firing lasers while stationary."
+            [LangCode.English] = Modifiers.Map[CA_Main.M_LEGACY] ? "A tank that switches between a mobile and stationary mode, firing lasers while stationary." : "A fast armoured train that fires orbital strikes"
         };
 
         public float SwitchTimer = 0;
@@ -48,9 +49,69 @@ namespace CobaltsArmada
             AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
             AITank.DrawParams.Scaling = Vector3.One * 1.1f;
             AITank.Parameters.MaxQueuedMovements = 4;
-            Properties_Visible(AITank);
-            
+            if (Modifiers.Map[CA_Main.M_LEGACY]) Properties_Visible(AITank);
+            else
+            {
+                var Parameters = AITank.Parameters;
+                var properties = AITank.Properties;
+                Parameters.RandomTimerMinMove = 10;
+                Parameters.RandomTimerMaxMove = 40;
+                Parameters.MaxAngleRandomTurn = MathHelper.ToRadians(25);
+                Parameters.TurretMovementTimer = 60;
+                Parameters.TurretSpeed = 0.08f;
+                Parameters.AimOffset = MathHelper.ToRadians(2);
+
+
+                Parameters.AggressivenessBias = -0.05f;
+
+                Parameters.AwarenessHostileShell = 60;
+                Parameters.AwarenessHostileMine = 160;
+
+                properties.TurningSpeed = 0.1f;
+                properties.MaximalTurn = MathHelper.ToRadians(30);
+
+                //RAIL CANNON!
+                properties.ShootStun = 4;
+                properties.ShellCooldown = 100;
+                properties.ShellLimit = 1;
+                properties.ShellSpeed = 5f;
+                properties.ShellType = ShellID.Standard;
+                properties.RicochetCount = 4;
+                //we get a little devious
+
+                properties.Stationary = false;
+                properties.ShellHoming = new();
+                AITank.Properties.CanLayTread = true;
+                Parameters.SmartRicochets = false;
+                properties.Resistance = 0;
+                Parameters.PredictsPositions = true;
+                AITank.Properties.TrackType = TrackID.Thick;
+                properties.TreadPitch = -0.2f;
+                properties.MaxSpeed = 2.1f;
+                properties.TreadVolume = 0.2f;
+                properties.Acceleration = 0.3f;
+                AITank.DrawParamsTank.Model = CA_Main.Neo_Mobile;
+                AITank.InitModelSemantics();
+
+                Parameters.ObstacleAwarenessMovement = 90;
+                AITank.Parameters.DetectionForgivenessSelf = MathHelper.ToRadians(5);
+                AITank.Parameters.DetectionForgivenessFriendly = MathHelper.ToRadians(20);
+                AITank.Parameters.DetectionForgivenessHostile = MathHelper.ToRadians(20);
+                AITank.Parameters.TankAwarenessShoot = 2;
+
+                if (AITank.TankAI is not CentipedeAISystem)
+                {
+                    AITank.TankAI = new CentipedeAISystem(AITank, null);
+                    if (AITank.TankAI is CentipedeAISystem centipede)
+                    {
+                        centipede.Segments = 5;
+                        centipede.StupidTrain = false;
+                        centipede.TurretPattern = [false, true, false];
+                    }
+                }
+            }
         }
+
         static AITank? _Tank;
         static void Properties_Visible(AITank tank)
         {
@@ -79,6 +140,7 @@ namespace CobaltsArmada
             properties.ShellSpeed = 5f;
             properties.ShellType = ShellID.TrailedRocket;
             properties.RicochetCount = 0;
+           
             //we get a little devious
             
             properties.Stationary = false;
@@ -165,12 +227,38 @@ namespace CobaltsArmada
             tank.Parameters.TankAwarenessShoot = 50;
         }
 
+        public override void Shoot(Shell shell)
+        {
+            shell.Properties.CanFriendlyFire = false;
 
+            if (Modifiers.Map[CA_Main.M_LEGACY]) return;
+            float rad = 2.1f;
+
+            var ring = GameHandler.Particles.MakeParticle(AITank.TargetTank!.Position3D + Vector3.UnitY * 0.01f, GameResources.GetGameResource<Texture2D>("Assets/textures/misc/ring"));
+            ring.Scale = new(0.6f);
+            ring.Pitch = MathHelper.PiOver2;
+            ring.HasAdditiveBlending = true;
+            ring.Color = Color.Cyan;
+
+            ring.UniqueBehavior = (a) =>
+            {
+                ring.Alpha -= 0.06f * RuntimeData.DeltaTime;
+
+                GeometryUtils.Add(ref ring.Scale, (0.03f) * RuntimeData.DeltaTime);
+                if (ring.Alpha <= 0)
+                    ring.Destroy();
+            };
+
+            CA_OrbitalStrike orbitalStrike = new CA_OrbitalStrike(AITank.TargetTank!.Position, AITank, rad, 2f, 0.1f, CA_Main.modifier_Difficulty >= ModDifficulty.Extra ? 2.5f : 1f, CA_OrbitalStrike.TeamkillContext.All);
+            orbitalStrike._LaserTexture = CA_Main.Beam_Dan;
+            shell.Remove();
+
+        }
 
 
         public override void PostUpdate()
         {
-
+            if (!Modifiers.Map[CA_Main.M_LEGACY]) return;
             AITank.Speed *= AITank.Properties.Stationary ? 0f : 1f;
             AITank.Velocity *= AITank.Properties.Stationary ? 0f : 1f;
             AITank.Parameters.TurretSpeed = AITank.CurShootStun > 0 ? 0f : 0.05f;

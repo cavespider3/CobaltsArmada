@@ -865,6 +865,7 @@ public class CA_Main : TanksMod {
         
         //I like trains
         Modifiers.Map.Add(M_RAILWAY, false);
+        Modifiers.Map.Add(M_LEGACY, false);//They're OLD!
 
         Neo_Remote = ImportAsset<Model>("assets/models/tank_radio");
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
@@ -1450,7 +1451,11 @@ public class CA_Main : TanksMod {
             {
                 if (template.TankAI is CentipedeAISystem centipede && !centipede.IsLoaded)
                 {
-                    centipede.ConstructCentipede(7,false);
+                    if (centipede.Segments == 0) centipede.ConstructCentipede(3, false);
+                    else
+                    {
+                        centipede.ConstructCentipede(centipede.Segments, centipede.StupidTrain);
+                    }
                 }
             }
         }
@@ -1752,7 +1757,7 @@ public class CA_Main : TanksMod {
                 }
             }
         }
-
+        
         if (Modifiers.Map[M_RAILWAY])
         {
             foreach (var t2 in tanks)
@@ -1946,7 +1951,7 @@ public class CA_Main : TanksMod {
     {
         return tank.AiTankType == SunFlower ? 1 :
             tank.AiTankType == Kudzu ? 3 :
-            tank.AiTankType == Carnation ? 1 :
+            tank.AiTankType == Carnation && Modifiers.Map[M_LEGACY] ? 1 :
             tank.AiTankType == NightShade ? 2 :
             tank.AiTankType == Hydrangea ? 2 : 0;
     }
