@@ -11,7 +11,9 @@ using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.Globals;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
+using TanksRebirth.GameContent.Systems.LevelSystem;
 
 namespace CobaltsArmada
 {
@@ -34,10 +36,10 @@ namespace CobaltsArmada
         public BossBar(AITank owner, string name, string subtitle)
         {
             Owner = owner;
-            if (owner.Properties.Armor is not null)
+            if (owner.Extras.Armor is not null)
             {
 
-                BossHPMax = owner.Properties.Armor.HitPoints;
+                BossHPMax = owner.Extras.Armor.HitPoints;
                 BossHP = BossHPMax;
                 
             }
@@ -48,7 +50,7 @@ namespace CobaltsArmada
         public void Update()
         {
             if (Owner is null) return;
-            BossHP = Owner.Properties.Armor!.HitPoints;
+            BossHP = Owner.Extras.Armor!.HitPoints;
         }
         public void Render(SpriteBatch sb, Vector2 position, Vector2 scale, Anchor aligning, Color emptyColor, Color fillColor)
         {

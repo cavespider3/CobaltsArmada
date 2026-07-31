@@ -1,24 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Net.NetworkInformation;
-
-using System.Text;
-using System.Threading.Tasks;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.Systems.ParticleSystem;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Internals;
-using TanksRebirth.Internals.Common.Framework;
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Net;
-using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
+
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CobaltsArmada.Script.Objects.items

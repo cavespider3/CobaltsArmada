@@ -15,8 +15,8 @@ using static CobaltsArmada.CA_Main;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.GameContent.Globals;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada

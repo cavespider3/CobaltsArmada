@@ -4,8 +4,8 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
-using TanksRebirth.GameContent.Systems.TankSystem;
-
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 namespace CobaltsArmada
 {
     /// <summary>A tank that gives the nightshade buff to other tanks when it dies</summary>
@@ -20,7 +20,7 @@ namespace CobaltsArmada
 
         public override LocalizedString Description => new()
         {
-            [LangCode.English] = "Inflicts all tanks nearby with nightshade upon death."
+            [LangCode.English] = "Upon death, sends out a nightshade spirit that haunts another tank."
         };
         public override int Songs => 3;
 
@@ -59,7 +59,6 @@ namespace CobaltsArmada
             AITank.Properties.ShellSpeed = 4f;
             AITank.Properties.ShellType = ShellID.Standard;
             AITank.Properties.RicochetCount = 0;
-
 
 
             AITank.Properties.Invisible = false;

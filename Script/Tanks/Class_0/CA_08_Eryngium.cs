@@ -14,7 +14,8 @@ using TanksRebirth.Localization;
 using System.Threading.Tasks;
 using System.Diagnostics.Tracing;
 using TanksRebirth.Net;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
@@ -132,7 +133,7 @@ namespace CobaltsArmada
             properties.ShellLimit = 1;
             properties.ShellSpeed = 3f;
           
-            tank.Properties.ShellType = ModRegistry.GetSingleton<CA_Shell_Rail>().Type;
+            tank.Properties.ShellType = ModRegistry.GetSingleton<CA_Laser>().Type;
             properties.RicochetCount = 0;
             tank.DrawParamsTank.Model = CA_Main.Neo_Stationary;
             tank.InitModelSemantics();
@@ -141,7 +142,7 @@ namespace CobaltsArmada
             properties.Stationary = true;
       
             properties.ShellHoming = new();
-            properties.Resistance = TanksRebirth.GameContent.Systems.TankSystem.ResistanceFlags.Explosions;
+            properties.Resistance = ResistanceFlags.Explosions;
             tank.Properties.CanLayTread = false;
             Parameters.PredictsPositions = true;
             tank.Speed = 0f;

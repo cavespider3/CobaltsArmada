@@ -8,15 +8,16 @@ using static TanksRebirth.GameContent.Shell;
 using static TanksRebirth.GameContent.Mine;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using TanksRebirth.GameContent.Systems.AI;
+
 using TanksRebirth.Internals.Common.Framework.Audio;
 using TanksRebirth.Graphics;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.UI.MainMenu;
-using TanksRebirth.GameContent.Systems.TankSystem;
+
 using TanksRebirth.Internals.Common.Framework.Collisions;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.Systems.TankSystem.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 
 
 namespace CobaltsArmada

@@ -9,16 +9,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TanksRebirth.GameContent.Globals;
-using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Graphics.Shaders;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Framework.Animation;
 using TanksRebirth.Internals.Common.Utilities;
 using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
 
-namespace CobaltsArmada.Script.UI
-{
+namespace CobaltsArmada;
     public class CA_Popup
     {
         public Color BannerColor;
@@ -119,4 +118,3 @@ namespace CobaltsArmada.Script.UI
 
 
     }
-}

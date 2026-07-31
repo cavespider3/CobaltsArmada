@@ -55,6 +55,10 @@ namespace CobaltsArmada.Hooks
 
         public static UITextButton? RogueLike;
 
+        public static UITextButton? Ghosts;
+
+        public static UITextButton? RailWay;
+
 
         public static List<UITextButton> buttons = new();
 
@@ -87,6 +91,31 @@ namespace CobaltsArmada.Hooks
 
             };
 
+            Ghosts = new("Haunted Tanks", FontGlobals.RebirthFont, Color.White)
+            {
+                IsVisible = false,
+                Tooltip = "Enemy tanks will sometimes release a spirit.",
+                OnLeftClick = (elem) =>
+                {
+                    Modifiers.Map[M_GHOST] = !Modifiers.Map[M_GHOST];
+
+                },
+                Color = Modifiers.Map[M_LAYERS] ? Color.Lime : Color.Red
+
+            };
+
+            RailWay = new("Centi-Tanks", FontGlobals.RebirthFont, Color.White)
+            {
+                IsVisible = false,
+                Tooltip = "Mobile Enemy tanks are now segmented abominations.",
+                OnLeftClick = (elem) =>
+                {
+                    Modifiers.Map[M_RAILWAY] = !Modifiers.Map[M_RAILWAY];
+
+                },
+                Color = Modifiers.Map[M_RAILWAY] ? Color.Lime : Color.Red
+
+            };
 
             SkynetModeA = new("Players have drones", FontGlobals.RebirthFont, Color.White)
             {
@@ -231,7 +260,7 @@ namespace CobaltsArmada.Hooks
             //Hooks
 
             buttons.AddRange([
-               BadFactory, Invasion, Touhoumode_2, Tankbonic_Plague, Tanktosis, oopsAllIdol,SkynetModeA,SkynetModeB,TankSiblings,InfiniteMission,RogueLike
+               BadFactory,TankSiblings,Ghosts,RailWay, Invasion, Touhoumode_2, Tankbonic_Plague, Tanktosis, oopsAllIdol,SkynetModeA,SkynetModeB,InfiniteMission,RogueLike
            ]);
             startIndex = MainMenuUI.AllDifficultyButtons.Count - 1;
             MainMenuUI.AllDifficultyButtons.AddRange(buttons);
@@ -259,6 +288,8 @@ namespace CobaltsArmada.Hooks
                     InfiniteMission!.IsVisible = true;
                     SkynetModeB!.IsVisible = true;
                     TankSiblings!.IsVisible = true;
+                    Ghosts!.IsVisible = true;
+                    RailWay!.IsVisible = true;
 
                     Touhoumode_2.Text = "Difficulty: " + modifier_Difficulty.ToString();
                     Touhoumode_2.Tooltip = "Modifies Armada tanks to be easier or harder.\n\"" + (
@@ -292,6 +323,8 @@ namespace CobaltsArmada.Hooks
                     SkynetModeB!.Color = Modifiers.Map[M_ENEMYDRONE] ? Color.Lime : Color.Red;
                     TankSiblings!.Color = Modifiers.Map[M_LAYERS] ? Color.Lime : Color.Red;
                     BadFactory!.Color = Modifiers.Map[M_BROKENFACTORY] ? Color.Lime : Color.Red;
+                    Ghosts!.Color = Modifiers.Map[M_GHOST] ? Color.Lime : Color.Red;
+                    RailWay!.Color = Modifiers.Map[M_RAILWAY] ? Color.Lime : Color.Red;
                 }
                 else
                 {
@@ -306,6 +339,8 @@ namespace CobaltsArmada.Hooks
                     TankSiblings!.IsVisible = false;
                     RogueLike!.IsVisible = false;
                     InfiniteMission!.IsVisible = false;
+                    Ghosts!.IsVisible = false;
+                    RailWay!.IsVisible = false;
                 }
             }
             catch

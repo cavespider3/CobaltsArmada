@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Localization;
 
 namespace CobaltsArmada.Script.Objects.items

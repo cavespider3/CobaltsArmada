@@ -9,13 +9,15 @@ using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
 
 
-namespace CobaltsArmada.Script.Tanks
+namespace CobaltsArmada
 {
+    /// <summary>
+    /// The base class used by Armada tanks.
+    /// </summary>
     public abstract class CA_ArmadaTank : ModTank
     {
-        
         public bool BossTank;
-       
+
         public override void PostApplyDefaults()
         {
             AITank.UsesCustomModel = true;

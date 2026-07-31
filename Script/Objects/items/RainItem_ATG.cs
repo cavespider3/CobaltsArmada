@@ -1,14 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -24,7 +18,8 @@ namespace CobaltsArmada.Script.Objects.items
             {
                 Shell.HomingProperties homing = new() { HeatSeeks = true, Cooldown = 0, Power = tank.Properties.ShellSpeed * 0.1f, Speed = tank.Properties.ShellSpeed * 2f, Radius = 1500f };
                 Vector2 sending = MathUtils.RotatedBy(Vector2.UnitY, MathF.PI + -tank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-80, 80)));
-                new Shell(sending * 25f + tank.Position, sending * tank.Properties.ShellSpeed, ShellID.Rocket, tank, 0, homing, true);
+                var s = Shell.Create(sending * 25f + tank.Position, sending * tank.Properties.ShellSpeed, ShellID.Rocket, tank, 0, true);
+                s.Properties.Homing = homing;
             }
         }
 
@@ -34,7 +29,8 @@ if (Client.ClientRandom.Next(0, 20) <= Stacks - 1)
             {
                 Shell.HomingProperties homing = new() { HeatSeeks = true, Cooldown = 0, Power = tank.Properties.ShellSpeed * 0.1f, Speed = tank.Properties.ShellSpeed * 2f, Radius = 1500f };
                 Vector2 sending = MathUtils.RotatedBy(Vector2.UnitY, MathF.PI + -tank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-80, 80)));
-                new Shell(sending * 25f + tank.Position, sending * tank.Properties.ShellSpeed, ShellID.Rocket, tank, 0, homing, true);
+                var s = Shell.Create(sending * 25f + tank.Position, sending * tank.Properties.ShellSpeed, ShellID.Rocket, tank, 0, true);
+                s.Properties.Homing = homing;
             }
         }
 

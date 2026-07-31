@@ -12,14 +12,14 @@ using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.GameContent.Systems.TankSystem.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Graphics;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Utilities;
 using static CobaltsArmada.Script.Tanks.Class_T.DroneParameters;
 using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
+using TanksRebirth.GameContent.Systems.LevelSystem;
 
 namespace CobaltsArmada.Script.Objects.hazards
 {

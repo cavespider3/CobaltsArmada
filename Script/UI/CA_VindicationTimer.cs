@@ -1,95 +1,104 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TanksRebirth.Internals.Common.Utilities;
 using FontStashSharp;
 using TanksRebirth;
 using TanksRebirth.GameContent;
-using TanksRebirth.GameContent.Systems;
-using MeltySynth;
-using System.Reflection;
-using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Globals;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 
-namespace CobaltsArmada
+// you'd really need to setup your namespaces properly.
+// CobaltsArmada.Script.UI
+namespace CobaltsArmada;
+
+/// <summary>
+/// Cause we need one
+/// </summary>
+
+// Parameters and variables are always camelCase
+// Methods, classes, and properties are all PascalCase
+// public + static fields are typically PascalCase
+// const fields are either PascalCase or SCREAMING_SNAKE_CASE
+// public instance fields can be either camelCase or PascalCase
+// 
+public class VindicationTimer(AITank owner, float startTime = 140)
 {
-    /// <summary>
-    /// Cause we need one
-    /// </summary>
-    public class VindicationTimer
+    float _isRising;
+    float _animUp;
+
+    public AITank? Owner = owner;
+
+    public float TimeLeft = startTime * 60f;
+    public float BossHPMax;
+
+    public string TimerText = string.Empty;
+
+    public void Update()
     {
-        public float TimeLeft;
-        
-        public float BossHPMax;
-        public string TimerText="";
-        
-        public AITank? Owner;
+        if (Owner is null) return;
+        if (_animUp == 1f) TimeLeft -= RuntimeData.DeltaTime;
+        // use conditional to save a number of cpu cycles
+        if (TimeLeft < 0f) TimeLeft = 0f;
 
-        private float Anim_Rising;
-        private float Anim_Up;
-        public VindicationTimer(AITank owner,float StartTime=140)
+        float realTime = TimeLeft / 60f;
+
+        int minutes = (int)(realTime / 60f);
+        int seconds = (int)(realTime % 60f);
+
+        // string formatting! it's magical
+        // CS3 response: this code is old as dirt. 
+        TimerText = $"{minutes:D2}:{seconds:D2}";
+
+        if (realTime > 0f) return;
+
+        var tanks = GameHandler.AllTanks;
+        for (int i = 0; i < tanks.Length; i++)
         {
-            Owner = owner;
-            TimeLeft = StartTime*60f;
-        }
+            if (tanks[i] is null || tanks[i] is not PlayerTank plr) continue;
+            if (plr is null || plr.IsDestroyed) continue;
 
-        public void Update()
+            //Shell.Create(plr.Position, Vector2.Zero, 0, Owner);
+        }
+    }
+    // Inverse Lerp is in MathUtils. It's not necessary here
+
+    // completely unused parameters: Vector2 scale, Anchor aligning, Color emptyColor, Color fillColor
+    public void Render(SpriteBatch sb, Vector2 position)
+    {
+        float realTime = TimeLeft / 60f;
+
+        if (CampaignGlobals.InMission)
         {
-            if (Owner is null) return;
-            if (Anim_Up == 1f)
-                TimeLeft -= RuntimeData.DeltaTime;
-            TimeLeft = MathF.Max(0f, TimeLeft);
-            float Realtime = TimeLeft / 60f;
-            TimerText = string.Format("{0:00}",Math.Floor(Realtime / 60f))+":"+ string.Format("{0:00}", Math.Floor(Realtime) % 60);
-            if (Realtime <= 0f)
-            {
-                    ref Tank[] tanks = ref GameHandler.AllTanks;
-                    for (int i = 0; i < tanks.Length; i++)
-                    {
-
-                        if (tanks[i] is null || tanks[i] is not PlayerTank) continue;
-
-
-                        var plyr = tanks[i] as PlayerTank;
-                        if (plyr is null || plyr.IsDestroyed) continue;
-                        new Shell(plyr.Position, Vector2.Zero,0, Owner);
-                    }
-               
-            }
-
+            _isRising += RuntimeData.DeltaTime / 60f;
+            _isRising = MathHelper.Clamp(_isRising, 0f, 1f);
         }
-        public static float Invlerp(float a,float b, float v)
-        {
-            return Math.Clamp((v - a) / (b - a),0,1);
-        }
-        public void Render(SpriteBatch sb, Vector2 position, Vector2 scale, Anchor aligning, Color emptyColor, Color fillColor)
-        {
-            float Realtime = TimeLeft / 60f;
+        _animUp += (CampaignGlobals.InMission && Owner is not null && !Owner.IsDestroyed ? 0.025f : -0.025f) * RuntimeData.DeltaTime;
+        _animUp = MathHelper.Clamp(_animUp, 0f, 1f);
 
-            if (CampaignGlobals.InMission)
-            {
-                Anim_Rising += RuntimeData.DeltaTime / 60f;
-                Anim_Rising = MathHelper.Clamp(Anim_Rising, 0f, 1f);
-            }
-            Anim_Up += (CampaignGlobals.InMission && Owner is not null && !Owner.IsDestroyed ? 0.025f:-0.025f) * RuntimeData.DeltaTime;
-            Anim_Up = MathHelper.Clamp(Anim_Up, 0f, 1f);
-            Vector2 finalpos = position + Vector2.UnitY * 120f*Easings.InBack(1f-Anim_Up);
-            
-            TankGame.SpriteRenderer.DrawString(FontGlobals.RebirthFont, TimerText, finalpos + (Vector2.UnitY * 20).ToResolution(), Color.Lerp(Color.White, Color.Red,Invlerp(0.7f,1,MathF.Abs(MathF.Floor(Realtime % 1f) - (Realtime % 1f)) )), new Vector2(2f+0.5f* Invlerp(0.7f, 1, MathF.Abs(MathF.Floor(Realtime % 1f) - (Realtime % 1f))) ).ToResolution(), 0f, FontGlobals.RebirthFont.MeasureString(TimerText) / 2f, 0f);
-           
+        var finalPos = position + Vector2.UnitY * 120f * Easings.InBack(1f - _animUp);
 
-            //sb.Draw(TextureGlobals.Pixels[Color.White], finalpos, null, emptyColor, 0f, GameUtils.GetAnchor(aligning, TextureGlobals.Pixels[Color.White].Size()), new Vector2(scale.X, scale.Y), default, 0f);
+        // You typically want to split weirdly complicated things into their own readable variables
+        // comments can help too, but variables are better because you can physically see what the code is doing
+        // instead of doing a ballpark guess.
 
-            //sb.Draw(TextureGlobals.Pixels[Color.White], finalpos - new Vector2((scale.X / 2f) - (scale.X / 2f) * (Hp_Ticked / BossHPMax * Easings.InExpo(Anim_Rising)) ,0), null, Color.White, 0f, GameUtils.GetAnchor(aligning, TextureGlobals.Pixels[Color.White].Size()), new Vector2(scale.X * (Hp_Ticked / BossHPMax * Easings.InExpo(Anim_Rising)), scale.Y), default, 0f);
+        // fractional second
+        float timeFraction = realTime % 1f;
 
-            //sb.Draw(TextureGlobals.Pixels[Color.White], finalpos - new Vector2((scale.X / 2f) - (scale.X / 2f) * (BossHP / BossHPMax * Easings.InExpo(Anim_Rising)), 0), null, fillColor, 0f, GameUtils.GetAnchor(aligning, TextureGlobals.Pixels[Color.White].Size()), new Vector2(scale.X * (BossHP / BossHPMax * Easings.InExpo(Anim_Rising)), scale.Y), default, 0f);
-        }
+        // pulse amount
+        float pulse = MathUtils.InverseLerp(0.7f, 1f, timeFraction);
+
+        sb.DrawString(FontGlobals.RebirthFont, TimerText,
+            finalPos + (Vector2.UnitY * 20).ToResolution(),
+
+            Color.Lerp(Color.White, Color.Red, pulse),
+            new Vector2(2f + (0.5f * pulse)).ToResolution(),
+            0f,
+
+            FontGlobals.RebirthFont.MeasureString(TimerText) / 2f, 0f);
+
+        //sb.Draw(TextureGlobals.Pixels[Color.White], finalPos, null, emptyColor, 0f, GameUtils.GetAnchor(aligning, TextureGlobals.Pixels[Color.White].Size()), new Vector2(scale.X, scale.Y), default, 0f);
+        //sb.Draw(TextureGlobals.Pixels[Color.White], finalPos - new Vector2((scale.X / 2f) - (scale.X / 2f) * (Hp_Ticked / BossHPMax * Easings.InExpo(_isRising)) ,0), null, Color.White, 0f, GameUtils.GetAnchor(aligning, TextureGlobals.Pixels[Color.White].Size()), new Vector2(scale.X * (Hp_Ticked / BossHPMax * Easings.InExpo(_isRising)), scale.Y), default, 0f);
+        //sb.Draw(TextureGlobals.Pixels[Color.White], finalPos - new Vector2((scale.X / 2f) - (scale.X / 2f) * (BossHP / BossHPMax * Easings.InExpo(_isRising)), 0), null, fillColor, 0f, GameUtils.GetAnchor(aligning, TextureGlobals.Pixels[Color.White].Size()), new Vector2(scale.X * (BossHP / BossHPMax * Easings.InExpo(_isRising)), scale.Y), default, 0f);
     }
 }

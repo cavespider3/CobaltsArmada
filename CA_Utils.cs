@@ -11,14 +11,15 @@ using TanksRebirth;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Net;
-using TanksRebirth.GameContent.Systems.TankSystem;
+
 using TanksRebirth.Graphics;
 using tainicom.Aether.Physics2D.Dynamics;
 using TanksRebirth.GameContent.Globals.Assets;
 using TanksRebirth.GameContent.Systems.ParticleSystem;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Framework.Audio;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 
 
 namespace CobaltsArmada
@@ -70,7 +71,7 @@ namespace CobaltsArmada
 
         public static bool UnobstructedRaycast(Vector2 start, Vector2 end, Func<Vector2, bool> interception)
         {
-            int bits = (int)Math.Ceiling(start.Distance(end) / 8f);
+            int bits = (int)Math.Ceiling(start.DistanceTo(end) / 8f);
             for(int i = 0; i < bits; i++) {
                 Vector2 path = Vector2.Lerp(start, end, (float)i / bits);
                 if (interception(path)) return false;

@@ -1,14 +1,16 @@
-﻿using CobaltsArmada.Hooks;
+﻿using CobaltsArmada.AI;
+using CobaltsArmada.Hooks;
 using CobaltsArmada.Objects.projectiles.futuristic;
 using CobaltsArmada.Script.Objects.hazards;
 using CobaltsArmada.Script.Objects.items;
 using CobaltsArmada.Script.Tanks;
 using CobaltsArmada.Script.Tanks.Class_T;
-using CobaltsArmada.Script.UI;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Steamworks;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using tainicom.Aether.Physics2D.Dynamics;
 using TanksRebirth;
@@ -19,11 +21,11 @@ using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.RebirthUtils;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.CommandsSystem;
 using TanksRebirth.GameContent.Systems.Coordinates;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.GameContent.Systems.TankSystem.AI;
+using TanksRebirth.GameContent.Systems.LevelSystem;
+using TanksRebirth.GameContent.Tanks;
+using TanksRebirth.GameContent.Tanks.AI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.Graphics;
@@ -35,6 +37,7 @@ using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
 using static CobaltsArmada.Script.Tanks.Class_T.DroneParameters;
+using static TanksRebirth.GameContent.RebirthUtils.DebugManager;
 using static TanksRebirth.GameContent.UI.LevelEditor.LevelEditorUI;
 
 namespace CobaltsArmada;
@@ -109,6 +112,8 @@ public class CA_Main : TanksMod {
     public const string M_MULT = "mitosis_army";
     public const string M_IDOL = "no_forget";
     public const string M_HARDER = "difficulty";
+    public const string M_GHOST = "souls";
+    public const string M_RAILWAY = "train_tanks";
 
     public const string M_BROKENFACTORY = "scrambled";
 
@@ -121,8 +126,20 @@ public class CA_Main : TanksMod {
     public const string M_INFINITE = "endless_mode";
     public const string M_RAINRISK = "roguelike";
 
-    public static int Modifiers_currentlyactive;
+    // affects Armada tanks
+    public const string M_LEGACY = "theyre_old";
 
+    #region Achivements (This mod has em)
+    public const bool DEBUG_UNLOCKALL = true;
+    /// <summary>
+    /// Unlock conditional for t
+    /// </summary>
+    //I'll add this later.
+
+
+    #endregion
+
+    public static int Modifiers_currentlyactive;
 
     public static Model? Neo_Stationary;
     public static Model? Neo_Mobile;
@@ -165,6 +182,7 @@ public class CA_Main : TanksMod {
     /// A list of tanks affected by the nightshade buff
     /// </summary>
     public static List<Tank> PoisonedTanks = [];
+
 
     //It's probably overkill and poor coding, but if it works, then it works!
     public static int[] FutureSpawns = Array.Empty<int>();
@@ -218,6 +236,7 @@ public class CA_Main : TanksMod {
     public static int Allium => ModRegistry.GetSingleton<CA_X4_Allium>().Type;
 
     public static int Lily => ModRegistry.GetSingleton<CA_X5_LilyValley>().Type;
+
 
     #endregion
     #region BossTanks
@@ -370,8 +389,8 @@ public class CA_Main : TanksMod {
     //The amplified cost required to spawn the enemy with the nightshade buff
     public const float NightShadeEliteCostMultiplier = 16f;
     //The amplified cost required to spawn the enemy with armour
-    public const float ArmouredEliteCostMultiplier = 16f;
-    //The amplified cost required to spawn the enemy with armour
+    public const float ArmouredEliteCostMultiplier = 8f;
+    //The amplified cost required to spawn the enemy with a drone
     public const float DroneEliteCostMultiplier = 16f;
 
 
@@ -810,8 +829,8 @@ public class CA_Main : TanksMod {
                 }
             if (tank.AiTankType == ModRegistry.GetSingleton<CA_X3_ForgetMeNot>().Type)
             {
-                tank.Properties.Armor = new TankArmor(tank, 1);
-                tank.Properties.Armor.HideArmor = true;
+                tank.Extras.Armor = new TankArmor(tank, 1);
+                tank.Extras.Armor.HideArmor = true;
             }
         }
        
@@ -840,6 +859,12 @@ public class CA_Main : TanksMod {
 
         //There was a risk of rain
         Modifiers.Map.Add(M_RAINRISK, false);
+
+        //Boo
+        Modifiers.Map.Add(M_GHOST, false);
+        
+        //I like trains
+        Modifiers.Map.Add(M_RAILWAY, false);
 
         Neo_Remote = ImportAsset<Model>("assets/models/tank_radio");
         Neo_Stationary = ImportAsset<Model>("assets/models/tank_static");
@@ -888,11 +913,13 @@ public class CA_Main : TanksMod {
         GameHandler.OnPostRender += GameHandler_OnPostRender;
         GameHandler.OnPostUpdate += GameHandler_OnPostUpdate;
 
+
         MainMenuUI.OnMenuOpen += Open;
         MainMenuUI.OnMenuClose += MainMenu_OnMenuClose;
         MainMenuUI.OnCampaignSelected += MainMenuUI_OnCampaignSelected;
 
         Campaign.OnPreLoadTank += Campaign_OnPreLoadTank;
+        
         Campaign.OnMissionLoad += Campaign_OnMissionLoad;
 
         CampaignGlobals.OnMissionStart += GameProperties_OnMissionStart;
@@ -1105,10 +1132,65 @@ public class CA_Main : TanksMod {
     }
    
     private void Tank_OnPostUpdate(Tank tank)
-    { 
-        if (CampaignGlobals.InMission && Modifiers.Map[M_RAINRISK]) ProcItem(tank, (item) => item.OnTankUpdate(ref tank));
+    {
+        if (!CampaignGlobals.InMission) return;
+        if (Modifiers.Map[M_RAINRISK]) ProcItem(tank, (item) => item.OnTankUpdate(ref tank));
 
-       
+        if (tank is AITank ai && ai.TankAI is CentipedeAISystem centipede)
+        {
+
+            if (!centipede.IsHeadSegment || (centipede.SegmentID != centipede.GetCentipedeHead() && centipede.IsHeadSegment && centipede.StupidTrain))
+            {
+                if (centipede.StupidTrain)
+                {
+
+                    if (centipede.CentipedeHead is not null && centipede.CentipedeHead.TankAI is CentipedeAISystem centipede2)
+                    {
+                        if (centipede2.SegmentPositionHistory.Count != 0)
+                        {
+                            if (centipede2.SegmentPositionHistory.Count > centipede._segmentdelay * 1 * centipede.HISTORY_DELAY)
+                            {
+                                Vector4 vector4 = centipede2.SegmentPositionHistory[centipede._segmentdelay * 1 * centipede.HISTORY_DELAY];
+                                ai.Position = new Vector2(vector4.X, vector4.Z);
+                                ai.ChassisRotation = vector4.W;
+                            }
+                            else
+                            {
+                                Vector4 vector4 = centipede.SegmentPositionHistory.Last();
+                                ai.Position = new Vector2(vector4.X, vector4.Z);
+                                ai.ChassisRotation = vector4.W;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    
+                    if (CentipedeAISystem.CentipedeGroups[centipede.GroupID][centipede.GetCentipedeHead()] is not null && CentipedeAISystem.CentipedeGroups[centipede.GroupID][centipede.GetCentipedeHead()].TankAI is CentipedeAISystem centipede2)
+                    {
+                   
+                        if (centipede2.SegmentPositionHistory.Count != 0)
+                        {
+                            if (centipede2.SegmentPositionHistory.Count > centipede._segmentdelay * (centipede.SegmentID - centipede.GetCentipedeHead()) * centipede.HISTORY_DELAY)
+                            {
+                                Vector4 vector4 = centipede2.SegmentPositionHistory[centipede._segmentdelay * (centipede.SegmentID - centipede.GetCentipedeHead()) * centipede.HISTORY_DELAY];
+                                ai.Position = new Vector2(vector4.X, vector4.Z);
+                                ai.ChassisRotation = vector4.W;
+                            }
+                            else
+                            {
+                                Vector4 vector4 = centipede2.SegmentPositionHistory.Last();
+                                ai.Position = new Vector2(vector4.X, vector4.Z);
+                                ai.ChassisRotation = vector4.W;
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+        }
     }
 
     private void Tank_PostApplyDefaults(Tank tank, TankProperties properties)
@@ -1119,6 +1201,10 @@ public class CA_Main : TanksMod {
     private void AITank_OnDamage(Tank victim, bool destroy, ITankHurtContext context)
     {
         if (!destroy) return;
+        if (Modifiers.Map[M_GHOST] && victim is AITank && !CA_Soul.AllSouls.Any((CA_Soul x) => { return x is not null && x.HauntingTarget == victim; }))
+        {
+            new CA_Soul_Mimic(null,victim);
+        }
         if (Modifiers.Map[M_LAYERS] && victim is AITank tank && tank.AiTankType != TankID.Brown)
         {
             var t = new AITank(tank.AiTankType - 1);
@@ -1129,55 +1215,56 @@ public class CA_Main : TanksMod {
             int I = tank.AITankId;
             tank.Remove(true);
             t.ReassignId(I);
-
         }
-        
-        //Stuff for death messages
-        if (CampaignGlobals.InMission)
-        {
+       
+
+        /*///Stuff for death messages
+        ///Not needed
+        //if (CampaignGlobals.InMission)
+        //{
 
 
-            var A = victim is PlayerTank plyer ? "Player " + (plyer.PlayerId + 1).ToString() : victim is AITank aitank ? TankID.Collection.GetKey(aitank.AiTankType) + " Tank" : null;
-            var B = context.Source is PlayerTank plyer2 ? "Player " + (plyer2.PlayerId + 1).ToString() : context.Source is AITank aitank2 ? TankID.Collection.GetKey(aitank2.AiTankType) + " Tank" : null;
-            bool Suicide = A is not null && B is not null && A == B;
-            string message;
-            if (context is TankHurtContextShell shelldeath)
-            {
+        //    var A = victim is PlayerTank plyer ? "Player " + (plyer.PlayerId + 1).ToString() : victim is AITank aitank ? TankID.Collection.GetKey(aitank.AiTankType) + " Tank" : null;
+        //    var B = context.Source is PlayerTank plyer2 ? "Player " + (plyer2.PlayerId + 1).ToString() : context.Source is AITank aitank2 ? TankID.Collection.GetKey(aitank2.AiTankType) + " Tank" : null;
+        //    bool Suicide = A is not null && B is not null && A == B;
+        //    string message;
+        //    if (context is TankHurtContextShell shelldeath)
+        //    {
 
-                message = B is not null ? Suicide ? $"{A} shot themselves." : $"{A} was shot by {B}." : $"{A} was shot.";
+        //        message = B is not null ? Suicide ? $"{A} shot themselves." : $"{A} was shot by {B}." : $"{A} was shot.";
 
-            }
-            else if (context is TankHurtContextExplosion bombdeath)
-            {
-                message = B is not null ? Suicide ? $"{A} blew themselves up." : $"{A} was blown by {B}." : $"{A} was blown up.";
-            }
-            else //if(context is TankHurtContextOther otherdeath)
-            {
+        //    }
+        //    else if (context is TankHurtContextExplosion bombdeath)
+        //    {
+        //        message = B is not null ? Suicide ? $"{A} blew themselves up." : $"{A} was blown by {B}." : $"{A} was blown up.";
+        //    }
+        //    else //if(context is TankHurtContextOther otherdeath)
+        //    {
 
-                message = B is not null ? Suicide ? $"{A} killed themselves." : $"{A} died from something related to {B}." : $"{A} died.";
-            }
-            ChatSystem.SendMessage(message, (context.Source is not null ? context.Source : victim).Properties.DestructionColor);
+        //        message = B is not null ? Suicide ? $"{A} killed themselves." : $"{A} died from something related to {B}." : $"{A} died.";
+        //    }
+        //    ChatSystem.SendMessage(message, (context.Source is not null ? context.Source : victim).Properties.DestructionColor);
 
-            if (Modifiers.Map[M_RAINRISK] && victim is AITank)
-            {
+        //    if (Modifiers.Map[M_RAINRISK] && victim is AITank)
+        //    {
 
-                if (Client.ClientRandom.Next(0, 20) == 1)
-                {
-                    new DroppedRainItem(Client.ClientRandom.Next(1, RainItem.ItemID.Collection.Count), victim.Position3D + Vector3.UnitY * 16f, null);
-                }
-                else if (EnemyRainRiskInventory.Any(x => x.Key == ((AITank)victim).AITankId) && Client.ClientRandom.Next(0, 5) == 1)
-                {
-                    new DroppedRainItem(EnemyRainRiskInventory[((AITank)victim).AITankId][Client.ClientRandom.Next(0, EnemyRainRiskInventory[((AITank)victim).AITankId].Count)].Type, victim.Position3D + Vector3.UnitY * 16f, null);
-                }
+        //        if (Client.ClientRandom.Next(0, 20) == 1)
+        //        {
+        //            new DroppedRainItem(Client.ClientRandom.Next(1, RainItem.ItemID.Collection.Count), victim.Position3D + Vector3.UnitY * 16f, null);
+        //        }
+        //        else if (EnemyRainRiskInventory.Any(x => x.Key == ((AITank)victim).AITankId) && Client.ClientRandom.Next(0, 5) == 1)
+        //        {
+        //            new DroppedRainItem(EnemyRainRiskInventory[((AITank)victim).AITankId][Client.ClientRandom.Next(0, EnemyRainRiskInventory[((AITank)victim).AITankId].Count)].Type, victim.Position3D + Vector3.UnitY * 16f, null);
+        //        }
                 
-                if (context.Source is not null)
-                {
-                    var Own = context.Source!;
-                    ProcItem(Own, (item) => item.OnTankDestroy(ref Own, ref victim));
-                }
-            }
+        //        if (context.Source is not null)
+        //        {
+        //            var Own = context.Source!;
+        //            ProcItem(Own, (item) => item.OnTankDestroy(ref Own, ref victim));
+        //        }
+        //    }
 
-        }
+        //}/*/
         if (Modifiers.Map[M_RAINRISK] && victim is AITank ai)
         {
             EnemyRainRiskInventory.Remove(ai.AITankId);
@@ -1215,7 +1302,7 @@ public class CA_Main : TanksMod {
         AITank ai = (AITank)shell.Owner;
 
         if ((ai.AiTankType == SunFlower && shell.Type == ShellID.Rocket))
-            new Mine(shell.Owner, shell.Position - new Vector2(0f, 10f).RotatedBy(shell.Rotation), 900f, 0.1f);
+            Mine.Create(shell.Owner, shell.Position - new Vector2(0f, 10f).RotatedBy(shell.Rotation), 900f, 0.1f);
     }
 
     #endregion
@@ -1300,7 +1387,7 @@ public class CA_Main : TanksMod {
 
     #region Armada Hooks
 
-    private void CA_DroneLicenseManager_OnApplyLicense(TanksRebirth.GameContent.Systems.AI.AITank tank, ref DroneParameters parameters)
+    private void CA_DroneLicenseManager_OnApplyLicense(TanksRebirth.GameContent.Tanks.AI.AITank tank, ref DroneParameters parameters)
     {
         if (tank.AiTankType == SunFlower)
         {
@@ -1333,6 +1420,9 @@ public class CA_Main : TanksMod {
             pu?.Remove();
         foreach (var pu in CA_Blackhole.AllBlackholes)
             pu?.Remove();
+        foreach (var pu in CA_Soul.AllSouls)
+            pu?.Remove();
+        CentipedeAISystem.CentipedeGroups = new AITank[GameHandler.MAX_AI_TANKS][];
 
 
         foreach (var item in CA_Popup.AllPopups)
@@ -1344,15 +1434,32 @@ public class CA_Main : TanksMod {
             item?.Remove();
         }
 
-
         //make sure there isn't anything in the list
         foreach (var pu in CA_Drone.DroneCollisions.BodyList)
             if (pu is Body body) CA_Drone.DroneCollisions.Remove(body);
 
     }
 
+    private void Prepare_Centipedes()
+    {
+        // For handling Centipede Tanks
+        Tank[] tanks = GameHandler.AllTanks;
+        foreach (Tank _template in tanks)
+        {
+            if (_template is AITank template && !template.IsDestroyed)
+            {
+                if (template.TankAI is CentipedeAISystem centipede && !centipede.IsLoaded)
+                {
+                    centipede.ConstructCentipede(7,false);
+                }
+            }
+        }
+    }
+
     private void GameProperties_OnMissionStart()
     {
+      
+
         if (LevelEditorUI.IsActive || LevelEditorUI.IsTestingLevel)
         {
             if (LevelEditorUI.IsTestingLevel && Modifiers.Map[M_ARMADA])
@@ -1377,8 +1484,10 @@ public class CA_Main : TanksMod {
 
             }
             GiveDrone();
+            Prepare_Centipedes();
             return;
         }
+
 
         if (Modifiers.Map[M_MULT])
         {
@@ -1427,7 +1536,7 @@ public class CA_Main : TanksMod {
 
         }
         GiveDrone();
-
+        Prepare_Centipedes();
 
         if (Modifiers.Map[M_BROKENFACTORY])
         {
@@ -1465,7 +1574,7 @@ public class CA_Main : TanksMod {
                 }
             }
         }
-        
+
         if (Modifiers.Map[M_RAINRISK])
         {
             Console.WriteLine("--- Enemy RainRisk Inventory ---");
@@ -1553,6 +1662,9 @@ public class CA_Main : TanksMod {
             foreach (var fp in CA_Blackhole.AllBlackholes)
                 fp?.Update();
 
+            foreach (var fp in CA_Soul.AllSouls)
+                fp?.Update();
+
             ref Tank[] tanks = ref GameHandler.AllTanks;
             for (int i = 0; i < tanks.Length; i++)
             {
@@ -1617,8 +1729,8 @@ public class CA_Main : TanksMod {
         foreach (var fp in CA_Drone.AllDrones)
             fp?.Render();
 
-        boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
-        MissionIsDestroyedline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
+        //boss?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
+       // MissionIsDestroyedline?.Render(TankGame.SpriteRenderer, new(WindowUtils.WindowWidth - WindowUtils.WindowWidth / 4, WindowUtils.WindowHeight - 60.ToResolutionY()), new Vector2(300, 20).ToResolution(), Anchor.Center, Color.Black, Color.Red);
     }
 
 
@@ -1641,6 +1753,20 @@ public class CA_Main : TanksMod {
             }
         }
 
+        if (Modifiers.Map[M_RAILWAY])
+        {
+            foreach (var t2 in tanks)
+            {
+                if (t2 is AITank template)
+                {
+                    if (template.Properties.Stationary) continue;
+                    template.TankAI = new CentipedeAISystem(template,null);
+                }
+            }
+           
+        }
+           
+
         if (!Modifiers.Map[M_ARMADA]) return;
 
         if (IntermissionHandler.LastResult != MissionEndContext.Lose)
@@ -1653,7 +1779,7 @@ public class CA_Main : TanksMod {
         }
     }
 
-    private void CampaignGlobals_OnMissionEnd(int delay, MissionEndContext context, bool result1up)
+    private void CampaignGlobals_OnMissionEnd(int delay, MissionEndContext context)
     {
         if (LevelEditorUI.IsActive) return;
         if (MainMenuUI.IsActive) return;
@@ -1694,7 +1820,6 @@ public class CA_Main : TanksMod {
             EndlessModeActive = Modifiers.Map[M_INFINITE];
         }
        
-
         if (!Modifiers.Map[M_ARMADA]) return;
         if (context == MissionEndContext.Win)
         {
@@ -1727,44 +1852,40 @@ public class CA_Main : TanksMod {
         {
             return;
         }
+        //We need to keep track of the TankTemplate tanks that spawn
 
 
-        if (Modifiers.Map[M_LAYERS] && !template.IsPlayer)
+        if (Modifiers.Map[M_ARMADA])
         {
-            var TrackedSpawnPoints = Campaign.CurrentTrackedSpawns;
-            var P = template.Position;
-            var TSP = TrackedSpawnPoints[Array.IndexOf(TrackedSpawnPoints, TrackedSpawnPoints.First(pos => pos.Position == P))].Alive = true;
-        }
-
-        if (!Modifiers.Map[M_ARMADA]) return;
-        //Set up the new swap out process
-        if (Spawns.Length == 0)
-        {
-            Spawns = new int[TankID.Collection.Keys.Length];
-            PreSpawns = new int[TankID.Collection.Keys.Length];
-            FutureSpawns = new int[TankID.Collection.Keys.Length];
-            if (CampaignGlobals.LoadedCampaign.CurrentMissionId == MainMenuUI.MissionCheckpoint)
+            //Set up the new swap out process
+            if (Spawns.Length == 0)
             {
-                // ChatSystem.SendMessage("New Campaign!", Color.Pink);
-                for (int i = 0; i < CampaignGlobals.LoadedCampaign.CurrentMissionId; i++)
+                Spawns = new int[TankID.Collection.Keys.Length];
+                PreSpawns = new int[TankID.Collection.Keys.Length];
+                FutureSpawns = new int[TankID.Collection.Keys.Length];
+                if (CampaignGlobals.LoadedCampaign.CurrentMissionId == MainMenuUI.MissionCheckpoint)
                 {
-                    foreach (TankTemplate _template in CampaignGlobals.LoadedCampaign.CachedMissions[i].Tanks)
+                    // ChatSystem.SendMessage("New Campaign!", Color.Pink);
+                    for (int i = 0; i < CampaignGlobals.LoadedCampaign.CurrentMissionId; i++)
                     {
-                        if (_template.IsPlayer) continue;
-                        PreSpawns[_template.AiTier] += 1;
-                        Spawns[_template.AiTier] += 1;
-                        FutureSpawns[_template.AiTier] += 1;
+                        foreach (TankTemplate _template in CampaignGlobals.LoadedCampaign.CachedMissions[i].Tanks)
+                        {
+                            if (_template.IsPlayer) continue;
+                            PreSpawns[_template.AiTier] += 1;
+                            Spawns[_template.AiTier] += 1;
+                            FutureSpawns[_template.AiTier] += 1;
+                        }
                     }
                 }
             }
-        }
 
-        if (template.IsPlayer) return;
-        TankGame.ClientLog.Write("Invading campaign...", LogType.Info);
-        //New system, anytime a specific tank shows up, add to a counter. When the counter reaches a certain point, replace that tank with a special type
-        //old code that does nothing for now
-        Spawns[template.AiTier] += 1;
-        template.AiTier = FlowerFromBase(template.AiTier);
+            if (template.IsPlayer) return;
+            TankGame.ClientLog.Write("Invading campaign...", LogType.Info);
+            //New system, anytime a specific tank shows up, add to a counter. When the counter reaches a certain point, replace that tank with a special type
+            //old code that does nothing for now
+            Spawns[template.AiTier] += 1;
+            template.AiTier = FlowerFromBase(template.AiTier);
+        }
 
     }
 
@@ -1890,7 +2011,7 @@ public class CA_Main : TanksMod {
     public static void Lay_AbstractMine(Shell origin)
     {
         if (!MainMenuUI.IsActive && !CampaignGlobals.InMission)return;
-        Mine mine = new Mine(origin.Owner, origin.Position - new Vector2(0f, 10f).RotatedBy(origin.Rotation), 400f, 1f);
+        Mine mine = Mine.Create(origin.Owner, origin.Position - new Vector2(0f, 10f).RotatedBy(origin.Rotation), 400f, 1f);
     }
 
     /// <summary>
@@ -1901,19 +2022,16 @@ public class CA_Main : TanksMod {
         if (MainMenuUI.IsActive || !CampaignGlobals.InMission) return;
         if (origin is null||origin.Owner is null) return;
         float angle = 0;
-        float rng_burst = origin.Rotation+ (MathF.PI * 2f / (count*2f));
+        float rng_burst = origin.Rotation + (MathF.PI * 2f / (count * 2f));
         for (int i = 0; i < count; i++)
         {
-         
                 angle =(MathF.PI * 2f / count * i)+ rng_burst;
                 float newAngle = angle;
-                Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0, origin.Properties.HomeProperties, true);
-                Vector2 new2d2 = Vector2.UnitY.RotatedBy(newAngle);
-                Vector2 newPos2 = origin.Position + new Vector2(0f, 14f).RotatedBy(-newAngle);
-                shell2.Position = new Vector2(newPos2.X, newPos2.Y);
-                shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y)* burst_expand;
-                shell2.RicochetsRemaining = burst_bounces;
-            }
+            Shell shell2 = Shell.Create(origin.Position + new Vector2(0f, 5f).RotatedBy(-newAngle), Vector2.UnitY.RotatedBy(newAngle) * burst_expand, newType, origin.Owner, burst_bounces);
+            shell2.Properties.Homing = origin.Owner.Properties.ShellHoming;
+            shell2.VolleyId = origin.VolleyId;
+
+        }
         }
 
     public static void Fire_AbstractShell_Tank(Tank origin, int count,ITankHurtContext player_kill, int newType = 1, int burst_bounces=0, float burst_expand = 3.4f)
@@ -1928,12 +2046,9 @@ public class CA_Main : TanksMod {
 
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
-            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin , 0, origin.Properties.ShellHoming, false);
-            Vector2 new2d2 = Vector2.UnitY.RotatedBy(newAngle);
-            Vector2 newPos2 = origin.Position + new Vector2(0f, 20f).RotatedBy(-newAngle);
-            shell2.Position = new Vector2(newPos2.X, newPos2.Y);
-            shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y)* burst_expand;
-            shell2.RicochetsRemaining = burst_bounces;
+            Shell shell2 = Shell.Create(origin.Position + new Vector2(0f, 5f).RotatedBy(-newAngle), Vector2.UnitY.RotatedBy(newAngle) * burst_expand,newType,origin,burst_bounces);
+            shell2.Properties.Homing = origin.Properties.ShellHoming;
+            shell2.VolleyId = 2;
         }
     }
     public static void Fire_AbstractShell_Mine(Mine origin, int count, int newType = 1, int burst_bounces = 0, float burst_expand = 3.5f)
@@ -1947,12 +2062,9 @@ public class CA_Main : TanksMod {
 
             angle = (MathF.PI * 2f / count * i) + rng_burst;
             float newAngle = angle;
-            Shell shell2 = new Shell(origin.Position, Vector2.Zero, newType, origin.Owner, 0, new Shell.HomingProperties(), true);
-            Vector2 new2d2 = Vector2.UnitY.RotatedBy(newAngle);
-            Vector2 newPos2 = origin.Position + new Vector2(0f, 25f).RotatedBy(-newAngle);
-            shell2.Position = new Vector2(newPos2.X, newPos2.Y);
-            shell2.Velocity = new Vector2(-new2d2.X, new2d2.Y) * burst_expand;
-            shell2.RicochetsRemaining = burst_bounces;
+            Shell shell2 = Shell.Create(origin.Position + new Vector2(0f, 5f).RotatedBy(-newAngle), Vector2.UnitY.RotatedBy(newAngle) * burst_expand, newType, origin.Owner, burst_bounces);
+            shell2.Properties.Homing = origin.Owner.Properties.ShellHoming;
+            shell2.VolleyId = 3;
         }
     }
 

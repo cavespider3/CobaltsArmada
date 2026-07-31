@@ -1,16 +1,17 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CobaltsArmada.Script.Tanks;
+using CobaltsArmada.Script.Tanks.Class_T;
+using Microsoft.Xna.Framework;
+using TanksRebirth;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.Internals.Common.Framework.Interfaces;
-using TanksRebirth.Localization;
-using CobaltsArmada.Script.Tanks;
-using TanksRebirth.Net;
+using TanksRebirth.GameContent.Tanks;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks.AI.VanillaAI;
 using TanksRebirth.Internals.Common.Utilities;
-using TanksRebirth;
-using CobaltsArmada.Script.Tanks.Class_T;
+using TanksRebirth.Localization;
+using TanksRebirth.Net;
 //Boss AITank
 namespace CobaltsArmada
 {
@@ -29,7 +30,7 @@ namespace CobaltsArmada
 
         public override LocalizedString Description => new()
         {
-            [LangCode.English] = "A boss tank that fires piercing glaves. Summons a drone at 50% health that seldomly places mines."
+            [LangCode.English] = "A boss tank that fires piercing glaives, and occasionally releases a barrage of homing rockets.\n Summons a drone at 50% health that seldomly places mines."
         };
 
         public int Health;
@@ -45,8 +46,8 @@ namespace CobaltsArmada
             Health = (Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 5 : 20) + Server.CurrentClientCount * 5;
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.Properties.Armor = new TankArmor(AITank, Health);
-            AITank.Properties.Armor.HideArmor = true;
+            AITank.Extras.Armor = new TankArmor(AITank, Health);
+            AITank.Extras.Armor.HideArmor = true;
             AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
             AITank.DrawParams.Scaling = Vector3.One * 1.3f;
 
@@ -99,9 +100,9 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (AITank.Properties.Armor is not null)
+            if (AITank.Extras.Armor is not null)
             {
-                if (AITank.Properties.Armor!.HitPoints == (int)MathF.Floor(Health / 2))
+                if (AITank.Extras.Armor!.HitPoints == (int)MathF.Floor(Health / 2))
                 {
                     //Lore :3
                     var Bobbert = new CA_Drone(AITank, AITank.Physics.Position);
@@ -125,14 +126,15 @@ namespace CobaltsArmada
             float speed = 5.8f;
             Shell.HomingProperties homing = new() {HeatSeeks = true, Cooldown = 0, Power = speed * 0.03f, Speed = speed, Radius = 900f };
            // if (CA_Main.modifier_Difficulty <= CA_Main.ModDifficulty.Hard) return true;
-            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team))&& !AITank.IsTooCloseToObstacle && (AITank.TargetTank is Tank target && AITank.SeesTarget || MissileCluster <40))
+            if (!AITank.TanksNearShootAwareness.Any(x => AITank.IsOnSameTeamAs(x.Team)) && (AITank.TargetTank is Tank target && AITank.SeesTarget || MissileCluster <40))
             {
                 if (CA_Main.modifier_Difficulty >= CA_Main.ModDifficulty.Lunatic)
                 {
                     if (MissileCluster < 40 && (int)MissileCluster % 20 == 0)
                     {
                         Vector2 sending = MathUtils.RotatedBy(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-135, 135) ));
-                        new Shell(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 1, homing, true);
+                       var s = Shell.Create(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 1, true);
+                        s.Properties.Homing = homing;
 
                         if (MissileCluster <= 0) MissileCluster = 240;
                     }
@@ -144,7 +146,8 @@ namespace CobaltsArmada
                     if (MissileCluster <= 40 && (int)MissileCluster % 8 == 0)
                     {
                         Vector2 sending = MathUtils.RotatedBy(Vector2.UnitY, -AITank.TurretRotation + MathHelper.ToRadians(Client.ClientRandom.NextFloat(-60, 60) + 180f));
-                        new Shell(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 0, homing, true);
+                        var s = Shell.Create(sending * 25f + AITank.Position, sending * speed, ShellID.Rocket, AITank, 0, true);
+                        s.Properties.Homing = homing;
 
                         if (MissileCluster <= 0) MissileCluster = 240;
                     }

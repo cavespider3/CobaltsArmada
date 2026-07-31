@@ -1,18 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
-using TanksRebirth;
 using TanksRebirth.GameContent;
-using TanksRebirth.GameContent.GameMechanics;
-using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.ModSupport;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.Coordinates;
-using TanksRebirth.GameContent.UI;
-using TanksRebirth.GameContent.UI.LevelEditor;
-using TanksRebirth.Graphics;
-using TanksRebirth.Internals.Common.Utilities;
+using TanksRebirth.GameContent.Tanks.AI;
 using TanksRebirth.Localization;
-using TanksRebirth.Net;
 using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada

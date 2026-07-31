@@ -4,8 +4,8 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Internals.Common.Framework.Interfaces;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -38,8 +38,8 @@ namespace CobaltsArmada
             CA_Main.MissionIsDestroyedline = new VindicationTimer(AITank);
             base.PostApplyDefaults();
             Health = (Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 3 : 15) + Server.CurrentClientCount * 10;
-            AITank.Properties.Armor = new TankArmor(AITank, 1);
-            AITank.Properties.Armor.HideArmor = true;
+            AITank.Extras.Armor = new TankArmor(AITank, 1);
+            AITank.Extras.Armor.HideArmor = true;
             AITank.DrawParamsTank.Model = CA_Main.Neo_Boss;
             AITank.DrawParams.Scaling = Vector3.One* 1.10f;
 
@@ -90,9 +90,9 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (Health > 1 && AITank.Properties.Armor is not null)
+            if (Health > 1 && AITank.Extras.Armor is not null)
             {
-                AITank.Properties.Armor.HitPoints = 1;
+                AITank.Extras.Armor.HitPoints = 1;
                 if (context.Source is AITank && context is not TankHurtContextExplosion) return;
                 Health -= 1;
             }

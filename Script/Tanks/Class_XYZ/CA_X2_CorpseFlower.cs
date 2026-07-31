@@ -5,7 +5,8 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
 using TanksRebirth.Internals.Common.Utilities;
@@ -115,7 +116,7 @@ namespace CobaltsArmada
                         bloat =MathHelper.Clamp(1f-MathF.Max(0f,Vector2.Distance(ai.Position, AITank.Position)-75)/75,0f,1f);
                         if (bloat >= 1)
                         {
-                            AITank.Properties.Armor?.Remove();
+                            AITank.Extras.Armor?.Remove();
                             AITank.Damage(new TankHurtContextOther(AITank, TankHurtContextOther.HurtContext.FromIngame, "SUICIDE"), true, AssociatedColor);
                         }
                         else

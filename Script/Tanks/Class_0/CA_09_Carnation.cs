@@ -5,10 +5,12 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Localization;
 using CobaltsArmada.Script.Tanks;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI.VanillaAI;
+
 
 namespace CobaltsArmada
 {
@@ -70,7 +72,7 @@ namespace CobaltsArmada
 
             properties.Invisible = false;
             properties.Stationary = false;
-            properties.Resistance = ResistanceFlags.All;
+            properties.Resistance = ResistanceFlags.Explosions;
 
             properties.TreadPitch = -0.26f;
             properties.Acceleration = 0.4f;
@@ -116,7 +118,7 @@ namespace CobaltsArmada
         public override void DangerDetected()
         {
             base.DangerDetected();
-            if (AITank.ClosestDanger!.Team != AITank.Team && FearCooldown < 0.1f)
+            if (AITank.TankAI is VanillaAISystem AiSystem &&  AiSystem.ClosestDanger!.Team != AITank.Team && FearCooldown < 0.1f)
             {
                 FearMult = 2.06f * 60f;
                 FearCooldown = 2.6f * 60f;

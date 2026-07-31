@@ -1,25 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Diagnostics.CodeAnalysis;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
-using tainicom.Aether.Physics2D.Dynamics;
+
 using TanksRebirth;
 using TanksRebirth.GameContent;
-using TanksRebirth.GameContent.GameMechanics;
+
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
-using TanksRebirth.GameContent.ModSupport;
-using TanksRebirth.GameContent.RebirthUtils;
+
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.Coordinates;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
 using TanksRebirth.Internals;
-using TanksRebirth.Internals.Common.Framework.Audio;
+
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
 using TanksRebirth.Net;
@@ -27,7 +22,7 @@ using CobaltsArmada.Script.Tanks;
 
 namespace CobaltsArmada
 {
-    public class CA_Z9_Hydrangea: CA_ArmadaTank
+    public class CA_Z9_Hydrangea : CA_ArmadaTank
     {
         public override bool HasSong => false;
         public override LocalizedString Name => new()
@@ -71,10 +66,10 @@ namespace CobaltsArmada
             AITank.Properties.TurningSpeed = 0.09f;
             AITank.Properties.MaximalTurn = MathHelper.ToRadians(21); 
             Health = Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 7 : 31;
-            AITank.Properties.Armor = new TankArmor(AITank,1);
+            AITank.Extras.Armor = new TankArmor(AITank,1);
 
            // CA_Main.boss = new BossBar(AITank, "Hydrangea", "The Unbounded");
-            AITank.Properties.Armor.HideArmor = true;
+            AITank.Extras.Armor.HideArmor = true;
             AITank.Properties.ShootStun = 12;
             AITank.Properties.ShellCooldown = 150;
             AITank.Properties.ShellLimit = 9;
@@ -105,9 +100,9 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if (Health > 1 && AITank.Properties.Armor is not null)
+            if (Health > 1 && AITank.Extras.Armor is not null)
             {
-                AITank.Properties.Armor.HitPoints = 1;
+                AITank.Extras.Armor.HitPoints = 1;
                 if (context.Source is AITank && context is not TankHurtContextExplosion) return;
                 Health -= 1;
             }
@@ -116,14 +111,9 @@ namespace CobaltsArmada
         }
 
 
-        public override void PostUpdate()
+        public override bool CustomAI()
         {
-           
 
-            base.PostUpdate();
-
-        
-            if (LevelEditorUI.IsActive || AITank.IsDestroyed || !GameScene.UpdateAndRender || !CampaignGlobals.InMission) return;
             AttackTimer -= RuntimeData.DeltaTime;
             //if(AITank.SpecialBehaviors[2].Value < 17f&& AIManager.CountAll(x => x.AiTankType == ModContent.GetSingleton<CA_08_Eryngium>().Type) < 1)
             //{
@@ -237,6 +227,7 @@ namespace CobaltsArmada
             //    AttackTimer = Client.ClientRandom.NextFloat(200, 400);
             //    Attack = Client.ClientRandom.Next(0, 1);
             //}
+            return true;
         }
 
     }

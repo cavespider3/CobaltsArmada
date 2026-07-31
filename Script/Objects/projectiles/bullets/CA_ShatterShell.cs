@@ -10,8 +10,8 @@ using static TanksRebirth.GameContent.Shell;
 
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.Internals.Common.Framework.Audio;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 
 
 namespace CobaltsArmada
@@ -42,7 +42,6 @@ namespace CobaltsArmada
         }
         int BurstSize = 4;
         int BurstBounces = 0;
-
         public override void OnDestroy(DestructionContext context, ref bool playSound)
         {
             base.OnDestroy(context, ref playSound);

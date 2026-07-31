@@ -7,18 +7,18 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals.Assets;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.TankSystem;
-using TanksRebirth.GameContent.Systems.TankSystem.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Internals;
 using TanksRebirth.Internals.Common.Utilities;
 using TanksRebirth.Localization;
-using static TanksRebirth.GameContent.Systems.TankSystem.Tank;
+using static TanksRebirth.GameContent.Tanks.Tank;
 
 namespace CobaltsArmada.Script.Objects.items
 {
     /// <summary>
     /// Copies the properties of ANY tank you kill for 5 (+2 per stack) seconds.
+    /// May be unwanted in some cases
     /// </summary>
     public class RainItem_TankMimic : RainItem
     {
@@ -73,7 +73,7 @@ namespace CobaltsArmada.Script.Objects.items
         public override void OnTankDestroy(ref Tank owner, ref Tank victim) {
             //copy anything you kill, this includes your own team...
             if (owner == victim) return; //EXCEPT YOURSELF.
-            if (victim is AITank ai2 && ai2.AiTankType >= CA_Main.Dandelion) return;
+           // if (victim is AITank ai2 && ai2.AiTankType >= CA_Main.Dandelion) return;
                 //for ai, the parameters themselves are unaffected
             
             MimicTimer = 60f * (5f + Stacks * 2f);

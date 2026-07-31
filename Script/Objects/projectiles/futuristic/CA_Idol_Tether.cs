@@ -5,9 +5,9 @@ using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
 using TanksRebirth.GameContent.Systems.ParticleSystem;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.MainMenu;
 using TanksRebirth.Graphics;
@@ -158,7 +158,7 @@ namespace CobaltsArmada.Objects.projectiles.futuristic
             {
                 ChatSystem.SendMessage("YOU'RE COMING WITH ME",Color.Crimson);
                     bindTarget.Properties.Resistance = 0;
-                    bindTarget.Properties.Armor?.Remove();
+                    bindTarget.Extras.Armor?.Remove();
                     bindTarget.Damage(new TankHurtContextOther(null, TankHurtContextOther.HurtContext.FromIngame, "Destiny Bonded"), true, Color.Crimson);
             }else if (bindTarget is not null) bindTarget.Properties.Resistance = 0;
 

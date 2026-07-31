@@ -10,8 +10,8 @@ using TanksRebirth.GameContent.Globals;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
 using TanksRebirth.GameContent.Systems;
-using TanksRebirth.GameContent.Systems.AI;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.GameContent.UI;
 using TanksRebirth.GameContent.UI.LevelEditor;
 using TanksRebirth.Graphics;
@@ -41,7 +41,7 @@ namespace CobaltsArmada
 
         public override LocalizedString Description => new()
         {
-            [LangCode.English] = "A boss tank that inflicts nearby ally tanks with nightshade. Comes with two drones that either bring in backup, or drop nightshade bombs. Has slow natural regeneration, and releases a shockwave when below 50% health."
+            [LangCode.English] = "A boss tank that buff nearby ally tanks with the nightshade status, making them far more aggressive.\n Comes with two drones that bring in backup, and drop nightshade bombs.\n Slowly regenerates its armour over time, and releases a shockwave when below 50% health."
         };
 
         public override string Texture => "assets/textures/tank_nightshade";
@@ -68,8 +68,8 @@ namespace CobaltsArmada
             Health = (Modifiers.Map[Modifiers.RANDOM_ENEMY] ? 3 : 15) + Server.CurrentClientCount * 10;
             //TANK NO BACK DOWN
             base.PostApplyDefaults();
-            AITank.Properties.Armor = new TankArmor(AITank, Health);
-            AITank.Properties.Armor.HideArmor = true;
+            AITank.Extras.Armor = new TankArmor(AITank, Health);
+            AITank.Extras.Armor.HideArmor = true;
             // CA_Main.boss = new BossBar(AITank, "Nightshade", "The Infector");
 
             PoisonShockTimer =
@@ -129,10 +129,10 @@ namespace CobaltsArmada
         }
         public override void TakeDamage(bool destroy, ITankHurtContext context)
         {
-            if(AITank.Properties.Armor is not null)
+            if(AITank.Extras.Armor is not null)
             {
                 RegenTimer = 0;
-                PhaseFlag = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(Health / 2) || PhaseFlag == 1f ? 1f : 0f;
+                PhaseFlag = AITank.Extras.Armor!.HitPoints <= (int)MathF.Floor(Health / 2) || PhaseFlag == 1f ? 1f : 0f;
 
             }
             base.TakeDamage(destroy, context);
@@ -167,10 +167,10 @@ namespace CobaltsArmada
             if (LevelEditorUI.IsActive) return;
             RegenTimer += RuntimeData.DeltaTime;
             // it has regen shield
-            if (RegenTimer > GetValueByDifficulty(60 * 3, 60 * 2, 60 * 1.5, 60 * 1) * (Phase2 ? 0.75f : 1f) &&
-                AITank.Properties.Armor!.HitPoints < Health)
+            if (RegenTimer > GetValueByDifficulty(60 * 3, 60 * 2, 60 * 1.5, 60 * 1) * (Phase2 ? 0.75f : 1f) * (1 + (4 - Server.CurrentClientCount) * 0.2) &&
+                AITank.Extras.Armor!.HitPoints < Health)
             {
-                AITank.Properties.Armor!.HitPoints += 1;
+                AITank.Extras.Armor!.HitPoints += 1;
                 RegenTimer = 0;
             }
 
@@ -260,7 +260,7 @@ namespace CobaltsArmada
             {
                 if(drone is not null && drone.droneOwner == AITank)
                 {
-                    drone.Parameters.ValidRecruits = AITank.Properties.Armor!.HitPoints <= (int)MathF.Floor(Health / 2) || PhaseFlag == 1 ?
+                    drone.Parameters.ValidRecruits = AITank.Extras.Armor!.HitPoints <= (int)MathF.Floor(Health / 2) || PhaseFlag == 1 ?
                         CA_Main.GetValueByDifficulty<int[]>(
                             [TankID.Pink,TankID.Yellow,TankID.Marine,TankID.Violet], //normal phase 2
                             [TankID.Pink, TankID.Yellow, TankID.Marine, TankID.Violet], //hard phase 2

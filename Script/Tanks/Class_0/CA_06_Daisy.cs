@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using TanksRebirth.GameContent;
 using TanksRebirth.GameContent.ID;
 using TanksRebirth.GameContent.ModSupport;
-using TanksRebirth.GameContent.Systems.TankSystem;
+using TanksRebirth.GameContent.Tanks;
 using TanksRebirth.Localization;
 
 namespace CobaltsArmada
@@ -83,7 +83,7 @@ namespace CobaltsArmada
             if (context.Source == AITank) return;
             base.TakeDamage(destroy, context);
             if (!destroy) return;
-            new Mine(AITank, AITank.Position, 50f, 1f);
+            Mine.Create(AITank, AITank.Position, 50f, 1f);
         }
 
         public override void Shoot(Shell shell)

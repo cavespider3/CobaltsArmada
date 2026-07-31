@@ -9,14 +9,20 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using TanksRebirth.GameContent.Systems;
 using TanksRebirth.Graphics;
-using TanksRebirth.GameContent.Systems.TankSystem;
 using TanksRebirth.Enums;
-using TanksRebirth.GameContent.Systems.AI;
+using TanksRebirth.GameContent.Tanks.AI;
+using TanksRebirth.GameContent.Tanks;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
+using TanksRebirth.GameContent.Tanks.AI.VanillaAI;
 
 
 namespace CobaltsArmada
 {
-    public class CA_Shell_Rail : ModShell
+    /// <summary>
+    /// A LoS hazard that connects to several points.
+    /// </summary>
+    public class CA_Laser : ModShell
     {
        
         public override string Texture =>  "assets/textures/tank_lavender";
@@ -142,10 +148,14 @@ namespace CobaltsArmada
             if (shell.Owner is PlayerTank) return;
 
             AITank ai = (AITank)shell.Owner;
-            for (var i = 0; i < ai.ShotPathTankCollPoints.Length; i++)
+            if (ai.TankAI is VanillaAISystem vanilla)
             {
-                CheckCollisions_DeathBeam(shell, ai.ShotPathTankCollPoints[i],unforgiveness,draw);
+                for (var i = 0; i < vanilla.ShotPathTankCollPoints.Length; i++)
+                {
+                    CheckCollisions_DeathBeam(shell, vanilla.ShotPathTankCollPoints[i], unforgiveness, draw);
+                }
             }
+          
             
         }
         
@@ -158,18 +168,20 @@ namespace CobaltsArmada
             float b = MathHelper.Lerp(1, 0, MathF.Max(0f,x-0.5f-offset)/(0.5f+offset));
             return a >= 1f ? Easings.OutCirc(b): Easings.InOutCubic(a);
         }
-        
 
-    public override void PostUpdate()
+
+        public override void PostUpdate()
         {
             if (Shell is null) return;
             base.PostUpdate();
             if (Shell.Owner is null) return;
             if (Shell.Owner is PlayerTank) return;
             AITank ai = (AITank)Shell.Owner;
-            if (ai.ShotPathRicochetPoints.Length<1) return;
-         
-                float Laser_length = Vector2.Distance(Shell.Position, ai.ShotPathRicochetPoints[0]);
+            if (ai.TankAI is VanillaAISystem vanilla)
+            {
+                if (vanilla.ShotPathRicochetPoints.Length < 1) return;
+
+                float Laser_length = Vector2.Distance(Shell.Position, vanilla.ShotPathRicochetPoints[0]);
                 float BEW = Shell.LifeTime / 60 * MathF.PI * 2f;
                 float dur = 1.5f;
 
@@ -179,14 +191,14 @@ namespace CobaltsArmada
                 float reacher = 1.075f;
                 Shell.DrawParams.World = Matrix.CreateScale(scaletimer * laser_Magnify, scaletimer * laser_Magnify, Laser_length / 8f * reacher) * Matrix.CreateFromYawPitchRoll(-Shell.Rotation, 0, 0)
                     * Matrix.CreateTranslation(Shell.Position3D) * Matrix.CreateTranslation(Vector3.Normalize(Shell.Velocity3D) * Laser_length / 2f * reacher);
-                if (scaletimer > 0.2) DoKillcast(Shell, laser_Magnify * 1.25f, scaletimer>=0.95f);
+                if (scaletimer > 0.2) DoKillcast(Shell, laser_Magnify * 1.25f, scaletimer >= 0.95f);
 
                 if (dur * 60f < Shell.LifeTime)
                 {
                     Shell.Remove();
                 }
-            
-        }
 
+            }
+        }
     }
 }
